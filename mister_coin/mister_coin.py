@@ -182,7 +182,13 @@ class MisterCoin:
         m = int(pup.mouth[i])
         cv = rig.character(pose, m, blink, legA, legB, armA)
         k = ease(since/.14)
-        if k < 1 and prev != pose: cv = Image.blend(rig.character(prev, m, blink, legA, legB, armA), cv, k)
+        if k < 1 and prev != pose:
+            pv = rig.character(prev, m, blink, legA, legB, armA)
+            if self.largeur is not None and (prev in P.FULL) != (pose in P.FULL):   # fondu entre pose dessinée et pose animée épaissie/amincie
+                f = self.largeur(t) if pose in P.FULL else 1/self.largeur(t)
+                nw = max(2, int(pv.width*f)); pv2 = pv.resize((nw, pv.height), Image.BICUBIC)
+                pv = Image.new('RGBA', pv.size, 0); pv.paste(pv2, (int(FEET[0]-FEET[0]*f), 0))
+            cv = Image.blend(pv, cv, k)
         F = FEET.copy()
         if mir >= .5: cv = cv.transpose(Image.FLIP_LEFT_RIGHT); F[0] = cv.width-1-F[0]
         S = np.array([cx, fy], float); off = np.array([wx, -hy-bob-jump/z+sit*480])

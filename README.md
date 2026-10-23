@@ -19,10 +19,10 @@ Vidéos courtes (9:16, 1080×1920) de vulgarisation bourse/finance publiées sur
 ## Rendre une vidéo
 
 ```bash
-./render.sh episodes/2026-10-24_krachs_ep2 4 60    # 4 segments en parallèle, 60 i/s
+python3 render.py episodes/2026-10-24_krachs_ep2        # relancer jusqu’à « TERMINÉ » si la durée des commandes est limitée
 ```
 
-Le script installe les polices, convertit la voix, fait le mix, rend les segments en parallèle, les assemble et normalise le son à −14 LUFS. Les fichiers finaux arrivent dans `out/`. Dépendances : `python3`, `numpy`, `scipy`, `pillow`, `pycairo` et `ffmpeg`.
+`render.py` installe les polices, convertit la voix, fait le mix, rend la vidéo par tranches de 120 images (3 en parallèle, reprenable), les assemble et normalise le son à −14 LUFS. Les fichiers finaux arrivent dans `out/`. Dépendances : `python3`, `numpy`, `scipy`, `pillow`, `pycairo` et `ffmpeg`.
 
 ## Flux de travail
 

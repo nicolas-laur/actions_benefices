@@ -17,4 +17,4 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Bulles de BD courtes, accrochées à lui, jamais sur un texte important ; pas de blague sur la question finale.
 
 ## Avant chaque rendu
-Générer des aperçus (`python3 video.py png …`), vérifier une image par scène (texte lisible, mains dans le cadre, bulles accrochées), puis `./render.sh`.
+Générer des aperçus (`python3 video.py png …`), vérifier une image par scène (texte lisible, mains dans le cadre, bulles accrochées), puis `python3 render.py episodes/<dossier>`.

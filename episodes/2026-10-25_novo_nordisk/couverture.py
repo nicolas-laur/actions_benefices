@@ -1,26 +1,29 @@
-"""Couverture Novo Nordisk : salle de contrôle floutée, titre de la ligne fil rouge, Mister Coin mince et abattu."""
-import cairo, numpy as np, sys, os
+"""Couverture Novo Nordisk, DA historique de la ligne fil rouge : fond noir, rubans de lumière aux couleurs du sujet (bleu nuit, bleu-vert),
+nom épuré + « Et toi, tu achètes ? », Mister Coin mince et abattu."""
+import cairo, math, numpy as np, sys, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
-sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin'); sys.path.insert(0, HERE)
-from PIL import Image, ImageFilter, ImageEnhance, ImageDraw
+sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin')
+from PIL import Image, ImageFilter, ImageDraw
 import cards_lib as cards
-from cards_lib import W, H, hx, put, fit
-import decor_anim as A
+from cards_lib import W, H, hx
 def bg(c):
-    im = A.decor('controle').filter(ImageFilter.GaussianBlur(7)); im = ImageEnhance.Brightness(im).enhance(.42)
-    a = np.asarray(im).astype(np.float32)*[.85, 1.0, 1.0]
-    im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGBA')
-    src = cairo.ImageSurface.create_for_data(bytearray(im.tobytes('raw', 'BGRa')), cairo.FORMAT_ARGB32, W, H, W*4); c.set_source_surface(src); c.paint()
-s = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H); c = cairo.Context(s); bg(c)
-sz = fit(c, "NOVO NORDISK", "Poppins Medium", 92, 10, 900); put(c, "NOVO NORDISK", 760, "Poppins Medium", sz, 'FFFFFF', 10)
-c.move_to(500, 820); c.line_to(580, 820); c.set_source_rgba(*hx('FFFFFF', .5)); c.set_line_width(2); c.stroke()
-put(c, "Et toi, tu achètes ?", 950, "Poppins Light", 58, 'FFFFFF', 1)
-path = f'{HERE}/couverture.png'; s.write_to_png(path)
-import rig
-im = Image.open(path).convert('RGBA'); ch = rig.character('mince_abattu', 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())
-h = 620; ch = ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS); cx, feet = 540, 1690
-sh = Image.new('L', (W, H), 0); ImageDraw.Draw(sh).ellipse((cx-ch.width*.4, feet-16, cx+ch.width*.4, feet+14), fill=150)
-im.paste((0, 0, 0, 255), (0, 0), sh.filter(ImageFilter.GaussianBlur(14)))
-gl = Image.new('L', (W, H), 0); ImageDraw.Draw(gl).ellipse((cx-260, feet-h*.95, cx+260, feet-h*.3), fill=55)
-im.paste((80, 220, 210, 255), (0, 0), gl.filter(ImageFilter.GaussianBlur(90)))
-im.alpha_composite(ch, (int(cx-ch.width/2), feet-h)); im.convert('RGB').save(path)
+    g = cairo.LinearGradient(0, 0, 0, H); g.add_color_stop_rgb(0, *hx('030405')[:3]); g.add_color_stop_rgb(.5, *hx('05080C')[:3]); g.add_color_stop_rgb(1, *hx('0A1016')[:3]); c.set_source(g); c.paint()
+    lay = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H); k = cairo.Context(lay); k.set_operator(cairo.OPERATOR_ADD)
+    for (x, y, rx, ry, colr, a) in ((540, 1560, 1150, 70, '1E6BFF', .95), (600, 1650, 1100, 45, '0A3D91', .9), (470, 1480, 1000, 38, '13C7B8', .65),
+                                    (640, 1760, 1200, 80, '082A6B', .6), (560, 1600, 700, 16, 'FFFFFF', .6), (430, 1420, 900, 24, '9FF2EA', .3)):
+        k.save(); k.translate(x, y); k.rotate(-0.42+0.04*((x//10) % 3)); k.scale(rx, ry)
+        r = cairo.RadialGradient(0, 0, 0, 0, 0, 1); r.add_color_stop_rgba(0, *hx(colr, a)); r.add_color_stop_rgba(1, *hx(colr, 0)); k.set_source(r); k.arc(0, 0, 1, 0, 2*math.pi); k.fill(); k.restore()
+    lay.flush(); im = Image.frombuffer('RGBA', (W, H), bytes(lay.get_data()), 'raw', 'BGRa', lay.get_stride(), 1).filter(ImageFilter.GaussianBlur(28))
+    arr = np.asarray(im).astype(np.float32); fade = np.clip((np.arange(H)-700)/700, 0, 1)[:, None, None]; arr[..., :3] *= fade; arr[..., 3] *= fade[..., 0]
+    b = Image.fromarray(arr.astype(np.uint8), 'RGBA').tobytes('raw', 'BGRa'); src = cairo.ImageSurface.create_for_data(bytearray(b), cairo.FORMAT_ARGB32, W, H)
+    c.set_operator(cairo.OPERATOR_ADD); c.set_source_surface(src); c.paint(); c.set_operator(cairo.OPERATOR_OVER)
+cards.bg = bg
+for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_logo.png')):
+    path = f'{HERE}/{name}'; cards.card("NOVO NORDISK", slot, path)
+    if slot: continue
+    import rig
+    im = Image.open(path).convert('RGBA'); ch = rig.character('mince_abattu', 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())
+    h = 560; ch = ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS); cx, feet = 540, 1640
+    sh = Image.new('L', (W, H), 0); ImageDraw.Draw(sh).ellipse((cx-ch.width*.4, feet-16, cx+ch.width*.4, feet+14), fill=170)
+    im.paste((0, 0, 0, 255), (0, 0), sh.filter(ImageFilter.GaussianBlur(14)))
+    im.alpha_composite(ch, (int(cx-ch.width/2), feet-h)); im.convert('RGB').save(path)

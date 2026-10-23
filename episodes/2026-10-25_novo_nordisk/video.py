@@ -91,7 +91,7 @@ def big(c, s, x, y, size, color, a=1, scale=1.0, tilt=0.0):
 def tag(c, s, x, y, color, a=1, size=30, fg=WHITE):
     if a <= 0: return
     w = tw(c, s, 'xb', size, 2)+56; rr(c, x-w/2, y-size*.95, w, size*1.9, size*.95); col(c, color, a); c.fill(); text(c, s, x, y, 'xb', size, fg, 'c', a, 2)
-EMOJI_FONT = '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf'
+EMOJI_FONT = f'{ROOT}/fonts/NotoColorEmoji.ttf'
 @functools.lru_cache(maxsize=16)
 def emoji(ch, size):
     f = ImageFont.truetype(EMOJI_FONT, 109); im = Image.new('RGBA', (180, 180), 0)

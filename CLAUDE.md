@@ -16,5 +16,9 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Ses deux mains restent dans le cadre ; rien du décor ne passe devant lui (seuls les sous-titres sont au-dessus).
 - Bulles de BD courtes, accrochées à lui, jamais sur un texte important ; pas de blague sur la question finale.
 
+## Publication
+- Nicolas publie lui-même, à la main, sur TikTok, YouTube Shorts et Instagram Reels (pas de programmation via Metricool : plan gratuit).
+- Livrables de chaque vidéo : la vidéo, la couverture, la description TikTok, un titre YouTube Shorts, une légende Instagram et les sources pour le premier commentaire.
+
 ## Avant chaque rendu
 Générer des aperçus (`python3 video.py png …`), vérifier une image par scène (texte lisible, mains dans le cadre, bulles accrochées), puis `python3 render.py episodes/<dossier>`.

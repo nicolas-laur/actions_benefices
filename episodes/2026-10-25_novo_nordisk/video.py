@@ -170,17 +170,14 @@ def largeur(t):
         u = (t-T['auregime'])/.7; return lerp(1.32, .58, inout(u))-.06*math.sin(math.pi*u)
     return .58
 PLACES = {'labo': (560, 1655, .30), 'prod': (790, 1655, .30, True), 'ctrl': (300, 1665, .30), 'ess': (790, 1665, .30, True), 'ctrl2': (300, 1665, .30)}
+# Mister Coin ne se déforme plus : il passe aux dessins « gros » puis « mince » et y reste (une seule silhouette par séquence)
 ACTIONS = [(5.83, 6.23, 'ravi'), (9.4, 10.4, 'point'), (15.81, 16.4, 'ravi'), (20.4, 21.4, 'thumb'), (22.76, 23.16, 'ravi'),
-           (24.12, 24.39, 'gros'), (27.36, 27.84, 'gros'), (31.43, 31.88, 'gros'), (34.11, 34.72, 'gros'),
-           (36.10, 36.48, 'pique'), (37.03, 37.44, 'mince'), (37.44, 40.79, 'souci'), (40.81, 41.35, 'mince'), (41.68, 42.35, 'mince'),
-           (42.35, 44.49, 'souci'), (44.51, 44.84, 'mince'), (44.84, 46.88, 'souci'), (46.9, 47.48, 'mince_abattu'), (47.48, 49.83, 'souci'),
-           (49.85, 50.22, 'mince'), (50.22, 52.27, 'souci'), (52.29, 52.83, 'mince_abattu'), (52.83, 55.81, 'souci'), (55.83, 56.4, 'mince'),
-           (56.4, 59.50, 'souci'), (59.52, 60.05, 'mince_abattu'), (63.4, 64.4, 'point'), (66.28, 66.58, 'mince'), (68.7, 69.7, 'point'),
-           (70.84, 71.39, 'mince'), (71.5, 72.5, 'point'), (74.47, 75.01, 'mince'), (76.76, 77.32, 'mince'), (78.76, 79.1, 'mince'),
-           (79.1, 80.09, 'souci'), (80.11, 80.65, 'mince_abattu'), (82.85, 84.0, 'mince_abattu')]
+           (27.36, 36.10, 'gros'), (36.10, 36.80, 'pique'), (36.80, 46.9, 'mince'), (46.9, 47.48, 'mince_abattu'), (47.48, 52.29, 'mince'),
+           (52.29, 52.83, 'mince_abattu'), (52.83, 59.52, 'mince'), (59.52, 60.05, 'mince_abattu'), (60.05, 80.11, 'mince'),
+           (80.11, 84.0, 'mince_abattu')]
 SCN = [(0, 'labo'), (T['ruee'], 'prod'), (T['regime'], 'ctrl'), (T['pourquoi'], 'ess'), (T['pourtant'], 'ctrl2')]
-MC = MisterCoin(VOICE, PLACES, 'labo', actions=ACTIONS, largeur=largeur,
-                sauts_de_place=[(a-.25, p) for a, p in SCN[1:]], coucous=[(.1, 1.8)], petits_sauts=[T['moy']+.1, T['ruee']+.05],
+MC = MisterCoin(VOICE, PLACES, 'labo', actions=ACTIONS,
+                sauts_de_place=[(a-.25, p) for a, p in SCN[1:]], coucous=[(.1, 1.8)], petits_sauts=[T['moy']+.1],
                 bulles=[(T['danemark']+.1, T['danemark']+2.0, "Je me sens à l'étroit…", 'gauche'),
                         (T['lilly2']+.05, T['lilly2']+1.9, "Même pas jaloux…", 'gauche'),
                         (T['onze']+.05, T['onze']+1.6, "C'est les soldes ?", 'droite')])

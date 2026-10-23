@@ -162,8 +162,8 @@ class MisterCoin:
         sit = max([fade(t, a, b, .2) for a, b in self.assis]+[0])
         dance = max([fade(t, a, b, .2) for a, b in self.danses]+[0])
         legA = 3*math.sin(TAU*t/3.2); legB = -3*math.sin(TAU*t/3.2+.6)
-        bob = 9*lv*(1-math.cos(TAU*t*1.35))/2
-        rot = 1.8*math.sin(TAU*t/3.4)+1.6*lv*math.sin(TAU*t/1.5)+tilt*(1-2*(mir > .5))
+        bob = 6*lv*(1-math.cos(TAU*t*1.35))/2
+        rot = 1.1*math.sin(TAU*t/3.4)+.7*lv*math.sin(TAU*t/1.5)+tilt*(1-2*(mir > .5))
         ph = TAU*1.8*t
         legA += wk*20*math.sin(ph); legB -= wk*20*math.sin(ph); bob += wk*20*(1-math.cos(2*ph))/2; rot += wk*3*math.sin(ph)
         rot += dance*7*math.sin(TAU*t/.62)

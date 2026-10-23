@@ -22,7 +22,7 @@ for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_log
     path = f'{HERE}/{name}'; cards.card("NOVO NORDISK", slot, path)
     if slot: continue
     import rig
-    im = Image.open(path).convert('RGBA'); ch = rig.character('mince_abattu', 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())
+    im = Image.open(path).convert('RGBA'); ch = rig.character('pique', 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())
     h = 560; ch = ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS); cx, feet = 540, 1640
     sh = Image.new('L', (W, H), 0); ImageDraw.Draw(sh).ellipse((cx-ch.width*.4, feet-16, cx+ch.width*.4, feet+14), fill=170)
     im.paste((0, 0, 0, 255), (0, 0), sh.filter(ImageFilter.GaussianBlur(14)))

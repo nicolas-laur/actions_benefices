@@ -86,7 +86,7 @@ def _place(p):
 
 class MisterCoin:
     def __init__(self, wav, places, debut, moments=(), actions=None, sauts_de_place=(), petits_sauts=(), coucous=(), entree=None,
-                 duree_saut=.55, marches=(), assis=(), danses=(), bulles=(), hauteur_saut=320, trajet=None):
+                 duree_saut=.55, marches=(), assis=(), danses=(), bulles=(), hauteur_saut=320, trajet=None, largeur=None):
         """sauts_de_place : (t, place) saut en arc, ou (t, place, 'marche', durée) déplacement en marchant
         marches : (t0, t1) marche sur place ; assis : (t0, t1) assis (jambes tendues devant) ; danses : (t0, t1) petits sauts + balancement
         bulles : (t0, t1, texte) bulle de BD au-dessus de lui ; miroir : il regarde/pointe vers la gauche"""
@@ -100,7 +100,7 @@ class MisterCoin:
             cur = m[1]
         self.moves = moves; self.hops = list(petits_sauts); self.waves = list(coucous); self.walk = entree
         self.marches = list(marches); self.assis = list(assis); self.danses = list(danses); self.bulles = list(bulles)
-        self.hjump = hauteur_saut; self.trajet = trajet   # trajet(t) -> (x, y, zoom, miroir, inclinaison, marche 0..1) ou None
+        self.hjump = hauteur_saut; self.trajet = trajet; self.largeur = largeur   # largeur(t) : facteur d'épaisseur (gros/mince) des poses animées   # trajet(t) -> (x, y, zoom, miroir, inclinaison, marche 0..1) ou None
         lv = self.pup.level.astype(float); a = 1-math.exp(-1/(.3*30)); o = lv.copy()
         for k in range(1, len(o)): o[k] = o[k-1]+a*(o[k]-o[k-1])
         for k in range(len(o)-2, -1, -1): o[k] = o[k+1]+a*(o[k]-o[k+1])
@@ -178,6 +178,7 @@ class MisterCoin:
         breath = .01*math.sin(TAU*t/2.6)
         flipx = 1-2*mir if 0 < mir < 1 else (-1 if mir >= 1 else 1)        # demi-tour en l'air : écrasement horizontal
         sx = swell*(1-.8*st)*(1-breath)*max(.08, abs(flipx)); sy = swell*(1+st)*(1+breath)
+        if self.largeur is not None and pose not in P.FULL: sx *= self.largeur(t)
         m = int(pup.mouth[i])
         cv = rig.character(pose, m, blink, legA, legB, armA)
         k = ease(since/.14)

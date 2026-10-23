@@ -118,3 +118,57 @@ def reflection(char_layer, floor_y, a=.18):
     al = np.asarray(r.getchannel('A')).astype(np.float32)
     fade = np.clip(1-(np.arange(H)-floor_y)/260, 0, 1)[:, None]; al *= fade*a; al[:int(floor_y)] = 0
     r.putalpha(Image.fromarray(al.astype(np.uint8))); return r.filter(ImageFilter.GaussianBlur(2.5))
+
+# ---------- laboratoire : bulles dans les fioles ----------
+@functools.lru_cache(maxsize=1)
+def liquid_mask():
+    a = np.asarray(decor('labo')).astype(np.int32); R, G, B = a[..., 0], a[..., 1], a[..., 2]
+    m = (G > R+30) & (B > R+25); yy, xx = np.mgrid[0:H, 0:W]
+    return m & (xx < 340) & (yy > 680) & (yy < 790)
+FLASKS = [(14, 735, 712, 26), (52, 742, 704, 7), (76, 742, 704, 7), (96, 742, 704, 7), (116, 742, 704, 7), (136, 742, 704, 7),
+          (182, 752, 726, 18), (315, 768, 732, 12)]          # (x, fond, surface, demi-largeur)
+def labo(t):
+    im = decor('labo').convert('RGBA'); lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay); rng = np.random.default_rng(5)
+    for x, y0, y1, hw in FLASKS:
+        for i in range(4 if hw < 10 else 8):
+            sp = rng.uniform(.6, 1.2); ph = (t*sp+rng.random()) % 1; y = y0-(y0-y1)*ph
+            xx = x+rng.uniform(-hw*.6, hw*.6)+1.5*math.sin(t*6+i); r = 1.2+1.8*ph*(hw/12)
+            d.ellipse((xx-r, y-r, xx+r, y+r), outline=(255, 255, 255, 230), width=1)
+    m = Image.fromarray((liquid_mask()*255).astype(np.uint8)).filter(ImageFilter.MaxFilter(3))
+    lay.putalpha(Image.fromarray(np.minimum(np.asarray(lay.getchannel('A')), np.asarray(m))))
+    im.alpha_composite(lay); blink(im, t, 'labo'); return im
+
+# ---------- salle de contrôle : voyants du pupitre (l'écran est dessiné par video.py) ----------
+def controle(t):
+    im = decor('controle').convert('RGBA')
+    m, blocks = teal_blocks_console()
+    ph = np.sin(t*3.2+blocks*2.1); g = np.where(m, np.clip(ph, 0, 1)*60, 0).astype(np.float32)
+    a = np.asarray(im).astype(np.float32); a[..., :3] += g[..., None]*np.array([.4, 1, 1])
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+@functools.lru_cache(maxsize=1)
+def teal_blocks_console():
+    a = np.asarray(decor('controle')).astype(np.int32); R, G, B = a[..., 0], a[..., 1], a[..., 2]
+    yy, xx = np.mgrid[0:H, 0:W]
+    m = (G > R+35) & (B > R+30) & (yy > 925) & (yy < 1080)
+    return m, (yy//40)*30+(xx//40)
+SCREEN = (215, 495, 1040, 905)
+
+# ---------- salle d'essais : tracés de mesure sur les moniteurs ----------
+MONITORS = [(4, 828, 58, 940), (156, 816, 214, 872), (234, 806, 288, 856), (326, 778, 404, 856)]
+def essais(t, alarm=0.0):
+    im = decor('essais').convert('RGBA'); lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay)
+    col = tuple(int(a+(b-a)*alarm) for a, b in zip((20, 160, 150), (215, 50, 50)))
+    for k, (x0, y0, x1, y1) in enumerate(MONITORS):
+        d.rectangle((x0, y0, x1, y1), fill=(225, 245, 245, 255))
+        w, h = x1-x0, y1-y0; pts = []
+        for i in range(60):
+            u = i/59; x = x0+u*w; ph = (u*2.2-t*(1.1+.3*k)) % 1
+            spike = math.exp(-((ph-.5)/.025)**2)*(.9 if k % 2 == 0 else .5)-math.exp(-((ph-.56)/.02)**2)*.35
+            y = y0+h*(.62-.42*spike+.03*math.sin(u*30+t*5))
+            pts.append((x, y))
+        d.line(pts, fill=col+(255,), width=2)
+        if k == 3:                                             # barres de résultats qui montent
+            for j in range(4):
+                bh = (h*.35)*(.4+.6*abs(math.sin(t*.9+j)))*(1-.6*alarm)
+                d.rectangle((x0+6+j*16, y1-6-bh, x0+16+j*16, y1-6), fill=col+(200,))
+    im.alpha_composite(lay); blink(im, t, 'essais'); return im

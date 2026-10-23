@@ -41,6 +41,8 @@ Une place s'écrit `(x du centre de la pièce, y des pieds, zoom)` dans un cadre
 - Ordre des calques : décor, panneaux et textes des scènes, puis Mister Coin, puis les sous-titres. Rien du décor ne doit passer devant lui.
 - Ses deux mains restent dans le cadre si x est compris entre 207 et 873 au zoom 0,2. Tout texte de la vidéo doit rester lisible : vérifie une image par scène avant de lancer le rendu.
 
+- `largeur=lambda t: …` épaissit ou amincit Mister Coin quand il parle (1,3 = gros, 0,6 = mince), pour rester cohérent avec les poses dessinées « gros » et « mince » placées dans les silences.
+
 Tu peux aussi passer `actions=[(début, fin, pose), ...]` pour tout régler à la main.
 
 Test rapide : `python3 mister_coin.py voix.wav` produit `apercu_mister_coin.png`.

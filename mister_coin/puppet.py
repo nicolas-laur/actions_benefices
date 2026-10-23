@@ -29,10 +29,30 @@ def region(base, src, box, feather=18):
     out = base.copy(); out.paste(src, (0, 0), m) if False else None
     return Image.composite(src, base, m)
 
+# ---------- bouches greffées sur les silhouettes grosse / mince (voir README) ----------
+GREFFE = {'gros': ((856, 965), .85, .85, (770, 900, 950, 1040)), 'mince': ((1036, 1150), .42, .7, (990, 1105, 1085, 1200))}
+@functools.lru_cache(maxsize=16)
+def greffe(base, mouth):
+    """silhouette 'gros' ou 'mince' dont la bouche d'origine est effacée puis remplacée par une bouche animée (0..3)"""
+    import numpy as np, cv2
+    from PIL import ImageDraw
+    (cx, cy), sx, sy, (x0, y0, x1, y1) = GREFFE[base]
+    im = keyed(base); a = np.asarray(im.convert('RGB')).copy(); m = np.zeros(a.shape[:2], np.uint8)
+    cv2.ellipse(m, ((x0+x1)//2, (y0+y1)//2), ((x1-x0)//2, (y1-y0)//2), 0, 0, 360, 255, -1)
+    out = Image.fromarray(cv2.inpaint(a, m, 15, cv2.INPAINT_TELEA)).convert('RGBA'); out.putalpha(im.getchannel('A'))
+    if base == 'mince' and mouth == 0: mouth = 1                     # bouche fermée peu lisible de profil : entrouverte au repos
+    mo = keyed(['bouche_fermee', 'bouche_mi', 'bouche_ouverte', 'bouche_o'][mouth]).crop((760, 1110, 1040, 1330))
+    mo = mo.resize((int(mo.width*sx), int(mo.height*sy)), Image.LANCZOS)
+    mk = Image.new('L', mo.size, 0); ImageDraw.Draw(mk).ellipse((mo.width*.08, mo.height*.08, mo.width*.92, mo.height*.92), fill=255)
+    out.paste(mo, (int(cx-mo.width/2), int(cy-mo.height/2)), mk.filter(ImageFilter.GaussianBlur(10*sx)))
+    return out
+
 @functools.lru_cache(maxsize=64)
 def compose(pose, mouth, blink):
     """pose : 'wave' | 'thumb' | 'point' | 'ravi' | 'inquiet' ; mouth : 0..3 ; blink : bool"""
-    if pose in FULL:                                          # poses entières (chute, joie, barbe…) : image complète, sans synchro labiale
+    if pose in ('gros_parle', 'mince_parle'):                  # gros ou mince, et la bouche suit la voix
+        im = greffe(pose.split('_')[0], mouth)
+    elif pose in FULL:                                          # poses entières (chute, joie, barbe…) : image complète, sans synchro labiale
         im = keyed(pose)
     elif pose in ('ravi', 'inquiet'):
         im = keyed(pose)

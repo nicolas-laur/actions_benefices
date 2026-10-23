@@ -69,7 +69,7 @@ def rot_piece(canvas, piece, bb, pivot, ang):
 def character(pose, mouth, blink, legA, legB, armA):
     """toile pleine résolution du personnage articulé"""
     cv = Image.new('RGBA', (W0, H0+200), 0)
-    if pose in P.FULL:                                      # pose entière : pas d'articulation
+    if pose in P.FULL or pose in ('gros_parle', 'mince_parle'):                                      # pose entière : pas d'articulation
         cv.alpha_composite(P.compose(pose, mouth, blink)); return cv
     (lL, bL), (lR, bR) = legs()
     rot_piece(cv, lL, bL, HIP_L, legA)

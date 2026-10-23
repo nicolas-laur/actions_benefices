@@ -43,6 +43,8 @@ Une place s'écrit `(x du centre de la pièce, y des pieds, zoom)` dans un cadre
 
 - `largeur=lambda t: …` épaissit ou amincit Mister Coin quand il parle (1,3 = gros, 0,6 = mince), pour rester cohérent avec les poses dessinées « gros » et « mince » placées dans les silences.
 
+- Poses `gros_parle` et `mince_parle` : silhouettes grosse et mince dont la bouche suit la voix (bouches habituelles greffées). Les dessins `gros`, `mince`, `mince_abattu`, `pique` restent pour les silences.
+
 Tu peux aussi passer `actions=[(début, fin, pose), ...]` pour tout régler à la main.
 
 Test rapide : `python3 mister_coin.py voix.wav` produit `apercu_mister_coin.png`.

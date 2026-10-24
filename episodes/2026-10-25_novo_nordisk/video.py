@@ -55,12 +55,13 @@ def cap_at(t):
     for i, (a, _) in enumerate(CAPS):
         if t >= a: k = i
     return k
-def caption(c, words, hl, y=1770, size=44, a=1):
+def caption(c, words, hl, y=1035, size=44, a=1):
+    """zone sûre Réels / TikTok / Shorts : au-dessus de l'interface du bas (≥ 1500 px) et loin des icônes de droite (x > 950)"""
     sp = tw(c, ' ', 'b', size); wd = [tw(c, w, 'b', size)+(20 if k else 0) for w, k in words]
     lines, cur, cw = [], [], 0
     for i, w in enumerate(wd):
         need = w+(sp if cur else 0)
-        if cur and cw+need > 880: lines.append((cur, cw)); cur, cw = [], 0; need = w
+        if cur and cw+need > 760: lines.append((cur, cw)); cur, cw = [], 0; need = w
         cur.append(i); cw += need
     lines.append((cur, cw)); y0 = y-(len(lines)-1)*36
     bw = max(lw for _, lw in lines)+60; bh = len(lines)*72+28
@@ -169,7 +170,7 @@ def largeur(t):
     if t < T['auregime']+.7:                                   # il « dégonfle » avec un petit rebond
         u = (t-T['auregime'])/.7; return lerp(1.32, .58, inout(u))-.06*math.sin(math.pi*u)
     return .58
-PLACES = {'labo': (560, 1655, .30), 'prod': (790, 1655, .30, True), 'ctrl': (300, 1665, .30), 'ess': (790, 1665, .30, True), 'ctrl2': (300, 1665, .30)}
+PLACES = {'labo': (540, 1655, .28), 'prod': (760, 1655, .28, True), 'ctrl': (320, 1665, .28), 'ess': (760, 1665, .28, True), 'ctrl2': (320, 1665, .28)}
 # Mister Coin ne se déforme plus : il passe aux dessins « gros » puis « mince » et y reste (une seule silhouette par séquence)
 # gros / mince : bouche greffée qui suit la voix (gros_parle, mince_parle), dessins d'origine dans les silences
 ACTIONS = [(5.83, 6.23, 'ravi'),
@@ -240,7 +241,7 @@ def room_start(r): return dict((p, a) for a, p in SCN)[r]
 def room_end(r):
     starts = [a for a, _ in SCN]+[DUR]; i = [p for _, p in SCN].index(r); return starts[i+1]
 def sLabo(c, cv, t):
-    tag(c, "ACTION −74 %", 900, 120, RED, 1-ease((t-T['ozem']+.3)/.3), 28)              # chiffre choc visible dès l'image 0
+    tag(c, "ACTION −74 %", 820, 250, RED, 1-ease((t-T['ozem']+.3)/.3), 28)              # chiffre choc visible dès l'image 0
     if t < T['ozem']-.15:
         k = t-T['prog']; card(c, 540, 420, 860, 300, ease(k/.3))
         text(c, "AUJOURD'HUI AU PROGRAMME", 540, 330, 'xb', 28, TEAL, 'c', ease(k/.3), 3)

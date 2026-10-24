@@ -7,6 +7,7 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Chiffres exacts et vérifiés (sources dans `sources.md`), montants en euros convertis au taux BCE, indices hors dividendes précisés.
 - Aucun logo de marque réelle ; le logo de la chaîne est `lib/logo.py` (ne pas le modifier).
 - Le chiffre choc est visible à l'image 0. Sous-titres mot à mot, mot clé surligné, toujours lisibles.
+- Zone sûre des applis (Reels, TikTok, Shorts) : rien d'important sous y = 1500 (pseudo, légende, son), ni au-dessus de y = 200 (en-tête), ni à droite de x = 950 entre y = 1000 et 1700 (icônes). Sous-titres centrés vers y ≈ 1035–1060, largeur de ligne max 760 px ; Mister Coin en dessous, pieds vers y ≈ 1650 (ses pieds peuvent passer sous l'interface, pas sa tête ni ses mains).
 - Musique douce, bruitages discrets. Émojis Noto bienvenus.
 - Script pour la voix : nombres écrits en toutes lettres ; Nicolas génère la voix (ElevenLabs refuse la génération depuis Claude).
 

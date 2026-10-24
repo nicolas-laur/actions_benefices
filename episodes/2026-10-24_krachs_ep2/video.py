@@ -44,13 +44,13 @@ def cap_at(t):
     for i, (a, _) in enumerate(CAPS):
         if t >= a: k = i
     return k
-def caption(c, words, hl, y=1760, size=44, a=1):
+def caption(c, words, hl, y=1060, size=44, a=1):
     """sous-titres sur bande sombre arrondie : lisibles sur tous les décors (clairs ou sombres)"""
     sp = tw(c, ' ', 'b', size); wd = [tw(c, w, 'b', size)+(20 if k else 0) for w, k in words]
     lines, cur, cw = [], [], 0
     for i, w in enumerate(wd):
         need = w+(sp if cur else 0)
-        if cur and cw+need > 880: lines.append((cur, cw)); cur, cw = [], 0; need = w
+        if cur and cw+need > 760: lines.append((cur, cw)); cur, cw = [], 0; need = w
         cur.append(i); cw += need
     lines.append((cur, cw)); y0 = y-(len(lines)-1)*36
     bw = max(lw for _, lw in lines)+60; bh = len(lines)*72+28
@@ -83,8 +83,8 @@ def big_number(c, s, x, y, size, color, a=1, scale=1.0, tilt=0.0):
     c.text_path(s); c.set_line_width(14); c.set_line_join(cairo.LINE_JOIN_ROUND); col(c, INK, a); c.stroke_preserve(); col(c, color, a); c.fill()
     c.restore()
 def series_tag(c, a=1):
-    card(c, 250, 120, 380, 64, a, fill=INK, r=32)
-    ink_text(c, "KRACHS · ÉPISODE 2", 250, 121, 30, CREAM, 'xb', 'c', a, 3)
+    card(c, 250, 250, 380, 64, a, fill=INK, r=32)
+    ink_text(c, "KRACHS · ÉPISODE 2", 250, 251, 30, CREAM, 'xb', 'c', a, 3)
 
 # ---------- décors ----------
 @functools.lru_cache(maxsize=8)
@@ -174,8 +174,8 @@ def mc_path(t):
     tilt = -clamp(slope_deg(yr, t), -35, 35)*.45 if walking else 0.0
     return (x, y+4, ZC, False, tilt, walking, jump)
 
-PLACES = {'hook': (560, 1580, .26), 'salon': (330, 1450, .26), 'bourse': (560, 1560, .26), 'startup': (290, 1530, .26),
-          'banque': (255, 1500, .26), 'crash': (800, 1540, .26, True), 'courbe': (180, 700, ZC), 'cta': (540, 1590, .26)}
+PLACES = {'hook': (560, 1660, .25), 'salon': (330, 1650, .25), 'bourse': (560, 1660, .25), 'startup': (290, 1650, .25),
+          'banque': (255, 1650, .25), 'crash': (720, 1660, .25, True), 'courbe': (180, 700, ZC), 'cta': (540, 1665, .25)}
 ACTIONS = [(4.73, 5.28, 'abattu'), (5.28, 9.03, 'souci'), (9.05, 9.56, 'abattu'), (12.7, 13.7, 'point'), (24.01, 24.52, 'ravi'),
            (24.52, 26.66, 'souci'), (26.68, 27.18, 'inquiet'), (27.3, 28.3, 'point'), (28.85, 29.37, 'billets'),
            (29.37, 32.2, 'souci'), (32.22, 32.64, 'bulle'), (32.64, 35.0, 'souci'), (35.01, 35.42, 'bulle'), (36.3, 36.95, 'chute'),
@@ -207,8 +207,8 @@ def sHook(cv, c, t):
     big_number(c, "216 €", 540, 640, 260, 'E0564A', 1.0, (1+.12*math.exp(-max(0, k)*8)*(k > 0)) if k > -1 else 1.0, -.04)
     k1 = t-T['s1']
     if k1 > 0:
-        card(c, 540, 900, 820, 120, ease(k1/.3), tilt=.015)
-        ink_text(c, "1 000 € PLACÉS LE 10 MARS 2000", 540, 902, 46, INK, 'a', 'c', ease(k1/.3))
+        card(c, 540, 845, 820, 120, ease(k1/.3), tilt=.015)
+        ink_text(c, "1 000 € PLACÉS LE 10 MARS 2000", 540, 847, 46, INK, 'a', 'c', ease(k1/.3))
     series_tag(c, ease((t-.3)/.4))
 def sSalon(cv, c, t):
     k = t-T['s2']

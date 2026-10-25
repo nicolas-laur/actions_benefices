@@ -133,12 +133,65 @@ def lights(name):
     return m.astype(np.float32), ph.astype(np.float32)
 def decor(name, t):
     a = base(name); m, ph = lights(name)
-    if name in ('ville', 'renaissance'): k = .35*np.sin(ph-t*5.0)
+    if name in ('ville', 'renaissance'): k = .35*np.sin(ph-t*5.0)+1.3*np.maximum(0, np.sin(ph*.5-t*3.2))**10   # paquets de lumière qui filent
     elif name == 'crise':
-        fl = (np.sin(ph*13+t*31) > .55).astype(np.float32)*(math.sin(t*2.3) > -.2); k = -.45*fl
-    else: k = .45*np.sin(ph+t*(3.0+ph*.4))
+        fl = (np.sin(ph*13+t*31) > .45).astype(np.float32)*(math.sin(t*2.3) > -.4); k = -.7*fl
+    else: k = .75*np.sin(ph+t*(3.0+ph*.4))
     out = a*(1+(m*k)[..., None])
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+# ---------- éléments animés bien visibles (ajoutés sur le décor, avant le travelling) ----------
+def _h(pts): return [(x*2, y*2) for x, y in pts]          # tracés relevés sur la grille demi-taille
+PATHS = {'ville': [_h([(265, 235), (262, 160), (270, 100), (295, 70), (340, 50), (420, 25), (470, 5)]),
+                   _h([(240, 960), (212, 860), (207, 760), (240, 675), (330, 600), (420, 540), (500, 470), (540, 440)]),
+                   _h([(540, 250), (470, 290), (420, 330), (380, 365)]),
+                   _h([(0, 775), (70, 720), (130, 660), (170, 590), (165, 530), (200, 490), (250, 465)])]}
+def _along(pts, u):
+    d = [math.dist(pts[i], pts[i+1]) for i in range(len(pts)-1)]; L = sum(d); s = (u % 1)*L
+    for i, di in enumerate(d):
+        if s <= di: f = s/di; return pts[i][0]+(pts[i+1][0]-pts[i][0])*f, pts[i][1]+(pts[i+1][1]-pts[i][1])*f
+        s -= di
+    return pts[-1]
+CARS = {k: [(pi, np.random.default_rng(i+7*pi).uniform(0, 1), np.random.default_rng(99+i+7*pi).uniform(.10, .22)*(1 if (i+pi) % 3 else -1))
+            for pi in range(len(v)) for i in range(5)] for k, v in PATHS.items()}
+SMOKE = {'ville': [(200, 270), (195, 370), (780, 470), (1010, 170)], 'renaissance': [(880, 560), (760, 520)], 'crise': [(900, 760), (160, 900)]}
+SPARKS = {'crise': [(860, 610), (300, 280)]}
+@functools.lru_cache(maxsize=2)
+def fog_tex(seed):
+    rng = np.random.default_rng(seed); n = rng.standard_normal((48, 96)).astype(np.float32)
+    im = Image.fromarray(((n-n.min())/(n.max()-n.min())*255).astype(np.uint8)).resize((2160, 1080), Image.BICUBIC).filter(ImageFilter.GaussianBlur(40))
+    return np.asarray(im).astype(np.float32)/255
+def overlay(name, t):
+    lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay)
+    for pi, u0, sp in CARS.get(name, []):                         # petites lumières qui roulent sur les routes
+        pts = PATHS[name][pi]; L = sum(math.dist(pts[i], pts[i+1]) for i in range(len(pts)-1)); u = u0+t*sp*700/L
+        for k in range(10):
+            x, y = _along(pts, u-k*.012*(1 if sp > 0 else -1)*700/L)
+            r = 13-k*1.0; a = int(240*(1-k/10)); d.ellipse((x-r, y-r, x+r, y+r), fill=(255, 210-k*12, 150-k*12, a))
+    for i, (x0, y0) in enumerate(SMOKE.get(name, [])):           # fumée qui monte en volutes
+        for k in range(7):
+            ph = ((t*.35+k/7+i*.13) % 1); x = x0+40*math.sin(ph*5+i)+ph*60; y = y0-ph*260; r = 25+ph*90
+            d.ellipse((x-r, y-r, x+r, y+r), fill=(225, 210, 210, int(70*math.sin(math.pi*ph))))
+    for i, (x0, y0) in enumerate(SPARKS.get(name, [])):          # gerbes d'étincelles par saccades
+        burst = (math.sin(t*2.1+i*2) > .3)
+        if not burst: continue
+        rng = np.random.default_rng(int(t*30)+i*1000)
+        for k in range(16):
+            ph = rng.uniform(0, .6); vx = rng.uniform(-160, 160); x = x0+vx*ph; y = y0+rng.uniform(-60, 40)*ph+500*ph*ph
+            d.line((x, y, x-vx*.04, y-12), fill=(255, 230, 160, 230), width=3)
+    lay = lay.filter(ImageFilter.GaussianBlur(2.2))
+    if name == 'renaissance':                                     # reflet lumineux qui balaie la plaquette de silicium
+        m = Image.new('L', (W, H), 0); ImageDraw.Draw(m).ellipse((540-195, 910-125, 540+195, 910+125), fill=255)
+        sw = Image.new('L', (W, H), 0); xs = 300+((t*.45) % 1.4)*700
+        ImageDraw.Draw(sw).polygon([(xs, 700), (xs+70, 700), (xs-80, 1120), (xs-150, 1120)], fill=200)
+        sw = Image.composite(sw.filter(ImageFilter.GaussianBlur(18)), Image.new('L', (W, H), 0), m)
+        shine = Image.new('RGBA', (W, H), (255, 240, 225, 0)); shine.putalpha(sw); lay.alpha_composite(shine)
+    if name in ('datacenter', 'ecran'):                           # brume qui roule au sol
+        tex = fog_tex(1); off = int(t*60) % 1080; band = np.roll(tex, -off, axis=1)[:, :W]
+        y0 = 1050 if name == 'datacenter' else 1150; hgt = min(H-y0, band.shape[0])
+        al = np.zeros((H, W), np.float32); prof = np.sin(np.linspace(0, math.pi, hgt))[:, None]
+        al[y0:y0+hgt] = band[:hgt]*prof*120
+        fog = Image.new('RGBA', (W, H), (230, 150, 150, 0)); fog.putalpha(Image.fromarray(np.clip(al, 0, 255).astype(np.uint8))); lay.alpha_composite(fog)
+    return lay
 def camera(im, t, t0, t1, z0=1.0, z1=1.05, cx=540, cy=900):
     u = clamp((t-t0)/max(.1, t1-t0)); u = u*u*(3-2*u); z = z0+(z1-z0)*u
     w, h = W/z, H/z; box = (cx-w*cx/W, cy-h*cy/H, cx-w*cx/W+w, cy-h*cy/H+h)
@@ -343,7 +396,8 @@ MC = MisterCoin(VOICE, PLACES, 'ville', actions=ACTIONS, trajet=trajet,
 
 def room_frame(r, t):
     cy = 760 if r == 'ecran' else 950
-    return camera(decor(r, t), t, room_start(r), room_end(r), 1.0, 1.05, 540, cy)
+    im = decor(r, t).convert('RGBA'); im.alpha_composite(overlay(r, t))
+    return camera(im.convert('RGB'), t, room_start(r), room_end(r), 1.0, 1.07, 540, cy)
 def frame(t):
     r = room_at(t); ts = room_start(r)
     bg = room_frame(r, t)

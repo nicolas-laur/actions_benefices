@@ -129,7 +129,7 @@ def lights(name):
         m = np.clip((R-170)/60, 0, 1)*np.clip((R-G-70)/60, 0, 1); rng = np.random.default_rng(2)
         cells = rng.uniform(0, 6.28, (H//18+1, W//18+1)).astype(np.float32); ph = cells[(yy//18).astype(int), (xx//18).astype(int)]
         side = ((xx < 300) | (xx > 790)) if name == 'datacenter' else ((xx < 90) | (xx > 990))
-        m = m*side*(yy < (1450 if name == 'datacenter' else 1150))
+        m = m*side*(yy < (1250 if name == 'datacenter' else 1150))
     return m.astype(np.float32), ph.astype(np.float32)
 def decor(name, t):
     a = base(name); m, ph = lights(name)

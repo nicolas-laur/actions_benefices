@@ -196,7 +196,7 @@ def scream():   # vrai cri Wilhelm fourni par Nicolas (fichier wilhelm.* dans le
     _, x = wavfile.read('/tmp/wilhelm48.wav'); x = x.astype(np.float32)/32768
     nz = np.where(np.abs(x) > .02)[0]; x = x[nz[0]:nz[-1]+1] if len(nz) else x
     u = np.linspace(0, 1, len(x)); x = x*(1-.55*u)            # il s'éloigne : le cri s'atténue
-    return x/max(1e-6, abs(x).max())*.22
+    return x/max(1e-6, abs(x).max())*.5
 def zoom():    # passage à toute vitesse : souffle filtré qui monte
     n = int(.5*SR); t = tt(n); u = t/t[-1]; x = rng.standard_normal(n)
     return (lp(x, 700)*(1-u)+lp(x, 5000)*u)*np.sin(np.pi*u)**1.2*.09

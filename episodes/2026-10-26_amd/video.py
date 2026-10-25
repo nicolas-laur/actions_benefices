@@ -19,23 +19,23 @@ def lerp(a, b, u): return a+(b-a)*u
 
 # ---------- minutage (voix Thomas 71,2 s + 0,9 s de silence insérés à 50,35 s pour le gag) ----------
 VOICE = f'{D}/voice_full.wav'
-G = .9   # décalage après le gag
-T = dict(intro=0.0, mille=1.22, valent=4.66, prog=7.27, puce=8.53, y2015=11.0, tombe=13.92, morte=16.28, patronne=18.43, lisa=20.33,
-         mise=22.18, ryzen=23.95, pari=26.28, grignote=27.12, abord=29.9, serveurs=31.36, ia=32.92, oct=35.22, signe=39.42, annee=43.73,
-         milliards=46.97, gag=50.1, record=50.63+G, recule=52.75+G, alors=54.7+G, ventes=56.19+G, mais2=59.66+G, sept=62.51+G,
-         verdict=65.76+G, toi=68.92+G, achet=69.59+G, end=73.4)
+G = 1.2   # silence inséré à 10,6 s (après « de très loin ») pour le gag de la ville
+def S(x): return x+G if x > 10.6 else x
+_T = dict(intro=0.0, mille=1.22, valent=4.66, prog=7.27, puce=8.53, gag=10.34, y2015=11.0, tombe=13.92, morte=16.28, patronne=18.43, lisa=20.33,
+          mise=22.18, ryzen=23.95, pari=26.28, grignote=27.12, abord=29.9, serveurs=31.36, ia=32.92, oct=35.22, signe=39.42, annee=43.73,
+          milliards=46.97, record=50.63, recule=52.75, alors=54.7, ventes=56.19, mais2=59.66, sept=62.51, verdict=65.76, toi=68.92, achet=69.59, end=72.6)
+T = {k: S(v) for k, v in _T.items()}
 if os.path.exists(f'{D}/timing.json'): T.update(json.load(open(f'{D}/timing.json')))
 DUR = T['end']
 CAPS = [(T['intro'], "Bonjour à tous !"), (T['mille'], "Mille euros placés dans AMD il y a cinq ans"), (T['valent'], "valent aujourd'hui [4 481 euros]."),
-        (T['prog'], "Aujourd'hui au programme :"), (T['puce'], "la puce qui revient [de très loin]."),
+        (T['prog'], "Aujourd'hui au programme :"), (T['puce'], "la puce qui revient [de très loin]."), (T['gag']+.02, ""),
         (T['y2015'], "En 2015, AMD est [au bord du gouffre]."), (T['tombe'], "Son action tombe à [1,62 dollar],"),
         (T['morte'], "et beaucoup la donnent déjà [pour morte]."), (T['patronne'], "Mais une nouvelle patronne vient d'arriver :"),
         (T['lisa'], "[Lisa Su], une ingénieure."), (T['mise'], "Elle mise tout sur une nouvelle puce, [Ryzen], lancée en 2017."),
         (T['pari'], "[Pari gagné] :"), (T['grignote'], "AMD grignote [Intel], son rival historique,"),
-        (T['abord'], "d'abord dans les ordinateurs, puis dans [les serveurs]."), (32.15, ""), (T['ia'], "Puis arrive [l'intelligence artificielle]."),
+        (T['abord'], "d'abord dans les ordinateurs, puis dans [les serveurs]."), (S(32.15), ""), (T['ia'], "Puis arrive [l'intelligence artificielle]."),
         (T['oct'], "En octobre 2025, [OpenAI], le créateur de ChatGPT,"), (T['signe'], "signe [un accord géant] pour équiper ses centres de données avec les puces d'AMD."),
         (T['annee'], "Cette année, l'action a grimpé jusqu'à [+200 %],"), (T['milliards'], "et AMD a dépassé [les 1 000 milliards] de dollars en Bourse."),
-        (T['gag'], ""),
         (T['record'], "Mais depuis son record du 6 octobre,"), (T['recule'], "elle a déjà reculé de [20 %]."),
         (T['alors'], "Alors, [trop tard] ?"), (T['ventes'], "Ses ventes dans les centres de données ont [plus que doublé] en un an."),
         (T['mais2'], "Mais l'action vaut près de [22 fois] ses ventes annuelles,"), (T['sept'], "[7 fois plus] que la moyenne des grandes entreprises américaines."),
@@ -309,25 +309,33 @@ SCENE = {'ville': sVille, 'crise': sCrise, 'renaissance': sRenai, 'datacenter': 
 # ---------- Mister Coin ----------
 PLACES = {'ville': (540, 1650, .28), 'crise': (330, 1655, .28), 'renaissance': (740, 1655, .28, True), 'datacenter': (330, 1665, .28),
           'ecran': (760, 1665, .28, True)}
-ACTIONS = [(6.68, 7.27, 'ravi'), (9.0, 10.3, 'point'), (11.0, 13.6, 'souci'), (13.61, 13.92, 'inquiet'), (13.92, 17.9, 'souci'),
+ACTIONS = [(a if a < 10.6 else S(a), S(b), p) for a, b, p in [
+           (6.68, 7.27, 'ravi'), (9.0, 10.3, 'point'), (10.34, 11.6, 'projete'), (11.6, 13.6, 'souci'),
+           (13.61, 13.92, 'inquiet'), (13.92, 17.9, 'souci'),
            (17.91, 18.43, 'abattu'), (20.33, 21.6, 'point'), (21.8, 22.18, 'ravi'), (26.28, 27.4, 'thumb'), (32.18, 32.95, 'puce'),
-           (35.3, 36.6, 'point'), (43.19, 43.73, 'billets'), (46.79, 46.97, 'ravi'), (50.12, 51.5, 'projete'),
-           (51.53, 52.4, 'souci'), (53.65, 55.25, 'souci'), (55.6+G, 56.19+G, 'inquiet'), (59.24+G, 59.66+G, 'ravi'),
-           (61.0+G, 62.27+G, 'souci'), (65.27+G, 65.76+G, 'inquiet'), (68.39+G, 68.92+G, 'ravi'), (69.59+G, 71.0+G, 'point')]
+           (35.3, 36.6, 'point'), (43.19, 43.73, 'billets'), (46.79, 46.97, 'ravi'), (50.1, 50.63, 'joie'),
+           (53.65, 54.3, 'souci'), (55.6, 56.19, 'inquiet'), (59.24, 59.66, 'ravi'),
+           (61.0, 62.27, 'souci'), (65.27, 65.76, 'inquiet'), (68.39, 68.92, 'ravi'), (69.59, 71.0, 'point')]]
+ROAD = [(540, 1650), (560, 1450), (600, 1250), (585, 1050), (545, 880), (540, 760)]   # l'autoroute lumineuse jusqu'au processeur central
+def road(v):
+    v = clamp(v)*(len(ROAD)-1); i = min(int(v), len(ROAD)-2); f = v-i
+    return lerp(ROAD[i][0], ROAD[i+1][0], f), lerp(ROAD[i][1], ROAD[i+1][1], f)
+GAG0 = T['gag']+.03; GAG1 = GAG0+.25; GAG2 = GAG1+.9; LAND0 = T['y2015']+.05; LAND1 = T['y2015']+.5
 def trajet(t):
-    """gag : propulsé à la vitesse de la lumière vers la gauche, puis retour en trombe par la droite jusqu'à l'écran"""
-    if not (T['gag']+.02 <= t < T['record']-.03): return None
-    u = (t-T['gag']-.02)
-    x0, y0 = PLACES['datacenter'][:2]; x1, y1 = PLACES['ecran'][:2]
-    if u < .22: x = x0+14*math.sin(u*90); y = y0                      # il vibre, prêt à décoller
-    elif u < .5: v = (u-.22)/.28; x = lerp(x0, -900, v**1.8); y = y0-100*math.sin(math.pi*v)
-    elif u < .75: x = -900; y = y0
-    else:
-        v = clamp((u-.75)/(T['record']-.05-T['gag']-.77)); x = lerp(1900, x1, ease(v)); y = lerp(y0-80, y1, ease(v))
-    return (x, y, .28, False, -6, 0.0)
+    """gag de la ville : il vibre, puis il est propulsé sur l'autoroute lumineuse jusqu'au processeur central (il rapetisse au loin),
+    et il retombe du ciel dans l'usine de 2015"""
+    if GAG0 <= t < GAG1:
+        x, y = PLACES['ville'][:2]; return (x+12*math.sin((t-GAG0)*95), y, .28, False, 0, 0.0)
+    if GAG1 <= t < GAG2:
+        v = ((t-GAG1)/(GAG2-GAG1))**1.6; x, y = road(v); z = .28*(1-v)+.012*v
+        return (x, y, z, False, -78, 0.0)
+    if GAG2 <= t < LAND0: return (-2000, -2000, .01, False, 0, 0.0)
+    if LAND0 <= t < LAND1:
+        v = (t-LAND0)/(LAND1-LAND0); x, y = PLACES['crise'][:2]; return (x, lerp(-200, y, v*v), .28, False, 0, 0.0)
+    return None
 MC = MisterCoin(VOICE, PLACES, 'ville', actions=ACTIONS, trajet=trajet,
-                sauts_de_place=[(T['y2015']-.25, 'crise'), (T['mise']-.25, 'renaissance'), (T['ia']-.25, 'datacenter'), (T['gag']+.05, 'ecran')],
-                coucous=[(.1, 1.0)], petits_sauts=[T['pari']+.05, T['milliards']+.6],
+                sauts_de_place=[(T['gag']+.1, 'crise'), (T['mise']-.25, 'renaissance'), (T['ia']-.25, 'datacenter'), (T['record']-.25, 'ecran')],
+                coucous=[(.1, 1.0)], petits_sauts=[T['pari']+.05, T['milliards']+.6, LAND1-.02],
                 bulles=[(T['morte']+.1, T['morte']+1.6, "Même pas mort !", 'droite'),
                         (T['grignote']+.15, T['grignote']+2.0, "Miam, du silicium !", 'gauche'),
                         (T['signe']+.2, T['signe']+2.0, "Je signe où ?", 'droite'),
@@ -346,15 +354,15 @@ def frame(t):
     EMO.clear(); s, c = surface(); SCENE[r](c, cv, t); cv.alpha_composite(to_img(s))
     for e in EMO: draw_emoji(cv, *e)
     ch = MC.layer(t)
-    if r in ('datacenter', 'ecran'): cv.alpha_composite(reflection(ch, 1665))
-    if T['gag'] <= t < T['record']:                 # traînée de vitesse pendant le gag
-        tr = trajet(t)
-        if tr is not None:
-            lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay); x, y = tr[0], tr[1]
-            for i in range(9):
-                yy = y-330+i*38; L = 260+90*math.sin(i*1.7+t*20)
-                d.rounded_rectangle((x+150, yy, x+150+L, yy+6), 3, fill=(255, 225, 160, 150))
-            cv.alpha_composite(lay.filter(ImageFilter.GaussianBlur(2)))
+    if r in ('datacenter', 'ecran') and not (GAG0 <= t < LAND1): cv.alpha_composite(reflection(ch, 1665))
+    if GAG1 <= t < GAG2+.35:                        # traînée de lumière derrière lui sur l'autoroute
+        lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay)
+        v1 = clamp(((t-GAG1)/(GAG2-GAG1)))**1.6; v0 = max(0, v1-.35); fade_ = 1-clamp((t-GAG2)/.35)
+        pts = [road(v0+(v1-v0)*i/24) for i in range(25)]
+        for i in range(24):
+            w_ = 10+90*(1-(v0+(v1-v0)*i/24))*(i/24)**.7
+            d.line([pts[i], pts[i+1]], fill=(255, 225, 170, int(235*fade_*(i/24)**.6)), width=max(2, int(w_)))
+        cv.alpha_composite(lay.filter(ImageFilter.GaussianBlur(4)))
     cv.alpha_composite(ch)
     cv = atmosphere(cv, t)
     s2, c2 = surface(); kk = cap_at(t)
@@ -368,7 +376,7 @@ def events():
     ev = [(0.0, 'swish'), (T['valent'], 'impact'), (T['prog'], 'swish'), (T['y2015'], 'swish'), (T['tombe']+.6, 'crash'), (T['morte']+.9, 'thud'),
           (T['patronne'], 'neon'), (T['lisa'], 'pop'), (T['mise'], 'swish'), (T['ryzen'], 'glint'), (T['pari'], 'impact'), (T['grignote'], 'pop'),
           (T['abord'], 'pop'), (T['serveurs'], 'pop'), (T['ia'], 'swish'), (T['ia'], 'riser'), (T['oct'], 'pop'), (T['signe'], 'paid'),
-          (T['annee'], 'boom'), (T['milliards'], 'coins'), (T['gag']+.02, 'scream'), (T['gag']+.02, 'zoom'), (T['gag']+.77, 'zoom'),
+          (T['annee'], 'boom'), (T['milliards'], 'coins'), (GAG1-.05, 'scream'), (GAG1, 'zoom'), (LAND1-.05, 'thud'),
           (T['record'], 'swish'), (T['recule']+.3, 'impact'), (T['recule'], 'low'), (T['ventes'], 'tick'), (T['mais2'], 'tick'), (T['sept'], 'thud'),
           (T['verdict'], 'swish'), (T['toi'], 'swish'), (T['achet'], 'pop'), (T['achet']+.4, 'click')]
     ev += [(b[0], 'pop') for b in MC.bulles]

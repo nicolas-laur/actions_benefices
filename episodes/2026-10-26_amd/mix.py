@@ -188,16 +188,15 @@ def ignite():   # allumage : grondement qui monte, puis tient
     return (roar+crack)*env*(1+.15*np.sin(2*np.pi*7*t))*.12
 def cutoff():   # moteur coupé : grondement qui s'éteint + claquement sourd
     n = int(1.6*SR); t = tt(n); return lp(rng.standard_normal(n), 400)*np.exp(-t*4)*.22+np.sin(2*np.pi*np.cumsum(90*np.exp(-t*8)+40)/SR)*np.exp(-t*10)*.2
-def scream():   # cri cartoon « façon Wilhelm » synthétisé : voix de fausset qui monte puis retombe, voyelle « a »
-    n = int(1.05*SR); t = tt(n); u = t/t[-1]
-    f0 = 520+260*np.sin(np.pi*np.clip(u/.35, 0, 1)/2)-330*np.clip((u-.35)/.65, 0, 1)**1.4
-    f0 = f0*(1+.035*np.sin(2*np.pi*6.5*t))
-    ph = 2*np.pi*np.cumsum(f0)/SR
-    src = sum(np.sin(k*ph)/k for k in range(1, 18))+.15*rng.standard_normal(n)
-    v = bp(src, 650, 1050)*1.0+bp(src, 1050, 1500)*.7+bp(src, 2300, 3000)*.35
-    env = np.minimum(1, t/.04)*np.clip((t[-1]-t)/.25, 0, 1)
-    dop = 1-.45*u                                   # il s'éloigne : le cri s'atténue
-    return lp(v*env*dop, 4500)*.20
+def scream():   # vrai cri Wilhelm fourni par Nicolas (fichier wilhelm.* dans le dossier de l'épisode), sinon rien
+    import glob, subprocess
+    f = sorted(glob.glob(V.D+'/wilhelm.*'))
+    if not f: print('ATTENTION : pas de fichier wilhelm.* : gag sans cri'); return np.zeros(10)
+    subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', f[0], '-ac', '1', '-ar', str(SR), '/tmp/wilhelm48.wav'], check=True)
+    _, x = wavfile.read('/tmp/wilhelm48.wav'); x = x.astype(np.float32)/32768
+    nz = np.where(np.abs(x) > .02)[0]; x = x[nz[0]:nz[-1]+1] if len(nz) else x
+    u = np.linspace(0, 1, len(x)); x = x*(1-.55*u)            # il s'éloigne : le cri s'atténue
+    return x/max(1e-6, abs(x).max())*.22
 def zoom():    # passage à toute vitesse : souffle filtré qui monte
     n = int(.5*SR); t = tt(n); u = t/t[-1]; x = rng.standard_normal(n)
     return (lp(x, 700)*(1-u)+lp(x, 5000)*u)*np.sin(np.pi*u)**1.2*.09

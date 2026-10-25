@@ -10,7 +10,7 @@ from PIL import Image, ImageFilter
 D = os.path.dirname(os.path.abspath(__file__)); SRC = f'{D}/src'; S = .5
 MOUTH_BOX = (700, 1060, 1180, 1360)       # zone de la bouche (pixels de l'image d'origine 1792×2400)
 EYES_BOX = (740, 640, 1240, 1060)
-FULL = {'bulle', 'billets', 'chute', 'abattu', 'barbe', 'joie', 'gros', 'pique', 'mince', 'mince_abattu'}   # poses ajoutées le 23 oct. (à placer dans les silences de la voix)        # zone des yeux
+FULL = {'bulle', 'billets', 'chute', 'abattu', 'barbe', 'joie', 'gros', 'pique', 'mince', 'mince_abattu', 'puce', 'projete'}   # poses ajoutées le 23 oct. (à placer dans les silences de la voix)        # zone des yeux
 
 @functools.lru_cache(maxsize=None)
 def keyed(name):

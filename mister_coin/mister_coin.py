@@ -26,7 +26,7 @@ from PIL import Image, ImageDraw, ImageFilter
 import puppet as P, rig
 
 W, H = 1080, 1920
-FEET = np.array([1000., 2080.])
+FEET = np.array([1000., 2080.+rig.TOP])
 def ease(p): p = min(1, max(0, p)); return p*p*(3-2*p)
 def fade(t, a, b, r=.25): return ease((t-a)/r)*ease((b-t)/r)
 

@@ -30,17 +30,20 @@ ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '
                        '-itsoffset', '5.6', '-i', f'{E}/voice_full.wav', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-crf', '17', '-pix_fmt', 'yuv420p',
                        '-c:a', 'aac', '-shortest', out], stdin=subprocess.PIPE)
 GY = 1660; sB, sA = 234/307, 234/255
+XB = 367*sB+6     # bord gauche du clip calé sur le bord de l'écran : il entre vraiment par le côté
 B = list(frames(f'{D}/clip_b.mp4', 720, 1280))[:144]
 A = frames(f'{D}/clip_a.mp4', 1280, 720)
 def comp(fg, m, X):
-    sh = shadow(X, GY)
+    band = m[GY-60:GY+5]; cols = np.where(band.max(0) > .5)[0]          # l'ombre suit ses pieds
+    if len(cols) == 0: return np.clip(BG, 0, 255).astype(np.uint8) if m.max() < .01 else np.clip(BG*(1-m[..., None])+fg*m[..., None], 0, 255).astype(np.uint8)
+    X = (cols.min()+cols.max())/2; sh = shadow(X, GY)
     bg = BG*(1-sh[..., None]); return np.clip(bg*(1-m[..., None])+fg*m[..., None], 0, 255).astype(np.uint8)
 last = None
 for i, f in enumerate(B):                                    # il entre en marchant et s'arrête au centre
-    a, al = key(f); fg, m = place(a, al, sB, 367, 1001, 540, GY); last = (fg, m); ff.stdin.write(comp(fg, m, 540).tobytes())
+    a, al = key(f); fg, m = place(a, al, sB, 367, 1001, XB, GY); last = (fg, m); ff.stdin.write(comp(fg, m, XB).tobytes())
 for j, f in enumerate(A):                                    # puis il parle (fondu de 0,3 s entre les deux clips)
-    a, al = key(f); fg, m = place(a, al, sA, 637, 631, 540, GY)
+    a, al = key(f); fg, m = place(a, al, sA, 637, 631, XB, GY)
     if j < 7:
         u = j/7; fg = last[0]*(1-u)+fg*u; m = last[1]*(1-u)+m*u
-    ff.stdin.write(comp(fg, m, 540).tobytes())
+    ff.stdin.write(comp(fg, m, XB).tobytes())
 ff.stdin.close(); ff.wait()

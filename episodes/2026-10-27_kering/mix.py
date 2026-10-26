@@ -241,8 +241,6 @@ def rain(d):
     n = int(d*SR); return lp(hp(rng.standard_normal(n), 1500), 6000)*.004
 def hum(d):
     n = int(d*SR); t = tt(n); return lp(rng.standard_normal(n), 250)*.010+np.sin(2*np.pi*60*t)*.002
-seg(0, V.T['y2015']+.3, babble(V.T['y2015']+.3)*.75)
-seg(V.T['y2015'], V.T['mais'], babble(V.T['mais']-V.T['y2015'])*.35)
 seg(V.T['mais'], V.T['ventes'], hum(V.T['ventes']-V.T['mais']))
 seg(V.T['ventes'], V.T['change'], ticktock(V.T['change']-V.T['ventes']+1)+rain(V.T['change']-V.T['ventes']+1))
 seg(V.T['change'], DUR, hum(DUR-V.T['change'])*.5)

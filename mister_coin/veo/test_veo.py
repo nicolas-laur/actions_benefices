@@ -15,6 +15,8 @@ def key(a):
     a = a.astype(np.float32); R, G, B = a[..., 0], a[..., 1], a[..., 2]; ks = G-np.maximum(R, B)
     al = 1-np.clip((ks-30)/60, 0, 1); al = cv2.GaussianBlur(al, (0, 0), .7)
     sp = ks > 0; a[..., 1] = np.where(sp, np.minimum(G, R*.75+B*.25), G); a[..., 2] = np.where(sp, np.minimum(B, R), B)   # débordement vert neutralisé (sans liseré violet)
+    dk = (a.sum(2) < 330) & (a[..., 2] > a[..., 0]*.8)                       # traits sombres teintés de bleu : ramenés au brun
+    a[..., 2] = np.where(dk, a[..., 0]*.55, a[..., 2]); a[..., 1] = np.where(dk, np.minimum(a[..., 1], a[..., 0]*.75), a[..., 1])
     return a, al
 def place(a, al, s, cx, feet, X, Y):
     """met l'image détourée à l'échelle s, son point (cx, feet) sur (X, Y) de l'écran"""
@@ -32,7 +34,7 @@ B = list(frames(f'{D}/clip_b.mp4', 720, 1280))[:144]
 A = frames(f'{D}/clip_a.mp4', 1280, 720)
 def comp(fg, m, X):
     sh = shadow(X, GY)
-    bg = BG*(1-sh[..., None]); return (bg*(1-m[..., None])+fg*m[..., None]).astype(np.uint8)
+    bg = BG*(1-sh[..., None]); return np.clip(bg*(1-m[..., None])+fg*m[..., None], 0, 255).astype(np.uint8)
 last = None
 for i, f in enumerate(B):                                    # il entre en marchant et s'arrête au centre
     a, al = key(f); fg, m = place(a, al, sB, 367, 1001, 540, GY); last = (fg, m); ff.stdin.write(comp(fg, m, 540).tobytes())

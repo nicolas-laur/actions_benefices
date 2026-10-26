@@ -19,7 +19,7 @@ def bg(c):
     c.set_operator(cairo.OPERATOR_ADD); c.set_source_surface(src); c.paint(); c.set_operator(cairo.OPERATOR_OVER)
 cards.bg = bg
 for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_logo.png')):
-    path = f'{HERE}/{name}'; cards.card("KERING", slot, path)
+    path = f'{HERE}/{name}'; cards.card("KERING", slot, path, sub="(GUCCI)")
     if slot: continue
     import rig
     im = Image.open(path).convert('RGBA'); ch = rig.character("billets", 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())

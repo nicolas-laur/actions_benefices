@@ -13,7 +13,7 @@ def bg(c):
 def fit(c,s,fam,size,track,maxw):
     while width(c,s,fam,size,track)>maxw: size-=2
     return size
-def card(name,slot,path):
+def card(name,slot,path,sub=None):
     s=cairo.ImageSurface(cairo.FORMAT_ARGB32,W,H); c=cairo.Context(s); bg(c)
     if slot:
         c.new_path(); x,y,sz,r=390,500,300,36
@@ -22,7 +22,8 @@ def card(name,slot,path):
         put(c,"LOGO",y+sz/2+8,"Poppins Medium",26,'FFFFFF',8,.6)
         sz_=fit(c,name,"Poppins Medium",34,10,880); put(c,name,930,"Poppins Medium",sz_,'FFFFFF',10,.85); qy=1090
     else:
-        sz_=fit(c,name,"Poppins Medium",92,10,900); put(c,name,800,"Poppins Medium",sz_,'FFFFFF',10); 
-        c.new_path(); c.move_to(500,860); c.line_to(580,860); c.set_source_rgba(*hx('FFFFFF',.5)); c.set_line_width(2); c.stroke(); qy=1000
+        sz_=fit(c,name,"Poppins Medium",92,10,900); put(c,name,800,"Poppins Medium",sz_,'FFFFFF',10); ly=860; qy=1000
+        if sub: put(c,sub,880,"Poppins Light",44,'FFFFFF',8,.85); ly=940; qy=1060     # sous-titre facultatif, ex. « (GUCCI) »
+        c.new_path(); c.move_to(500,ly); c.line_to(580,ly); c.set_source_rgba(*hx('FFFFFF',.5)); c.set_line_width(2); c.stroke()
     put(c,"Et toi, tu achètes ?",qy+(0 if not slot else 0),"Poppins Light",58,'FFFFFF',1)
     s.write_to_png(path)

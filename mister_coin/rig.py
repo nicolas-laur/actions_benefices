@@ -70,7 +70,7 @@ TOP = 600   # marge au-dessus de la tête : les poses aux bras levés (ex. 'puce
 def character(pose, mouth, blink, legA, legB, armA):
     """toile pleine résolution du personnage articulé (contenu décalé de TOP vers le bas ; les pieds sont à FEET + TOP)"""
     out = Image.new('RGBA', (W0, H0+200+TOP), 0)
-    if pose in P.FULL or pose in ('gros_parle', 'mince_parle'):                                      # pose entière : pas d'articulation
+    if pose in P.FULL or pose.endswith('_parle'):                                      # pose entière : pas d'articulation
         im = P.compose(pose, mouth, blink); out.alpha_composite(im, (0, TOP+H0-im.height)); return out
     cv = Image.new('RGBA', (W0, H0+200), 0)
     (lL, bL), (lR, bR) = legs()

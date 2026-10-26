@@ -1,5 +1,5 @@
 """Couverture Kering, DA historique de la ligne fil rouge : fond noir, rubans de lumière aux couleurs du sujet (or, champagne, brun),
-nom épuré + « Et toi, tu achètes ? », Mister Coin en tenue bling-bling."""
+nom épuré + « Et toi, tu achètes ? », Mister Coin classique avec son sac de billets."""
 import cairo, math, numpy as np, sys, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin')
@@ -22,7 +22,7 @@ for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_log
     path = f'{HERE}/{name}'; cards.card("KERING", slot, path)
     if slot: continue
     import rig
-    im = Image.open(path).convert('RGBA'); ch = rig.character("bling_frime", 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())
+    im = Image.open(path).convert('RGBA'); ch = rig.character("billets", 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())
     h = 600; ch = ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS); cx, feet = 540, 1700
     sh = Image.new('L', (W, H), 0); ImageDraw.Draw(sh).ellipse((cx-ch.width*.4, feet-16, cx+ch.width*.4, feet+14), fill=170)
     im.paste((0, 0, 0, 255), (0, 0), sh.filter(ImageFilter.GaussianBlur(14)))

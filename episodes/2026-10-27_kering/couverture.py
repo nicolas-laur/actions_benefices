@@ -19,11 +19,11 @@ def bg(c):
     c.set_operator(cairo.OPERATOR_ADD); c.set_source_surface(src); c.paint(); c.set_operator(cairo.OPERATOR_OVER)
 cards.bg = bg
 for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_logo.png')):
-    path = f'{HERE}/{name}'; cards.card("KERING", slot, path, sub="(GUCCI)")
+    path = f'{HERE}/{name}'; cards.card("KERING", slot, path, sub=("(GUCCI, SAINT LAURENT,", "BALENCIAGA, POMELLATO…)"))
     if slot: continue
     import rig
     im = Image.open(path).convert('RGBA'); ch = rig.character("billets", 0, False, 0, 0, 0); ch = ch.crop(ch.getbbox())
-    h = 600; ch = ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS); cx, feet = 540, 1700
+    h = 540; ch = ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS); cx, feet = 540, 1770
     sh = Image.new('L', (W, H), 0); ImageDraw.Draw(sh).ellipse((cx-ch.width*.4, feet-16, cx+ch.width*.4, feet+14), fill=170)
     im.paste((0, 0, 0, 255), (0, 0), sh.filter(ImageFilter.GaussianBlur(14)))
     im.alpha_composite(ch, (int(cx-ch.width/2), feet-h)); im.convert('RGB').save(path)

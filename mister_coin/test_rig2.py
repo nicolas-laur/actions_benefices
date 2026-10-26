@@ -4,7 +4,7 @@ import sys, os, math, subprocess
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 D = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, D)
-import rig2
+import rig2_proto as rig2
 W, H = 1080, 1920; Z = .28
 FEET = np.array([1000., rig2.FEET_Y])
 def clamp(x, a=0., b=1.): return max(a, min(b, x))

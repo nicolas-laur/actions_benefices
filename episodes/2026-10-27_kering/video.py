@@ -117,7 +117,17 @@ def rng_at(t, k): return np.random.default_rng(int(t*FPS)*7919+k)
 BAGS = [(270, 648), (432, 670), (567, 707), (270, 810), (553, 850), (430, 905)]
 SPOTS = [(135, 490), (365, 495), (470, 495), (580, 495), (700, 495), (790, 490), (1000, 490)]
 EIFFEL = []
+def _flashes():
+    rng = np.random.default_rng(21); out = []; t = 12.36+.9
+    while t < 28.4:
+        side = rng.random() < .5; y = rng.uniform(980, 1300); x = rng.uniform(60, 330-(y-980)*.2) if side else rng.uniform(750+(y-980)*.2, 1030)
+        out.append((t, x, y)); t += rng.uniform(.7, 1.6)
+    return out
+FLASHES = _flashes()
 AUDIENCE = [(x, y) for y in range(930, 1420, 70) for x in list(np.linspace(40-y*.0, 380-(y-930)*.25, 5))+list(np.linspace(700+(y-930)*.25, 1050, 5))]
+def glow(lay, rgb, mask):
+    """ajoute une lueur colorée (alpha = masque) en mélange normal, sans assombrir"""
+    g = Image.new('RGBA', (W, H), rgb+(0,)); g.putalpha(mask); lay.alpha_composite(g)
 def sparkle(d, x, y, r, a):
     d.line((x-r, y, x+r, y), fill=(255, 255, 240, a), width=3); d.line((x, y-r, x, y+r), fill=(255, 255, 240, a), width=3)
     d.ellipse((x-r*.25, y-r*.25, x+r*.25, y+r*.25), fill=(255, 255, 255, a))
@@ -143,7 +153,7 @@ def decor(name, t):
     if name == 'boutique':
         # rayon de soleil qui glisse sur le marbre
         x0 = 1000-((t*90) % 900); sun = Image.new('L', (W, H), 0)
-        ImageDraw.Draw(sun).polygon([(x0, 1150), (x0+260, 1150), (x0-60, 1920), (x0-420, 1920)], fill=70); lay.paste((255, 240, 205, 255), (0, 0), sun.filter(ImageFilter.GaussianBlur(40)))
+        ImageDraw.Draw(sun).polygon([(x0, 1150), (x0+260, 1150), (x0-60, 1920), (x0-420, 1920)], fill=70); glow(lay, (255, 240, 205), sun.filter(ImageFilter.GaussianBlur(40)))
         for i, (x, y) in enumerate(BAGS):                      # éclats sur les sacs
             ph = (t*.7+i*.37) % 1
             if ph < .25: sparkle(d, x+30, y-20, 24*math.sin(math.pi*ph/.25), int(230*math.sin(math.pi*ph/.25)))
@@ -151,16 +161,18 @@ def decor(name, t):
         for k, (x, y) in enumerate(SPOTS):                      # projecteurs qui balaient
             ang = .35*math.sin(t*.9+k*1.3); L = 1350; w = 170
             p = [(x, y), (x+math.sin(ang)*L-w, y+math.cos(ang)*L), (x+math.sin(ang)*L+w, y+math.cos(ang)*L)]
-            beam = Image.new('L', (W, H), 0); ImageDraw.Draw(beam).polygon(p, fill=40); lay.paste((255, 230, 180, 255), (0, 0), beam.filter(ImageFilter.GaussianBlur(25)))
-        rng = rng_at(t, 1)                                      # flashs photo qui crépitent
-        for k in range(len(AUDIENCE)):
-            if rng.random() < .012:
-                x, y = AUDIENCE[k]; x += rng.uniform(-30, 30); r = rng.uniform(14, 24); g = Image.new('L', (W, H), 0); ImageDraw.Draw(g).ellipse((x-r, y-60-r, x+r, y-60+r), fill=150)
-                lay.paste((255, 250, 235, 255), (0, 0), g.filter(ImageFilter.GaussianBlur(r*.5))); sparkle(d, x, y-60, r*.6, 170)
-        rng2 = np.random.default_rng(5)                         # paillettes dorées qui tombent
-        for k in range(70):
-            x0, y0, v = rng2.uniform(0, W), rng2.uniform(0, H), rng2.uniform(60, 140); x = x0+25*math.sin(t*2+k); y = (y0+v*t) % H
-            d.rectangle((x-3, y-3, x+3, y+3), fill=(255, 220, 140, int(170+80*math.sin(t*9+k))))
+            beam = Image.new('L', (W, H), 0); ImageDraw.Draw(beam).polygon(p, fill=40); glow(lay, (255, 230, 180), beam.filter(ImageFilter.GaussianBlur(25)))
+        for (tf, x, y) in FLASHES:                             # flashs photo ponctuels : éclair bref depuis le public + scène un peu éclairée
+            u = t-tf
+            if 0 <= u < .16:
+                k = (1-u/.16)**2; g = Image.new('L', (W, H), 0); ImageDraw.Draw(g).ellipse((x-150, y-150, x+150, y+150), fill=int(255*k))
+                glow(lay, (255, 252, 245), g.filter(ImageFilter.GaussianBlur(45)))
+                st = Image.new('RGBA', (W, H), 0); ds = ImageDraw.Draw(st); ds.ellipse((x-14, y-14, x+14, y+14), fill=(255, 255, 255, min(255, int(400*k))))
+                for ang in (0, math.pi/2, math.pi/4, -math.pi/4):
+                    L = (150 if ang in (0, math.pi/2) else 70)*k
+                    ds.line((x-L*math.cos(ang), y-L*math.sin(ang), x+L*math.cos(ang), y+L*math.sin(ang)), fill=(255, 255, 255, min(255, int(400*k))), width=4)
+                lay.alpha_composite(st.filter(ImageFilter.GaussianBlur(1)))
+                im = ImageEnhance.Brightness(im.convert('RGB')).enhance(1+.10*k).convert('RGBA'); d2 = None
     elif name == 'shanghai':
         f = 1-.38*inout((t-T['mais']-.8)/5.5)                  # la galerie s'assombrit à mesure que les clients disparaissent
         im = ImageEnhance.Brightness(im.convert('RGB')).enhance(f).convert('RGBA'); d = ImageDraw.Draw(lay)
@@ -182,21 +194,21 @@ def decor(name, t):
         tg = tagp.rotate(math.degrees(-ang), expand=True, resample=Image.BICUBIC); lay.alpha_composite(tg, (int(ex-tg.width/2), int(ey)))
         g = clamp((t-T['ventes']-2)/1.5)                         # le réverbère s'allume dehors
         if g > 0:
-            lamp = Image.new('L', (W, H), 0); ImageDraw.Draw(lamp).ellipse((1010, 690, 1090, 770), fill=int(200*g)); lay.paste((255, 210, 140, 255), (0, 0), lamp.filter(ImageFilter.GaussianBlur(20)))
+            lamp = Image.new('L', (W, H), 0); ImageDraw.Draw(lamp).ellipse((1010, 690, 1090, 770), fill=int(200*g)); glow(lay, (255, 210, 140), lamp.filter(ImageFilter.GaussianBlur(20)))
     elif name == 'bureau':
         m, tw_ = paris_lights()                                 # fenêtres de Paris qui s'allument et s'éteignent
         a = np.asarray(im).astype(np.float32); k = np.sin(tw_+t*(1.5+tw_*.35))
         a[..., :3] *= (1+m*(.55*np.clip(k, 0, 1)-.35*np.clip(-k, 0, 1)))[..., None]
         im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)); d = ImageDraw.Draw(lay)
         g = Image.new('L', (W, H), 0); ImageDraw.Draw(g).ellipse((140, 800, 225, 900), fill=int(90+60*math.sin(t*1.3)))   # Sacré-Cœur qui rayonne
-        lay.paste((255, 235, 200, 255), (0, 0), g.filter(ImageFilter.GaussianBlur(22)))
+        glow(lay, (255, 235, 200), g.filter(ImageFilter.GaussianBlur(22)))
         clip = Image.new('L', (W, H), 0); ImageDraw.Draw(clip).rectangle((862, 600, 1080, 1195), fill=255)   # phare de la tour Eiffel qui tourne
         beam = Image.new('L', (W, H), 0); db = ImageDraw.Draw(beam)
         for off in (0, math.pi):
             ang = t*1.1+off; L = 900; w = .045
             if math.cos(ang) > -.2:
                 db.polygon([(941, 748), (941+L*math.sin(ang-w), 748-L*.18*math.cos(ang)), (941+L*math.sin(ang+w), 748-L*.18*math.cos(ang)+40)], fill=int(70*max(0, math.cos(ang))))
-        beam = Image.composite(beam.filter(ImageFilter.GaussianBlur(6)), Image.new('L', (W, H), 0), clip); lay.paste((255, 245, 215, 255), (0, 0), beam)
+        beam = Image.composite(beam.filter(ImageFilter.GaussianBlur(6)), Image.new('L', (W, H), 0), clip); glow(lay, (255, 245, 215), beam)
         rng = rng_at(t, 3)                                      # scintillement de la tour Eiffel
         for (x, y) in eiffel_pts():
             if rng.random() < .3:

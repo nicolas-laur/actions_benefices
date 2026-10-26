@@ -116,23 +116,34 @@ def base(name):
 def rng_at(t, k): return np.random.default_rng(int(t*FPS)*7919+k)
 BAGS = [(270, 648), (432, 670), (567, 707), (270, 810), (553, 850), (430, 905)]
 SPOTS = [(135, 490), (365, 495), (470, 495), (580, 495), (700, 495), (790, 490), (1000, 490)]
+EIFFEL = []
 AUDIENCE = [(x, y) for y in range(930, 1420, 70) for x in list(np.linspace(40-y*.0, 380-(y-930)*.25, 5))+list(np.linspace(700+(y-930)*.25, 1050, 5))]
 def sparkle(d, x, y, r, a):
     d.line((x-r, y, x+r, y), fill=(255, 255, 240, a), width=3); d.line((x, y-r, x, y+r), fill=(255, 255, 240, a), width=3)
     d.ellipse((x-r*.25, y-r*.25, x+r*.25, y+r*.25), fill=(255, 255, 255, a))
+@functools.lru_cache(maxsize=1)
+def paris_lights():
+    a = np.asarray(base('bureau')).astype(np.float32); R, G, B = a[..., 0], a[..., 1], a[..., 2]; yy, xx = np.mgrid[0:H, 0:W]
+    win = (((xx > 28) & (xx < 228)) | ((xx > 862) & (xx < 1080))) & (yy > 880) & (yy < 1130)
+    m = (np.clip((R-150)/60, 0, 1)*np.clip((R-B)/40, 0, 1)*win).astype(np.float32)
+    rng = np.random.default_rng(8); cells = rng.uniform(0, 6.28, (H//6+1, W//6+1)).astype(np.float32)
+    return m, cells[(yy//6).astype(int), (xx//6).astype(int)]
+def _eiffel():
+    a = np.asarray(base('bureau')).astype(np.int32); pts = []
+    rng = np.random.default_rng(11)
+    for _ in range(4000):
+        y = rng.uniform(752, 935); half = 3+(y-752)/183*44; x = rng.uniform(941-half, 941+half)
+        R, G, B = a[int(y), int(x)]
+        if R > 150 and R-B > 50: pts.append((x, y))
+        if len(pts) >= 140: break
+    return pts
+eiffel_pts = functools.lru_cache(maxsize=1)(_eiffel)
 def decor(name, t):
     im = base(name).copy().convert('RGBA'); lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay)
     if name == 'boutique':
         # rayon de soleil qui glisse sur le marbre
         x0 = 1000-((t*90) % 900); sun = Image.new('L', (W, H), 0)
         ImageDraw.Draw(sun).polygon([(x0, 1150), (x0+260, 1150), (x0-60, 1920), (x0-420, 1920)], fill=70); lay.paste((255, 240, 205, 255), (0, 0), sun.filter(ImageFilter.GaussianBlur(40)))
-        # ombres de foule qui passent (clients hors champ devant la lumière)
-        sh = Image.new('L', (W, H), 0); ds = ImageDraw.Draw(sh)
-        for i in range(6):
-            sp = (90+i*23)*(1 if i % 2 else -1); x = ((i*397+sp*t) % 1700)-310; y = 1250+i*95
-            ds.ellipse((x-70, y-260, x+70, y+60), fill=150); ds.ellipse((x-40, y-330, x+40, y-250), fill=150)     # silhouette allongée au sol
-            xw = ((i*251+sp*.6*t) % 1500)-210; ds.ellipse((xw-55, 380, xw+55, 1050), fill=80)               # ombre sur les murs
-        shade = Image.new('RGBA', (W, H), (60, 45, 30, 255)); shade.putalpha(sh.filter(ImageFilter.GaussianBlur(30))); im.alpha_composite(shade)
         for i, (x, y) in enumerate(BAGS):                      # éclats sur les sacs
             ph = (t*.7+i*.37) % 1
             if ph < .25: sparkle(d, x+30, y-20, 24*math.sin(math.pi*ph/.25), int(230*math.sin(math.pi*ph/.25)))
@@ -143,20 +154,16 @@ def decor(name, t):
             beam = Image.new('L', (W, H), 0); ImageDraw.Draw(beam).polygon(p, fill=40); lay.paste((255, 230, 180, 255), (0, 0), beam.filter(ImageFilter.GaussianBlur(25)))
         rng = rng_at(t, 1)                                      # flashs photo qui crépitent
         for k in range(len(AUDIENCE)):
-            if rng.random() < .05:
-                x, y = AUDIENCE[k]; x += rng.uniform(-30, 30); r = rng.uniform(28, 55); g = Image.new('L', (W, H), 0); ImageDraw.Draw(g).ellipse((x-r, y-60-r, x+r, y-60+r), fill=255)
-                lay.paste((255, 255, 255, 255), (0, 0), g.filter(ImageFilter.GaussianBlur(r*.35))); sparkle(d, x, y-60, r*.7, 255)
+            if rng.random() < .012:
+                x, y = AUDIENCE[k]; x += rng.uniform(-30, 30); r = rng.uniform(14, 24); g = Image.new('L', (W, H), 0); ImageDraw.Draw(g).ellipse((x-r, y-60-r, x+r, y-60+r), fill=150)
+                lay.paste((255, 250, 235, 255), (0, 0), g.filter(ImageFilter.GaussianBlur(r*.5))); sparkle(d, x, y-60, r*.6, 170)
         rng2 = np.random.default_rng(5)                         # paillettes dorées qui tombent
         for k in range(70):
             x0, y0, v = rng2.uniform(0, W), rng2.uniform(0, H), rng2.uniform(60, 140); x = x0+25*math.sin(t*2+k); y = (y0+v*t) % H
             d.rectangle((x-3, y-3, x+3, y+3), fill=(255, 220, 140, int(170+80*math.sin(t*9+k))))
     elif name == 'shanghai':
-        a = np.asarray(im).astype(np.float32)                   # vitrines qui s'éteignent une à une
-        shops = [(0, 730, 162, 1190, T['mais']+1.0), (918, 620, 1080, 1135, T['chine']+.3), (0, 400, 120, 700, T['discret']+.2), (930, 300, 1080, 600, T['discret']+1.4)]
-        for x0, y0, x1, y1, t0 in shops:
-            k = clamp((t-t0)/.25)*(0 if (t-t0) < .3 and math.sin(t*60) > 0 else 1)
-            a[y0:y1, x0:x1, :3] *= 1-.55*k
-        im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+        f = 1-.38*inout((t-T['mais']-.8)/5.5)                  # la galerie s'assombrit à mesure que les clients disparaissent
+        im = ImageEnhance.Brightness(im.convert('RGB')).enhance(f).convert('RGBA'); d = ImageDraw.Draw(lay)
         for x0 in (378, 620):                                   # marches d'escalator qui défilent
             for i in range(12):
                 y = 1110-((i*28+t*45) % 330); xx = x0+(1110-y)*.0; d.line((xx+8, y, xx+74, y), fill=(255, 245, 225, 70), width=2)
@@ -177,13 +184,25 @@ def decor(name, t):
         if g > 0:
             lamp = Image.new('L', (W, H), 0); ImageDraw.Draw(lamp).ellipse((1010, 690, 1090, 770), fill=int(200*g)); lay.paste((255, 210, 140, 255), (0, 0), lamp.filter(ImageFilter.GaussianBlur(20)))
     elif name == 'bureau':
-        rng = np.random.default_rng(4)                          # fenêtres de Paris qui scintillent, voitures sur l'avenue
-        for k in range(70):
-            if k < 35: x, y = rng.uniform(20, 240), rng.uniform(850, 1180)
-            else: x, y = rng.uniform(860, 1075), rng.uniform(820, 1190)
-            if math.sin(t*rng.uniform(1.5, 5)+k*2) > .7: d.ellipse((x-3, y-3, x+3, y+3), fill=(255, 225, 160, 210))
+        m, tw_ = paris_lights()                                 # fenêtres de Paris qui s'allument et s'éteignent
+        a = np.asarray(im).astype(np.float32); k = np.sin(tw_+t*(1.5+tw_*.35))
+        a[..., :3] *= (1+m*(.55*np.clip(k, 0, 1)-.35*np.clip(-k, 0, 1)))[..., None]
+        im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)); d = ImageDraw.Draw(lay)
+        g = Image.new('L', (W, H), 0); ImageDraw.Draw(g).ellipse((140, 800, 225, 900), fill=int(90+60*math.sin(t*1.3)))   # Sacré-Cœur qui rayonne
+        lay.paste((255, 235, 200, 255), (0, 0), g.filter(ImageFilter.GaussianBlur(22)))
+        clip = Image.new('L', (W, H), 0); ImageDraw.Draw(clip).rectangle((862, 600, 1080, 1195), fill=255)   # phare de la tour Eiffel qui tourne
+        beam = Image.new('L', (W, H), 0); db = ImageDraw.Draw(beam)
+        for off in (0, math.pi):
+            ang = t*1.1+off; L = 900; w = .045
+            if math.cos(ang) > -.2:
+                db.polygon([(941, 748), (941+L*math.sin(ang-w), 748-L*.18*math.cos(ang)), (941+L*math.sin(ang+w), 748-L*.18*math.cos(ang)+40)], fill=int(70*max(0, math.cos(ang))))
+        beam = Image.composite(beam.filter(ImageFilter.GaussianBlur(6)), Image.new('L', (W, H), 0), clip); lay.paste((255, 245, 215, 255), (0, 0), beam)
+        rng = rng_at(t, 3)                                      # scintillement de la tour Eiffel
+        for (x, y) in eiffel_pts():
+            if rng.random() < .3:
+                r = rng.uniform(1.5, 3.2); d.ellipse((x-r*2, y-r*2, x+r*2, y+r*2), fill=(255, 255, 255, 60)); d.ellipse((x-r, y-r, x+r, y+r), fill=(255, 255, 250, 255))
         for k in range(5):
-            u = ((t*.25+k/5) % 1); x = lerp(1075, 880, u); y = lerp(1185, 1100, u); d.ellipse((x-5, y-3, x+5, y+3), fill=(255, 240, 200, 230)); d.ellipse((x+40, y+8, x+48, y+14), fill=(255, 60, 40, 200))
+            u = ((t*.25+k/5) % 1); x = lerp(1075, 1010, u); y = lerp(1195, 1110, u); d.ellipse((x-4, y-3, x+4, y+3), fill=(255, 240, 200, 230))
     im = im.convert('RGBA'); im.alpha_composite(lay.filter(ImageFilter.GaussianBlur(1.2)) if name != 'defile' else lay)
     return im.convert('RGB')
 def camera(im, t, t0, t1, z0=1.0, z1=1.05, cx=540, cy=900):
@@ -206,50 +225,80 @@ def reflection(char_layer, floor_y, a=.16):
     fade = np.clip(1-(np.arange(H)-floor_y)/240, 0, 1)[:, None]; al *= fade*a; al[:int(floor_y)] = 0
     r.putalpha(Image.fromarray(al.astype(np.uint8))); return r.filter(ImageFilter.GaussianBlur(2.5))
 
-# ---------- écran du bureau ----------
+# ---------- écran du bureau : habillage façon chaîne d'info financière ----------
 SX0, SY0, SX1, SY1 = 268, 618, 800, 950
-def screen_bg(c, a):
-    rr(c, SX0, SY0, SX1-SX0, SY1-SY0, 6); col(c, '0B0906', .92*a); c.fill()
+CX = (SX0+SX1)/2
+def screen_bg(c, t, a, ticker=True):
+    g = cairo.LinearGradient(0, SY0, 0, SY1); g.add_color_stop_rgba(0, .09, .07, .05, .97*a); g.add_color_stop_rgba(1, .02, .02, .02, .97*a)
+    rr(c, SX0, SY0, SX1-SX0, SY1-SY0, 6); c.set_source(g); c.fill()
+    c.set_line_width(1); col(c, GOLD2, .06*a)
+    for x in range(SX0+30, SX1, 38): c.move_to(x, SY0+44); c.line_to(x, SY1-36); c.stroke()
+    rr(c, SX0, SY0, SX1-SX0, 40, 6); col(c, '2A2014', a); c.fill()                       # bandeau du haut
+    text(c, "KERING · EURONEXT PARIS", SX0+18, SY0+21, 'xb', 17, GOLD2, 'l', a, 2)
+    on = (t*1.6) % 1 < .6; c.arc(SX1-108, SY0+20, 6, 0, 6.3); col(c, RED, a*(1 if on else .3)); c.fill()
+    text(c, "EN DIRECT", SX1-96, SY0+21, 'xb', 16, WHITE, 'l', a, 1)
+    if not ticker: return
+    rr(c, SX0, SY1-34, SX1-SX0, 34, 6); col(c, RED, .9*a); c.fill()                          # bandeau défilant du bas
+    msg = "   KERING −16,6 % SUR LA SÉANCE DU 23 OCTOBRE   ·   GUCCI −6 % AU 3E TRIMESTRE   ·   −78 % DEPUIS LE RECORD DE 2021   ·"
+    c.save(); c.rectangle(SX0, SY1-34, SX1-SX0, 34); c.clip()
+    w = tw(c, msg, 'xb', 17, 1); x = SX1-((t*90) % (w+SX1-SX0))
+    for k in (0, 1): text(c, msg, x+k*w, SY1-16, 'xb', 17, WHITE, 'l', a, 1)
+    c.restore()
+def arrow_down(c, x, y, s, a, color=RED):
+    c.save(); c.translate(x, y); c.scale(s, s)
+    c.move_to(-14, -30); c.line_to(14, -30); c.line_to(14, 2); c.line_to(30, 2); c.line_to(0, 34); c.line_to(-30, 2); c.line_to(-14, 2); c.close_path()
+    col(c, color, a); c.fill(); c.restore()
 def sScreen(c, cv, t):
     a = ease((t-T['oct23'])/.4)
     if a <= 0: return
-    screen_bg(c, a); cxs = (SX0+SX1)/2
+    screen_bg(c, t, a, t < T['toi']-.1)
     if t < T['resultat']-.1:
-        text(c, "23 OCTOBRE 2026", cxs, SY0+50, 'xb', 26, GOLD2, 'c', a, 3)
+        text(c, "23 OCTOBRE 2026", CX, SY0+72, 'a', 38, WHITE, 'c', a)
         kg = t-T['gucci6']
-        if kg > 0: text(c, "VENTES DE GUCCI AU T3 : −6 %", cxs, SY0+115, 'xb', 28, RED2, 'c', ease(kg/.3), 1)
+        if kg > 0:
+            rr(c, SX0+24, SY0+102, 230, 120, 12); col(c, '241A10', ease(kg/.3)); c.fill()
+            text(c, "VENTES GUCCI", SX0+139, SY0+126, 'xb', 18, GOLD2, 'c', ease(kg/.3), 2); text(c, "3E TRIMESTRE", SX0+139, SY0+146, 'b', 15, WHITE, 'c', ease(kg/.3))
+            text(c, "−6 %", SX0+139, SY0+188, 'a', 52, RED2, 'c', ease((kg-.2)/.3))
         kc = t-T['chute16']
         if kc > 0:
-            big(c, "−16,6 %", cxs, SY0+205, 96, RED, ease((kc-.3)/.25), lerp(1.4, 1, back((kc-.3)/.4)))
-            text(c, "KERING EN UNE SÉANCE · 213,50 € → 178,12 €", cxs, SY0+290, 'xb', 20, WHITE, 'c', ease((kc-1)/.3), 1)
+            u = ease(kc/.3); rr(c, SX0+268, SY0+102, 240, 120, 12); col(c, '3A0E0A', u); c.fill()
+            text(c, "ACTION KERING", SX0+388, SY0+126, 'xb', 18, GOLD2, 'c', u, 2); text(c, "EN UNE SÉANCE", SX0+388, SY0+146, 'b', 15, WHITE, 'c', u)
+            text(c, "−16,6 %", SX0+388, SY0+188, 'a', 52, RED2, 'c', ease((kc-.3)/.3))
+            text(c, "213,50 €  →  178,12 €", CX, SY0+255, 'xb', 24, WHITE, 'c', ease((kc-1)/.3), 1)
         return
     if t < T['alors']-.1:
         k = t-T['resultat']
-        text(c, "DEPUIS LE RECORD DU 13 AOÛT 2021", cxs, SY0+55, 'xb', 22, GOLD2, 'c', a, 2)
-        big(c, "−78 %", cxs, SY0+170, 150, RED, ease((k-.4)/.25), lerp(1.4, 1, back((k-.4)/.45)))
-        text(c, "826,72 € → 178,12 €", cxs, SY0+280, 'xb', 32, WHITE, 'c', ease((k-1)/.3), 1)
+        text(c, "DEPUIS LE RECORD", SX0+30, SY0+72, 'xb', 20, GOLD2, 'l', a, 2)
+        h1 = 140*inout(k/.8); h2 = 140*178.12/826.72*inout((k-.6)/.8); base_y = SY1-62
+        for x, h, cl, lab, val in ((SX0+60, h1, GOLD, "13 AOÛT 2021", "826,72 €"), (SX0+200, h2, RED, "23 OCT. 2026", "178,12 €")):
+            if h <= 1: continue
+            rr(c, x, base_y-h, 100, h, 8); col(c, cl, a); c.fill()
+            text(c, val, x+50, base_y-h-16, 'a', 26, WHITE, 'c', a); text(c, lab, x+50, base_y+14, 'xb', 13, GOLD2, 'c', a, 1)
+        kb = k-1.2
+        if kb > 0: big(c, "−78 %", SX0+405, SY0+150, 84, RED, ease(kb/.25), lerp(1.4, 1, back(kb/.45)))
+        if kb > .5: text(c, "1 000 € → 215 €", SX0+405, SY0+225, 'xb', 22, WHITE, 'c', ease((kb-.5)/.3), 1)
         return
     if t < T['toi']-.1:
         k = t-T['alors']
-        text(c, "AFFAIRE EN OR", cxs-130, SY0+70, 'a', 44, GOLD2, 'c', ease(k/.3)); text(c, "OU", cxs+40, SY0+70, 'xb', 26, WHITE, 'c', ease((k-.3)/.3))
-        text(c, "PIÈGE ?", cxs+150, SY0+70, 'a', 44, RED2, 'c', ease((k-.6)/.3))
+        rr(c, SX0+24, SY0+56, 235, 70, 12); col(c, '2A2010', ease(k/.3)); c.fill(); text(c, "AFFAIRE EN OR ?", SX0+141, SY0+92, 'a', 30, GOLD2, 'c', ease(k/.3))
+        rr(c, SX0+273, SY0+56, 235, 70, 12); col(c, '3A0E0A', ease((k-.6)/.3)); c.fill(); text(c, "PIÈGE ?", SX0+390, SY0+92, 'a', 30, RED2, 'c', ease((k-.6)/.3))
         kp = t-T['promet']
         if kp > 0:
-            text(c, "OBJECTIF DU PATRON", SX0+40, SY0+160, 'xb', 22, GOLD2, 'l', ease(kp/.3), 2)
-            text(c, "DOUBLER LA MARGE D'ICI 2030", SX0+40, SY0+205, 'a', 40, WHITE, 'l', ease((kp-.2)/.3))
+            text(c, "OBJECTIF DU NOUVEAU PATRON", SX0+30, SY0+160, 'xb', 18, GOLD2, 'l', ease(kp/.3), 2)
+            text(c, "MARGE", SX0+30, SY0+215, 'a', 46, WHITE, 'l', ease((kp-.2)/.3)); big(c, "× 2", SX0+215, SY0+212, 64, GOLD2, ease((kp-.5)/.25), lerp(1.3, 1, back((kp-.5)/.4)), edge=DARK)
+            text(c, "D'ICI 2030", SX0+290, SY0+215, 'a', 46, WHITE, 'l', ease((kp-.2)/.3))
         ki = t-T['instant']
-        if ki > 0:
-            text(c, "GUCCI AU T3 2026 : −6 %", SX0+40, SY0+275, 'xb', 26, RED2, 'l', ease(ki/.3), 1)
+        if ki > 0: text(c, "EN ATTENDANT : GUCCI −6 % AU T3", CX, SY0+262, 'xb', 20, RED2, 'c', ease(ki/.3), 1)
         return
     k = t-T['toi']
-    big(c, "ET TOI,", cxs, SY0+70, 70, WHITE, ease(k/.3), edge=GOLD)
+    big(c, "ET TOI,", CX, SY0+90, 66, WHITE, ease(k/.3), edge=GOLD)
     kb = t-T['parier']
-    big(c, "TU PARIERAIS SUR", cxs, SY0+160, 52, GOLD2, ease(kb/.3), lerp(1.25, 1, back(kb/.4)), edge=DARK)
-    big(c, "LE RETOUR DE GUCCI ?", cxs, SY0+235, 52, GOLD2, ease((kb-.15)/.3), lerp(1.25, 1, back((kb-.15)/.4)), edge=DARK)
+    big(c, "TU PARIERAIS SUR", CX, SY0+165, 48, GOLD2, ease(kb/.3), lerp(1.25, 1, back(kb/.4)), edge=DARK)
+    big(c, "LE RETOUR DE GUCCI ?", CX, SY0+228, 48, GOLD2, ease((kb-.15)/.3), lerp(1.25, 1, back((kb-.15)/.4)), edge=DARK)
     if t > T['parier']+.6:
         al = ease((t-T['parier']-.6)/.4)
-        c.push_group(); logo_symbol(c, cxs-120, SY1-35, 34); c.pop_group_to_source(); c.paint_with_alpha(al)
-        text(c, "Actions_Benefices", cxs-95, SY1-35, 'b', 24, WHITE, 'l', al)
+        c.push_group(); logo_symbol(c, CX-120, SY1-24, 30); c.pop_group_to_source(); c.paint_with_alpha(al)
+        text(c, "Actions_Benefices", CX-98, SY1-24, 'b', 22, WHITE, 'l', al)
 
 # ---------- scènes ----------
 SCN = [(0, 'boutique'), (T['y2015'], 'defile'), (T['mais'], 'shanghai'), (T['ventes'], 'boutique_vide'), (T['change'], 'bureau')]
@@ -338,40 +387,38 @@ SCENE = {'boutique': sBoutique, 'defile': sDefile, 'shanghai': sShanghai, 'bouti
 # ---------- Mister Coin ----------
 PLACES = {'boutique': (560, 1650, .28), 'defile': (540, 1665, .28), 'shanghai': (360, 1665, .28), 'boutique_vide': (720, 1655, .28, True),
           'bureau': (760, 1665, .28, True)}
-EXIT0, EXIT1 = 11.55, 12.35          # il sort du champ à droite en tenue normale…
-ENTER0, ENTER1 = 12.5, 13.6          # …et revient par la gauche en bling-bling
+# changements de tenue en sortie de champ : classique → bling-bling (défilé → Shanghai), bling-bling → classique (boutique vide → bureau)
+EXA0, EXA1, ENA0, ENA1 = 28.33, 28.86, 29.0, 30.0
+EXB0, EXB1, ENB0, ENB1 = 44.35, 44.92, 45.05, 46.1
 BONK = T['resultat']-.45             # gag : l'étiquette « −16 % » lui tombe sur la casquette
 def trajet(t):
-    if EXIT0 <= t < EXIT1:
-        u = (t-EXIT0)/(EXIT1-EXIT0); return (lerp(560, 1350, u*u), 1650, .28, False, 0, 1.0)
-    if EXIT1 <= t < ENTER0: return (-2000, 1650, .28, False, 0, 0.0)
-    if ENTER0 <= t < ENTER1:
-        u = ease((t-ENTER0)/(ENTER1-ENTER0)); return (lerp(-300, 540, u), 1665, .28, False, 0, 1.0-u*.6)
+    if EXA0 <= t < EXA1: u = (t-EXA0)/(EXA1-EXA0); return (lerp(540, 1350, u*u), 1665, .28, False, 0, 1.0)
+    if EXA1 <= t < ENA0 or EXB1 <= t < ENB0: return (-2000, 1650, .28, False, 0, 0.0)
+    if ENA0 <= t < ENA1: u = ease((t-ENA0)/(ENA1-ENA0)); return (lerp(-300, 360, u), 1665, .28, False, 0, 1.0-u*.6)
+    if EXB0 <= t < EXB1: u = (t-EXB0)/(EXB1-EXB0); return (lerp(720, -350, u*u), 1655, .28, True, 0, 1.0)
+    if ENB0 <= t < ENB1: u = ease((t-ENB0)/(ENB1-ENB0)); return (lerp(1380, 760, u), 1665, .28, True, 0, 1.0-u*.6)
     return None
 SIL = [(a, b) for a, b in silences(VOICE, min_s=.25)]
-def bling_actions():
-    """après l'entrée : bouche greffée qui parle ; dans les silences, les dessins d'origine (frime, puis dépité)"""
-    acts = [(ENTER0, ENTER1, 'bling_salut')]
-    full = []
+def bling_actions(t0, t1):
+    """bouche greffée qui parle ; dans les silences, les dessins d'origine (frime, puis dépité)"""
+    acts = [(t0, t0+.9, 'bling_salut')]; cur = t0+.9
     for a, b in SIL:
-        if a < ENTER1 or a >= DUR: continue
-        b = min(b, DUR)
-        if a < T['ventes']-.3: p = 'bling_frime' if a < T['mais'] else 'bling_salut'
-        else: p = 'bling_depite'
-        full.append((a, b, p))
-    cur = ENTER1
-    for a, b, p in full:
+        if a < cur or a >= t1: continue
+        b = min(b, t1); p = 'bling_frime' if a < T['chine'] else 'bling_depite'
         if a > cur: acts.append((cur, a, 'bling_salut_parle' if cur < T['ventes'] else 'bling_depite_parle'))
-        acts.append((max(a, cur), b, p)); cur = b
-    if cur < DUR+1: acts.append((cur, DUR+1, 'bling_depite_parle'))
+        acts.append((a, b, p)); cur = b
+    if cur < t1: acts.append((cur, t1, 'bling_depite_parle'))
     return acts
-ACTIONS = [(6.05, 8.05, 'souci'), (8.05, 8.68, 'inquiet'), (8.9, 9.9, 'point'), (EXIT0, ENTER0, 'wave')]+bling_actions()
+ACTIONS = ([(6.05, 8.05, 'souci'), (8.05, 8.68, 'inquiet'), (8.9, 9.9, 'point'), (17.03, 17.47, 'ravi'), (20.6, 21.6, 'thumb'), (23.41, 23.95, 'ravi'),
+            (27.05, 27.31, 'joie')] + bling_actions(ENA0, EXB1) +
+           [(51.61, 52.08, 'inquiet'), (52.08, 60.27, 'souci'), (60.27, 60.71, 'abattu'), (60.71, 63.6, 'souci'), (63.61, 64.12, 'abattu'),
+            (67.4, 68.6, 'point'), (70.67, 71.1, 'inquiet'), (71.1, 73.6, 'souci'), (74.9, 76.4, 'point')])
 MC = MisterCoin(VOICE, PLACES, 'boutique', actions=ACTIONS, trajet=trajet,
-                sauts_de_place=[(T['mais']-.25, 'shanghai'), (T['ventes']-.25, 'boutique_vide'), (T['change']-.25, 'bureau'), (EXIT1+.02, 'defile')],
-                coucous=[(.1, 1.0)], petits_sauts=[T['record']+.1],
+                sauts_de_place=[(T['y2015']-.25, 'defile'), (EXA1+.02, 'shanghai'), (T['ventes']-.25, 'boutique_vide'), (EXB1+.02, 'bureau')],
+                coucous=[(.1, 1.0), (ENB1-.2, ENB1+.8)], petits_sauts=[T['record']+.1],
                 bulles=[(T['stars']+.1, T['stars']+1.6, "Je suis une star !", 'droite'),
                         (T['discret']+.2, T['discret']+1.9, "Discret, moi ?", 'droite'),
-                        (T['demna']+.15, T['demna']+1.9, "Je garde la casquette !", 'gauche'),
+                        (T['demna']+.15, T['demna']+1.9, "Retour au classique !", 'gauche'),
                         (BONK+.45, BONK+1.9, "Aïe !", 'gauche')])
 
 def room_frame(r, t):
@@ -411,7 +458,7 @@ def frame(t):
 
 FLASH_T = []
 def events():
-    ev = [(0.0, 'swish'), (T['valent'], 'impact'), (T['prog'], 'swish'), (EXIT0, 'whoosh'), (ENTER0+.1, 'tadaa'), (T['y2015'], 'swish'),
+    ev = [(0.0, 'swish'), (T['valent'], 'impact'), (T['prog'], 'swish'), (EXA0, 'whoosh'), (ENA0+.1, 'tadaa'), (EXB0, 'whoosh'), (T['y2015'], 'swish'),
           (T['logos'], 'pop'), (T['logos']+.9, 'pop'), (T['logos']+1.7, 'pop'), (T['stars'], 'glint'), (T['y2021'], 'swish'), (T['record'], 'coins'),
           (T['mais'], 'swish'), (T['mais']+1.0, 'thud'), (T['chine'], 'pop'), (T['chine']+.3, 'thud'), (T['discret'], 'pop'), (T['ventes'], 'trans'),
           (T['md10'], 'tick'), (T['md6'], 'crash'), (T['plus40'], 'impact'), (T['change'], 'swish'), (T['demeo'], 'pop'), (T['demna'], 'pop'),

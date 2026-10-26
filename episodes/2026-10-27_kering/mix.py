@@ -241,19 +241,11 @@ def rain(d):
     n = int(d*SR); return lp(hp(rng.standard_normal(n), 1500), 6000)*.004
 def hum(d):
     n = int(d*SR); t = tt(n); return lp(rng.standard_normal(n), 250)*.010+np.sin(2*np.pi*60*t)*.002
-seg(0, V.T['y2015']+.3, babble(V.T['y2015']+.3))
-seg(V.T['y2015'], V.T['mais'], babble(V.T['mais']-V.T['y2015'])*.6)
+seg(0, V.T['y2015']+.3, babble(V.T['y2015']+.3)*.75)
+seg(V.T['y2015'], V.T['mais'], babble(V.T['mais']-V.T['y2015'])*.35)
 seg(V.T['mais'], V.T['ventes'], hum(V.T['ventes']-V.T['mais']))
 seg(V.T['ventes'], V.T['change'], ticktock(V.T['change']-V.T['ventes']+1)+rain(V.T['change']-V.T['ventes']+1))
 seg(V.T['change'], DUR, hum(DUR-V.T['change'])*.5)
-# déclencheurs synchronisés sur les flashs du défilé (même tirage aléatoire que l'image, à 60 i/s)
-for i in range(int(V.T['y2015']*60), int(V.T['mais']*60)):
-    t_ = i/60; r_ = V.rng_at(t_, 1) if V.FPS == 60 else np.random.default_rng(int(t_*60)*7919+1)
-    hits = 0
-    for _ in V.AUDIENCE:
-        if r_.random() < .05: r_.uniform(-30, 30); r_.uniform(28, 55); hits += 1
-    if hits: add(amb, shutter(), t_, min(1.0, .5+.2*hits))
-
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 _, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 if vo.ndim > 1: vo = vo.mean(1)

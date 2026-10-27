@@ -152,5 +152,55 @@
     239
    ]
   ]
+ },
+ "classique_parle_enthousiaste": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 187,
+  "hauteur": 409,
+  "cx": 647,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    52,
+    205
+   ]
+  ],
+  "silence": [
+   [
+    206,
+    239
+   ]
+  ]
+ },
+ "classique_parle_explique": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 181,
+  "hauteur": 401,
+  "cx": 653,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    29,
+    104
+   ],
+   [
+    121,
+    179
+   ]
+  ],
+  "silence": [
+   [
+    202,
+    239
+   ]
+  ]
  }
 }

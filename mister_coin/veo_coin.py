@@ -23,6 +23,18 @@ CLIPS = {'aristo_entre_gauche': ((1280, 720), 280, 637, 711, 'bord'),
          'aristo_parle_explique': ((1280, 720), 175, 635, 581, 'centre'),
          'aristo_parle_enthousiaste': ((720, 1280), 440, 343, 1143, 'centre')}
 
+def _from_catalogue():
+    """les clips analysés par veo_catalogue.py complètent automatiquement CLIPS, PAROLE et HAUTEUR"""
+    import json
+    p = f'{V}/catalogue.json'
+    if not os.path.exists(p): return
+    for nm, c in json.load(open(p)).items():
+        if nm in CLIPS: continue
+        CLIPS[nm] = (tuple(c['format']), c['piece'], c['cx'], c['pieds'], 'bord' if 'entre' in nm or 'sort' in nm else 'centre')
+        if c.get('hauteur'): HAUTEUR[nm] = c['hauteur']
+        if c.get('parle') and c.get('silence'):
+            pl = [tuple(x) for x in c['parle']]; PAROLE[nm] = ((pl[0] if len(pl) == 1 else tuple(pl)), tuple(c['silence'][-1]))
+_from_catalogue()
 def _key(a):
     a = a.astype(np.float32); R, G, B = a[..., 0], a[..., 1], a[..., 2]; ks = G-np.maximum(R, B)
     al = 1-np.clip((ks-30)/60, 0, 1); al = cv2.GaussianBlur(al, (0, 0), .7)

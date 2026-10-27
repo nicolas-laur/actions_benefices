@@ -17,6 +17,11 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Ses deux mains restent dans le cadre ; rien du décor ne passe devant lui (seuls les sous-titres sont au-dessus).
 - Bulles de BD courtes, accrochées à lui, jamais sur un texte important ; pas de blague sur la question finale.
 
+## Banque de clips Mister Coin (Gemini / Veo), méthode retenue le 27/10
+- Nicolas génère les clips dans Gemini, en 16:9, avec l'image de référence à marges (`mister_coin/veo/*_reference_marges_16x9.jpg`) et le bloc de prompt commun (pieds au sol quand il parle, parle du début à la fin, pose neutre au début et à la fin, grandes marges).
+- Chaque clip déposé dans `mister_coin/veo/` est analysé par `python3 mister_coin/veo_catalogue.py` (taille, position, plages où il parle / se tait) ; `veo_coin.py` les monte : il parle quand la voix parle, se tait dans les silences, change de clip en plein saut entre deux scènes.
+- Éviter la répétition : un clip de parole différent par scène, réactions (joie, déception, choc…) dans les silences, jamais le même geste deux fois de suite.
+
 ## Publication
 - Nicolas publie lui-même, à la main, sur TikTok, YouTube Shorts et Instagram Reels (pas de programmation via Metricool : plan gratuit).
 - Livrables de chaque vidéo : la vidéo, la couverture, la description TikTok, un titre YouTube Shorts, une légende Instagram et les sources pour le premier commentaire.

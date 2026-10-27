@@ -22,6 +22,13 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Chaque clip déposé dans `mister_coin/veo/` est analysé par `python3 mister_coin/veo_catalogue.py` (taille, position, plages où il parle / se tait) ; `veo_coin.py` les monte : il parle quand la voix parle, se tait dans les silences, change de clip en plein saut entre deux scènes.
 - Éviter la répétition : un clip de parole différent par scène, réactions (joie, déception, choc…) dans les silences, jamais le même geste deux fois de suite.
 
+## Exigences retenues (retours du 27/10 sur la vidéo carburant)
+- Niveau d'exigence élevé : vérifier soi-même chaque version avant de l'envoyer (images clés, transitions, son), pas seulement une image par scène.
+- Mister Coin : jamais de fondu entre deux poses différentes (double image) ni de saut d'image. Dans un clip, il rejoint la pose voulue en jouant les images ; entre deux clips, coupe franche pendant un petit saut sur place (`VeoCoin(..., lisse=True)`).
+- Décors animés : pas de coupures ni de clignotements brusques (néons, lumières) ; mouvements lents et continus.
+- Objets du réel animés comme dans la réalité (ex. compteur de pompe qui tourne à débit régulier, sans remise à zéro).
+- Graphiques soignés (matière, reflets, dégradés, étiquettes reliées) et accompagnés d'un son satisfaisant quand ils évoluent.
+
 ## Publication
 - Nicolas publie lui-même, à la main, sur TikTok, YouTube Shorts et Instagram Reels (pas de programmation via Metricool : plan gratuit).
 - Livrables de chaque vidéo : la vidéo, la couverture, la description TikTok, un titre YouTube Shorts, une légende Instagram et les sources pour le premier commentaire.

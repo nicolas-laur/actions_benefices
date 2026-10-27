@@ -128,6 +128,12 @@ def flame(lay, x, y, r, t, k=1.0, seed=0):
     f = .75+.15*math.sin(t*13+seed)+.1*math.sin(t*29+seed*2)
     m = Image.new('L', (W, H), 0); ImageDraw.Draw(m).ellipse((x-r*f, y-r*f, x+r*f, y+r*f), fill=int(120*k*f))
     glow(lay, (255, 170, 80), m.filter(ImageFilter.GaussianBlur(r*.45)))
+@functools.lru_cache(maxsize=1)
+def eiffel_pts():
+    a = np.asarray(base('bourse')).astype(int); R, G, B = a[..., 0], a[..., 1], a[..., 2]
+    m = np.zeros(R.shape, bool); m[684:850, 197:262] = True
+    m &= (R > 170) & (R-B > 45)
+    ys, xs = np.where(m); return list(zip(xs, ys))
 def decor(name, t):
     im = base(name).copy().convert('RGBA'); lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay)
     if name == 'atelier':
@@ -170,11 +176,10 @@ def decor(name, t):
             p = (t*.6+k*.27) % 1
             if p < .2: sparkle(d, x, y, 16*math.sin(math.pi*p/.2), int(220*math.sin(math.pi*p/.2)))
     elif name == 'bourse':
-        rng = rng_at(t, 3)                                                # la tour Eiffel scintille, le lustre brille
-        for k in range(40):
-            if rng.random() < .35:
-                y = rng.uniform(655, 870); half = 4+(y-655)/215*30; x = 238+rng.uniform(-half, half)
-                r = rng.uniform(1.5, 3); d.ellipse((x-r*2, y-r*2, x+r*2, y+r*2), fill=(255, 255, 255, 70)); d.ellipse((x-r, y-r, x+r, y+r), fill=(255, 255, 250, 255))
+        pts = eiffel_pts(); rng = rng_at(t, 3)                             # la tour Eiffel scintille (sur la tour seulement), le lustre brille
+        for k in rng.choice(len(pts), 14, replace=False):
+            x, y = pts[k]; r = rng.uniform(1.4, 2.6)
+            d.ellipse((x-r*2, y-r*2, x+r*2, y+r*2), fill=(255, 255, 255, 60)); d.ellipse((x-r, y-r, x+r, y+r), fill=(255, 255, 250, 255))
         for k, (x, y) in enumerate([(470, 250), (540, 300), (610, 250), (540, 200), (500, 330), (580, 330)]):
             p = (t*.7+k*.19) % 1
             if p < .18: sparkle(d, x, y, 20*math.sin(math.pi*p/.18), int(230*math.sin(math.pi*p/.18)))
@@ -263,7 +268,49 @@ def sSalon(c, cv, t):
     if ka > 0 and t < T['envole']-.1: tag(c, "DES ANNÉES D'ATTENTE", 540, 450, ORANGE, ease(ka/.3), 32); put_emoji(cv, '⏳', 830, 450, 70, ka-.2)
     ke = t-T['envole']
     if ke > 0: big(c, "L'ACTION S'ENVOLE", 540, 470, 92, GREEN, ease(ke/.25), lerp(1.3, 1, back(ke/.45))); put_emoji(cv, '📈', 540, 600, 90, ke-.3)
+def pie3d(c, cx, cy, R, parts, tilt=.45, depth=55, a=1.):
+    """camembert en 3D : parts = [(fraction, couleur, décollement)] dans le sens horaire depuis le haut"""
+    r = R*tilt; ang = -math.pi/2; sl = []
+    for f, colr, ex in parts:
+        if f <= 0.001: continue
+        a0, a1 = ang, ang+f*2*math.pi; mid = (a0+a1)/2; dx, dy = math.cos(mid)*ex, math.sin(mid)*ex*tilt
+        sl.append((a0, a1, colr, dx, dy)); ang = a1
+    def P(t_, ox, oy, z=0): return cx+ox+R*math.cos(t_), cy+oy+r*math.sin(t_)+z
+    def shade(colr, k): h = colr.lstrip('#'); rgb = [int(h[i:i+2], 16)/255*k for i in (0, 2, 4)]; return rgb
+    for a0, a1, colr, dx, dy in sorted(sl, key=lambda s_: -abs(math.cos((s_[0]+s_[1])/2+math.pi/2))):      # côtés (seulement la partie avant)
+        lo, hi = max(a0, 0), min(a1, math.pi)
+        for off in (0, 2*math.pi):
+            l2, h2 = max(a0, off), min(a1, off+math.pi)
+            if h2 <= l2: continue
+            n = 24; pts = [P(l2+(h2-l2)*i/n, dx, dy) for i in range(n+1)]
+            c.move_to(*pts[0]); [c.line_to(*p) for p in pts[1:]]; [c.line_to(p[0], p[1]+depth) for p in pts[::-1]]; c.close_path()
+            c.set_source_rgba(*shade(colr, .7), a); c.fill()
+        for e in (a0, a1):                                             # faces de coupe visibles quand la part est décollée
+            if dx or dy:
+                p1 = (cx+dx, cy+dy); p2 = P(e, dx, dy)
+                c.move_to(*p1); c.line_to(*p2); c.line_to(p2[0], p2[1]+depth); c.line_to(p1[0], p1[1]+depth); c.close_path()
+                c.set_source_rgba(*shade(colr, .55), a); c.fill()
+    for a0, a1, colr, dx, dy in sl:                                    # dessus
+        c.move_to(cx+dx, cy+dy); n = 40
+        for i in range(n+1): c.line_to(*P(a0+(a1-a0)*i/n, dx, dy))
+        c.close_path(); c.set_source_rgba(*shade(colr, 1), a); c.fill_preserve()
+        c.set_source_rgba(1, 1, 1, .55*a); c.set_line_width(3); c.stroke()
 def sBiblio(c, cv, t):
+    k = t-T['y2010']; kq = t-T['quart']; kf = t-T['famille']; kr = t-T['renonce']
+    lv = .23*inout(kq/.9)*(1-inout(kr/.9)) if kq > 0 else 0          # part de LVMH : monte à 23 %, puis disparaît en 2014
+    ex = 46*inout(kq/.6)*(1-inout(kr/.6)) if kq > 0 else 0
+    fam_ex = 14*math.sin(min(1, max(0, kf)/.5)*math.pi) if 0 < kf < .5 else 0
+    pa = ease(k/.4)
+    if pa > 0:
+        pie3d(c, 540, 620, 250, [(lv, '#C8372D', ex), (.34-lv, '#8C8577', 0), (.66, '#B8892E', fam_ex)], a=pa)
+        big(c, "FAMILLE HERMÈS", 430, 610, 40, WHITE, pa, edge=DARK); big(c, "ENVIRON 2/3", 430, 660, 46, GOLD2, pa, edge=DARK)
+        if lv > .01: big(c, f"LVMH : {round(lv*100)} %", 800, 470, 54, 'FF6B5E', ease(kq/.3)*(1-ease(kr/.4)), edge=DARK)
+    if t < T['famille']-.1:
+        two(c, "2010 · LVMH", "LE GÉANT DU LUXE ACHÈTE EN SECRET", 250, k, RED, 66, 26)
+        return
+    if t < T['renonce']-.1: two(c, "LA FAMILLE FAIT BLOC", None, 250, kf, GOLD, 58); put_emoji(cv, '🛡️', 880, 160, 70, kf-.6)
+    else: two(c, "2014 · LVMH RENONCE", None, 250, kr, GREEN, 58)
+def _old_sBiblio(c, cv, t):
     k = t-T['y2010']
     if t < T['famille']-.1:
         two(c, "2010 · LVMH", "LE GÉANT DU LUXE ACHÈTE EN SECRET", 280, k, RED, 70, 26)
@@ -317,7 +364,20 @@ SCENE = {'atelier': sAtelier, 'avion': sAvion, 'salon': sSalon, 'bibliotheque': 
 
 # ---------- Mister Coin (clips Veo) ----------
 # le clip « enthousiaste » coupe ses mains au bord de l'image : non utilisé (à régénérer avec plus de marge)
-MC = VeoCoin([(0.0, 'aristo_entre_gauche', 'une'), (9.6, 'aristo_parle_neutre', 'boucle')], x=500, pieds=1725, largeur_piece=220)
+MC = VeoCoin([(0.0, 'aristo_entre_gauche', 'une'), (9.6, 'aristo_parle_neutre', 'voix')], voix=VOICE, duree=DUR, x=500, pieds=1725, largeur_piece=220)
+PLACE = {'atelier': 500, 'avion': 560, 'salon': 830, 'bibliotheque': 640, 'bourse': 500}     # salon : à côté du piédestal, pas dessus
+def coin_pos(t):
+    """(x, y des pieds, écrasement) : il saute d'une scène à l'autre en arc, avec élan et réception"""
+    x = PLACE['atelier']; y = 1725.
+    for i, (ts, r) in enumerate(SCN[1:], 1):
+        prev = SCN[i-1][1]; t0 = ts-.12; d = .62
+        if t < t0-.15: break
+        if t < t0: return PLACE[prev], y+18*math.sin(math.pi/2*(t-t0+.15)/.15)          # il se tasse avant de sauter
+        if t < t0+d:
+            u = (t-t0)/d; return lerp(PLACE[prev], PLACE[r], inout(u)), y-300*math.sin(math.pi*u)
+        if t < t0+d+.2: return PLACE[r], y+14*math.sin(math.pi*(t-t0-d)/.2)            # réception
+        x = PLACE[r]
+    return x, y
 
 def room_frame(r, t):
     cy = 820 if r == 'bourse' else 950
@@ -331,12 +391,13 @@ def frame(t):
     cv = bg.convert('RGBA')
     EMO.clear(); s, c = surface(); SCENE[r](c, cv, t); cv.alpha_composite(to_img(s))
     for e in EMO: draw_emoji(cv, *e)
-    rgb, al = MC.layer(t)
+    X, Y = coin_pos(t); rgb, al = MC.layer(t, X, Y)
     a = np.asarray(cv.convert('RGB')).astype(np.float32)
-    fx = MC.feet_x(al)
-    if fx is not None:                                                    # ombre douce sous les pieds
+    fx = MC.feet_x(al, Y) if Y > 1700 else X
+    if fx is not None:                                                    # ombre douce au sol (plus petite quand il est en l'air)
         import cv2
-        m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), 1722), (100, 15), 0, 0, 360, .42, -1); m = cv2.GaussianBlur(m, (0, 0), 9)
+        k = 1/(1+max(0, 1725-Y)/150)
+        m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), 1722), (int(100*k)+1, int(15*k)+1), 0, 0, 360, .42*k, -1); m = cv2.GaussianBlur(m, (0, 0), 9)
         a *= (1-m[..., None])
     a = a*(1-al[..., None])+rgb*al[..., None]
     cv = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGBA')
@@ -349,9 +410,9 @@ def frame(t):
     return finish(cv, t, 3.0)
 
 def events():
-    ev = [(0.0, 'swish'), (T['valent'], 'impact'), (T['prog'], 'swish'), (T['y1837'], 'swish'), (T['harnais'], 'pop'), (T['y1984'], 'swish'),
+    ev = [(a-.12, 'whoosh') for a, _ in SCN[1:]]+[(0.0, 'swish'), (T['valent'], 'impact'), (T['prog'], 'swish'), (T['y1837'], 'swish'), (T['harnais'], 'pop'), (T['y1984'], 'swish'),
           (T['patron'], 'pop'), (T['explique'], 'pop'), (T['birkin'], 'glint'), (T['convoite'], 'swish'), (T['attendre'], 'tick'), (T['envole'], 'coins'),
-          (T['y2010'], 'swish'), (T['quart'], 'thud'), (T['famille'], 'pop'), (T['renonce'], 'glint'), (T['record'], 'swish'), (T['trois'], 'coins'),
+          (T['y2010'], 'swish'), (T['quart'], 'thud'), (T['quart']+.6, 'pop'), (T['renonce']+.3, 'whoosh'), (T['famille'], 'pop'), (T['renonce'], 'glint'), (T['record'], 'swish'), (T['trois'], 'coins'),
           (T['chine'], 'thud'), (T['oct22'], 'pop'), (T['resultat']+.0, 'impact'), (T['resultat'], 'low'), (T['alors'], 'swish'), (T['pasvite'], 'pop'),
           (T['sacs'], 'glint'), (T['chere'], 'swish'), (T['trente'], 'tick'), (T['contre'], 'tick'), (T['toi'], 'swish'), (T['achet'], 'pop'), (T['achet']+.4, 'click')]
     return sorted(ev)

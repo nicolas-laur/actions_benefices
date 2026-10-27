@@ -12,6 +12,8 @@ import os, subprocess, functools
 import numpy as np, cv2
 D = os.path.dirname(os.path.abspath(__file__)); V = f'{D}/veo'
 W, H = 1080, 1920; FONDU = .4; CLIP_FPS = 24
+# zones où il parle (images) et où il se tait, mesurées sur l'ouverture de la bouche
+PAROLE = {'aristo_parle_neutre': ((24, 196), (198, 239))}
 CLIPS = {'aristo_entre_gauche': ((1280, 720), 280, 637, 711, 'bord'),
          'aristo_parle_neutre': ((720, 1280), 347, 346, 1117, 'centre'),
          'aristo_parle_enthousiaste': ((720, 1280), 440, 343, 1143, 'centre')}
@@ -25,29 +27,60 @@ def _key(a):
     return a, al
 
 class VeoCoin:
-    def __init__(self, planning, x=500, pieds=1725, largeur_piece=220, dossier=V):
+    def __init__(self, planning, voix=None, x=500, pieds=1725, largeur_piece=220, dossier=V, duree=None):
+        """planning : (t0, clip, mode) ; mode 'une' (joué une fois) ou 'voix' (il parle quand la voix parle, se tait dans les silences)"""
         self.plan = sorted(planning); self.x, self.feet, self.cw, self.dir = x, pieds, largeur_piece, dossier
+        self.speak = None
+        if voix:
+            from scipy.io import wavfile
+            sr, a = wavfile.read(voix); a = a.astype(np.float32)
+            if a.ndim > 1: a = a.mean(1)
+            a /= np.abs(a).max()+1e-9; hop = sr//CLIP_FPS; n = len(a)//hop
+            db = 20*np.log10(np.sqrt((a[:n*hop].reshape(n, hop)**2).mean(1))+1e-6); sp = db > -38
+            i = 0                                                    # trous de moins de 0,35 s comblés (respirations)
+            while i < n:
+                if not sp[i]:
+                    j = i
+                    while j < n and not sp[j]: j += 1
+                    if j < n and i > 0 and j-i < int(.35*CLIP_FPS): sp[i:j] = True
+                    i = j
+                else: i += 1
+            self.speak = np.pad(sp, (0, int(((duree or 0)+5)*CLIP_FPS)))
+        self.seq = {}
     @functools.lru_cache(maxsize=4)
     def _frames(self, name):
-        """images du clip déjà mises à l'échelle finale (uint8), en mémoire"""
+        """images du clip déjà mises à l'échelle finale (uint8), en mémoire ; décalage du coin haut-gauche par rapport au point (x, pieds)"""
         (w, h), cw, cx, fy, anc = CLIPS[name]; s = self.cw/cw
         ws, hs = int(round(w*s/2))*2, int(round(h*s/2))*2
         p = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', f'{self.dir}/{name}.mp4', '-vf', f'scale={ws}:{hs}:flags=lanczos',
                             '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
         F = np.frombuffer(p, np.uint8).reshape(-1, hs, ws, 3)
-        ox = 0 if anc == 'bord' else self.x-cx*s                   # coin haut-gauche du clip à l'écran
-        if anc == 'bord': self.x_bord = cx*s
-        return F, (int(round(ox)), int(round(self.feet-fy*s)))
-    def _clip_frame(self, name, u, mode):
-        F, off = self._frames(name); n = len(F); dur = n/CLIP_FPS
-        if mode == 'une': return [(F[min(n-1, int(u*CLIP_FPS))], 1.)], off
-        per = dur-FONDU; k = u % per; i = int(k*CLIP_FPS)
-        if u >= per and k < FONDU:                                   # fondu entre la fin et le début de la boucle
-            j = min(n-1, int((k+per)*CLIP_FPS)); a = k/FONDU
-            return [(F[j], 1-a), (F[i], a)], off
-        return [(F[i], 1.)], off
-    def _layer_one(self, name, u, mode):
-        parts, (ox, oy) = self._clip_frame(name, u, mode)
+        return F, (-cx*s, -fy*s), anc
+    def _sequence(self, k):
+        """pour un passage en mode 'voix' : liste (image, image en fondu, poids) à 24 i/s, calée sur la voix"""
+        if k in self.seq: return self.seq[k]
+        t0, name, mode = self.plan[k]; t1 = self.plan[k+1][0] if k+1 < len(self.plan) else len(self.speak)/CLIP_FPS
+        (a, b), (qa, qb) = PAROLE[name]; n = len(self._frames(name)[0])
+        out = []; p = a; fade = []                                   # fade : liste de (image de continuation, pas restants)
+        for s in range(int(t0*CLIP_FPS), int(t1*CLIP_FPS)+2):
+            talk = bool(self.speak[min(len(self.speak)-1, s)])
+            if talk and not (a <= p <= b): fade = [(p, 6)]; p = a
+            elif not talk and not (qa <= p <= qb) and p < b-2: fade = [(p, 6)]; p = qa
+            elif talk and p >= b: fade = [(p, 6)]; p = a
+            elif not talk and p >= qb: fade = [(p, 6)]; p = qa
+            if fade and fade[0][1] > 0:
+                c, r = fade[0]; out.append((p, min(n-1, c), r/7)); fade = [(min(n-1, c+1), r-1)]
+            else: out.append((p, p, 0.)); fade = []
+            p += 1
+        self.seq[k] = (int(t0*CLIP_FPS), out); return self.seq[k]
+    def _parts(self, k, t):
+        t0, name, mode = self.plan[k]; F, off, anc = self._frames(name); n = len(F)
+        if mode == 'une': return F, off, anc, [(F[min(n-1, int((t-t0)*CLIP_FPS))], 1.)]
+        s0, seq = self._sequence(k); i = min(len(seq)-1, max(0, int(t*CLIP_FPS)-s0)); p, c, w = seq[i]
+        return F, off, anc, ([(F[p], 1-w), (F[c], w)] if w > 0 else [(F[p], 1.)])
+    def _layer_one(self, k, t, X, Y):
+        F, (ox, oy), anc, parts = self._parts(k, t)
+        ox = int(round(0 if anc == 'bord' else X+ox)); oy = int(round(Y+oy))
         rgb = np.zeros((H, W, 3), np.float32); al = np.zeros((H, W), np.float32)
         for f, wgt in parts:
             a, m = _key(f); h, w = m.shape
@@ -55,20 +88,22 @@ class VeoCoin:
             if x1 <= x0 or y1 <= y0: continue
             sa = a[y0-oy:y1-oy, x0-ox:x1-ox]; sm = m[y0-oy:y1-oy, x0-ox:x1-ox]*wgt
             rgb[y0:y1, x0:x1] += sa*sm[..., None]; al[y0:y1, x0:x1] += sm
-        return rgb, al                                               # couleur prémultipliée
-    def layer(self, t):
-        """(couleur 0-255, alpha 0-1) de Mister Coin à l'instant t, avec fondu entre deux clips du planning"""
+        return rgb, al
+    def layer(self, t, X=None, Y=None):
+        """(couleur 0-255, alpha 0-1) de Mister Coin ; (X, Y) : position des pieds à l'écran (par défaut x, pieds)"""
+        X = self.x if X is None else X; Y = self.feet if Y is None else Y
         cur = None
         for k, (t0, name, mode) in enumerate(self.plan):
             if t >= t0: cur = k
         if cur is None: return np.zeros((H, W, 3), np.float32), np.zeros((H, W), np.float32)
-        t0, name, mode = self.plan[cur]; rgb, al = self._layer_one(name, t-t0, mode)
+        rgb, al = self._layer_one(cur, t, X, Y)
+        t0 = self.plan[cur][0]
         if cur > 0 and t-t0 < FONDU:
-            p0, pn, pm = self.plan[cur-1]; r2, a2 = self._layer_one(pn, t-p0, pm); a = (t-t0)/FONDU
+            r2, a2 = self._layer_one(cur-1, t, X, Y); a = (t-t0)/FONDU
             rgb, al = rgb*a+r2*(1-a), al*a+a2*(1-a)
         col = rgb/np.maximum(al, 1e-4)[..., None]
         return np.clip(col, 0, 255), np.clip(al, 0, 1)
-    def feet_x(self, al):
-        """centre des pieds (pour l'ombre) à partir du masque"""
-        band = al[self.feet-60:self.feet+4]; cols = np.where(band.max(0) > .5)[0]
+    def feet_x(self, al, Y=None):
+        Y = self.feet if Y is None else int(Y)
+        band = al[max(0, Y-60):Y+4]; cols = np.where(band.max(0) > .5)[0]
         return None if len(cols) == 0 else (cols.min()+cols.max())/2

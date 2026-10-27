@@ -364,8 +364,8 @@ SCENE = {'atelier': sAtelier, 'avion': sAvion, 'salon': sSalon, 'bibliotheque': 
 
 # ---------- Mister Coin (clips Veo) ----------
 # le clip « enthousiaste » coupe ses mains au bord de l'image : non utilisé (à régénérer avec plus de marge)
-N_, E_ = 'aristo_parle_neutre', 'aristo_parle_enthousiaste_16x9'     # deux clips qui alternent, changement en plein saut
-MC = VeoCoin([(0.0, N_, 'voix'), (T['y1984']+.15, E_, 'voix'), (T['convoite']+.15, N_, 'voix'), (T['y2010']+.15, E_, 'voix'),
+N_, E_, X_ = 'aristo_parle_neutre', 'aristo_parle_enthousiaste_16x9', 'aristo_parle_explique'     # deux clips qui alternent, changement en plein saut
+MC = VeoCoin([(0.0, X_, 'voix'), (T['y1984']+.15, E_, 'voix'), (T['convoite']+.15, N_, 'voix'), (T['y2010']+.15, X_, 'voix'),
               (T['record']+.15, N_, 'voix'), (T['alors'], E_, 'voix')], voix=VOICE, duree=DUR, x=500, pieds=1725, largeur_piece=220)
 PLACE = {'atelier': 500, 'avion': 560, 'salon': 830, 'bibliotheque': 640, 'bourse': 500}     # salon : à côté du piédestal, pas dessus
 def coin_pos(t):

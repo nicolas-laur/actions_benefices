@@ -13,10 +13,12 @@ import numpy as np, cv2
 D = os.path.dirname(os.path.abspath(__file__)); V = f'{D}/veo'
 W, H = 1080, 1920; FONDU = .4; CLIP_FPS = 24
 # zones où il parle (images) et où il se tait, mesurées sur l'ouverture de la bouche
-PAROLE = {'aristo_parle_neutre': ((24, 196), (198, 239)), 'aristo_parle_enthousiaste_16x9': ((27, 212), (214, 239))}
+PAROLE = {'aristo_parle_neutre': ((24, 196), (198, 239)), 'aristo_parle_enthousiaste_16x9': ((27, 212), (214, 239)),
+          'aristo_parle_explique': ((36, 188), (200, 239))}
 CLIPS = {'aristo_entre_gauche': ((1280, 720), 280, 637, 711, 'bord'),
          'aristo_parle_neutre': ((720, 1280), 347, 346, 1117, 'centre'),
          'aristo_parle_enthousiaste_16x9': ((1280, 720), 174, 634, 579, 'centre'),
+         'aristo_parle_explique': ((1280, 720), 175, 635, 581, 'centre'),
          'aristo_parle_enthousiaste': ((720, 1280), 440, 343, 1143, 'centre')}
 
 def _key(a):

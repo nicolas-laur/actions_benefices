@@ -103,20 +103,9 @@ def draw_emoji(cv, ch, x, y, size, k, a):
     cv.alpha_composite(e, (int(x-e.width/2), int(y-e.height/2)))
 
 # ---------- néons : scintillement ----------
-@functools.lru_cache(maxsize=1)
-def _dips():
-    rng = np.random.default_rng(29); out = []; t = .7
-    while t < 80:
-        d = rng.uniform(.04, .1); out.append((t, d, rng.uniform(.25, .55)))
-        if rng.random() < .45: out.append((t+d+.05, rng.uniform(.03, .06), rng.uniform(.3, .6)))
-        t += rng.uniform(1.6, 3.4)
-    return out
 def flick(t, ph=0.0):
-    """intensité du néon : léger bourdonnement + coupures brèves irrégulières"""
-    f = 1+.05*math.sin(t*9.1+ph)+.03*math.sin(t*23.7+ph*2)
-    for a, d, lv in _dips():
-        if a <= t+ph*.37 < a+d: f *= lv
-    return f
+    """intensité du néon : respiration lente et douce, sans coupure (pas d'effet de saut d'image)"""
+    return 1+.045*math.sin(t*2.2+ph)+.02*math.sin(t*5.1+ph*1.7)
 
 # ---------- décors ----------
 def _load(name):
@@ -148,10 +137,10 @@ def aerial_img(t):
     a, neon, refl, trail, tail, yy = aerial()
     f = flick(t); fr = 1+(f-1)*.6
     out = a*(1+neon[..., None]*(f-1)*.95)*(1+refl[..., None]*(fr-1)*.8)
-    wave = np.maximum(0, np.sin(yy/38-t*7))**6                         # des phares filent sur la route
-    out += (trail*wave)[..., None]*np.array([90, 90, 80], np.float32)
-    wave2 = np.maximum(0, np.sin(yy/45+t*6))**6
-    out += (tail*wave2)[..., None]*np.array([110, 10, 20], np.float32)
+    wave = (.5+.5*np.sin(yy/60-t*4))**3                               # des phares glissent doucement sur la route
+    out += (trail*wave)[..., None]*np.array([45, 45, 40], np.float32)
+    wave2 = (.5+.5*np.sin(yy/70+t*3.5))**3
+    out += (tail*wave2)[..., None]*np.array([60, 6, 12], np.float32)
     return np.clip(out, 0, 255)
 def ground_img(t):
     a, neon, refl = ground()
@@ -163,20 +152,17 @@ def ground_img(t):
 
 # ---------- compteur de la pompe (dessiné sur l'image au sol) ----------
 PRICE = 2.3555; PARTS = [(53.35, C_PET), (14.42, C_TRA), (30.38, C_ACC), (19.63, C_TVA)]
+P_START, P_END = T_LAND+.35, DUR-1.1          # la pompe débite du début à la fin de l'exposé, comme une vraie pompe
 def euros_at(t):
-    if t < T['cent']: return 0.0
-    if t < T['alors']: return 117.78*inout((t-T['cent'])/1.9)
-    acc = 0.0; marks = [T['c53'], T['c14'], T['c30'], T['c20']]
-    for (v, _), m in zip(PARTS, marks):
-        if t > m-.25: acc += v*inout((t-m+.25)/1.0)
-    return acc
+    u = clamp((t-P_START)/(P_END-P_START))
+    g = .88*u+.12*inout(u)                                                # débit régulier, démarrage et arrêt adoucis
+    return 117.78*g
 def fmt(v, d=2): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',')
 def counter(c, t, ox):
     x0, y0, x1, y1 = SCR; x0 += ox; x1 += ox; cx = (x0+x1)/2
     rr(c, x0+6, y0+6, x1-x0-12, y1-y0-12, 8); col(c, '07040A', .96); c.fill()
     e = euros_at(t); L = e/PRICE
     blink = 1.0
-    if T['alors'] <= t < T['alors']+.7: blink = .25+.75*(int((t-T['alors'])*8) % 2)
     text(c, "TOTAL", x0+22, y0+34, 'xb', 15, NEON2, 'l', .9, 2); text(c, "€", x1-22, y0+34, 'xb', 18, NEON2, 'r', .9)
     c.save(); c.select_font_face('Anton')
     s = fmt(e); c.set_font_size(74); ext = c.text_extents(s)
@@ -213,50 +199,96 @@ def ground_box(t):
 
 # ---------- panneau de gauche (jauge, paradoxe) ----------
 PX0, PY0, PX1, PY1 = 36, 218, 566, 940
-TUBE_X0, TUBE_X1, TUBE_Y1, TUBE_H = 76, 176, 900, 540
+TUBE_X0, TUBE_X1, TUBE_Y1, TUBE_H = 70, 182, 902, 540
+def rgb(h, k=1.0, mix_white=0.0):
+    h = h.lstrip('#'); v = [int(h[i:i+2], 16)/255 for i in (0, 2, 4)]
+    return [min(1, x*k*(1-mix_white)+mix_white) for x in v]
 def panel(c, a):
-    rr(c, PX0, PY0, PX1-PX0, PY1-PY0, 28); col(c, '0B0610', .80*a); c.fill()
-    rr(c, PX0, PY0, PX1-PX0, PY1-PY0, 28); c.set_line_width(2); col(c, NEON, .45*a); c.stroke()
+    """carte en verre fumé, liseré néon doux"""
+    if a <= 0: return
+    for w_, al in ((10, .06), (5, .10)):
+        rr(c, PX0, PY0, PX1-PX0, PY1-PY0, 30); c.set_line_width(w_); col(c, NEON, al*a); c.stroke()
+    g = cairo.LinearGradient(0, PY0, 0, PY1); g.add_color_stop_rgba(0, .07, .03, .08, .86*a); g.add_color_stop_rgba(1, .03, .01, .04, .90*a)
+    rr(c, PX0, PY0, PX1-PX0, PY1-PY0, 30); c.set_source(g); c.fill()
+    rr(c, PX0, PY0, PX1-PX0, PY1-PY0, 30); c.set_line_width(1.6); col(c, 'FF8FA6', .55*a); c.stroke()
+def tube_path(c, inset=0):
+    rr(c, TUBE_X0+inset, TUBE_Y1-TUBE_H-inset*0, TUBE_X1-TUBE_X0-2*inset, TUBE_H, 26-inset)
+STARTS = lambda: [(T['abord'], T['c53']), (T['ensuite'], T['c14']), (T['accise'], T['c30']), (T['tva'], T['c20'])]
+NAMES = ["PÉTROLE ET RAFFINAGE", "TRANSPORT ET STATION", "ACCISE (EX-TICPE)", "TVA"]
+EMOS = ["🛢️", "🚚", "🏛️", "🏛️"]
+def fill_k(i, t, final=False):
+    if final: return 1.0
+    return inout((t-STARTS()[i][1]+.25)/1.0)
 def gauge(c, t, a, mode='parts'):
-    """jauge verticale : les quatre postes s'empilent quand ils sont nommés"""
-    pxe = TUBE_H/117.78
-    rr(c, TUBE_X0-6, TUBE_Y1-TUBE_H-14, TUBE_X1-TUBE_X0+12, TUBE_H+20, 18); col(c, 'FFFFFF', .08*a); c.fill()
-    rr(c, TUBE_X0-6, TUBE_Y1-TUBE_H-14, TUBE_X1-TUBE_X0+12, TUBE_H+20, 18); c.set_line_width(2); col(c, 'FFFFFF', .25*a); c.stroke()
-    starts = [(T['abord'], T['c53']), (T['ensuite'], T['c14']), (T['accise'], T['c30']), (T['tva'], T['c20'])]
-    names = [("🛢️", "PÉTROLE ET RAFFINAGE"), ("🚚", "TRANSPORT ET STATION"), ("🏛️", "ACCISE (EX-TICPE)"), ("🏛️", "TVA 20 %")]
-    y = TUBE_Y1; tops = []
-    final = mode == 'final'
-    for i, ((v, colr), (tn, tv)) in enumerate(zip(PARTS, starts)):
-        k = 1.0 if final else inout((t-tv+.25)/1.0)
-        hgt = v*pxe*k; dim = 1.0
-        if mode == 'etat' and i < 2: dim = .35
-        if hgt > .5:
-            rr(c, TUBE_X0, y-hgt, TUBE_X1-TUBE_X0, hgt, 10 if i in (0, 3) else 4); col(c, colr, a*dim); c.fill()
-            g = cairo.LinearGradient(TUBE_X0, 0, TUBE_X1, 0); g.add_color_stop_rgba(0, 1, 1, 1, .0); g.add_color_stop_rgba(.3, 1, 1, 1, .22*a*dim); g.add_color_stop_rgba(.6, 1, 1, 1, 0)
-            c.rectangle(TUBE_X0, y-hgt, TUBE_X1-TUBE_X0, hgt); c.set_source(g); c.fill()
-        ymid = y-v*pxe/2; tops.append((y-v*pxe, y, ymid))
-        ka = 1.0 if final else ease((t-tn)/.35)
-        if ka > 0 and not (mode == 'etat' and i >= 2):
-            lx = 206; al = ka*a*dim
-            put_emoji(names[i][0], lx+20, ymid-(26 if i != 1 else 18), 34, 1.0 if final else t-tn, al)
-            text(c, names[i][1], lx+46, ymid-(26 if i != 1 else 18), 'xb', 19 if i != 0 else 18, WHITE, 'l', al, 1)
-            kv = 1.0 if final else ease((t-tv)/.3)
-            if kv > 0: text(c, fmt(v)+" €", lx, ymid+(16 if i != 1 else 18), 'a', 40, colr, 'l', kv*a*dim)
-            if i == 0 and t > T['fevrier'] and not final:
-                kf = ease((t-T['fevrier']-.9)/.35); text(c, "MARGE DES RAFFINEURS ×6", lx, ymid+64, 'xb', 19, 'FFB27A', 'l', kf*a, 1)
-                put_emoji('📈', lx+300, ymid+63, 26, t-T['fevrier']-1.1, kf*a)
-            if i == 1 and t > T['station'] and not final:
-                ks = ease((t-T['station']-1.2)/.35); text(c, "DONT STATION : 1 À 4 €", 360, ymid+16, 'xb', 16, '9CC8FF', 'l', ks*a, 1)
-        y -= v*pxe
+    """réservoir en verre : le carburant monte par couches, surface ondulante, bulles ; étiquettes reliées à chaque couche"""
+    pxe = TUBE_H/117.78; final = mode == 'final'; X0, X1 = TUBE_X0+7, TUBE_X1-7
+    # verre (fond)
+    tube_path(c); col(c, 'FFFFFF', .05*a); c.fill()
+    for k in range(1, 6):                                                    # graduations tous les 20 €
+        yy = TUBE_Y1-k*20*pxe; c.move_to(TUBE_X1-16, yy); c.line_to(TUBE_X1-4, yy); c.set_line_width(2); col(c, 'FFFFFF', .22*a); c.stroke()
+    ks = [fill_k(i, t, final) for i in range(4)]; hs = [v*pxe*k for (v, _), k in zip(PARTS, ks)]
+    top = TUBE_Y1-sum(hs); filling = any(0 < k < 1 for k in ks)
+    amp = 5.5 if filling else 2.2
+    c.save(); tube_path(c, 7); c.clip()
+    y = TUBE_Y1; bounds = []
+    for i, ((v, colr), h_) in enumerate(zip(PARTS, hs)):
+        if h_ <= .3: bounds.append(None); continue
+        dim = .32 if (mode == 'etat' and i < 2) else 1.0
+        y1 = y-h_; is_top = i == max(j for j in range(4) if hs[j] > .3)
+        c.new_path()
+        if is_top:                                                           # surface ondulée du liquide
+            c.move_to(X0, y)
+            for xx in range(int(X0), int(X1)+1, 4): c.line_to(xx, y1+amp*math.sin(xx*.075+t*5.2)+amp*.5*math.sin(xx*.13-t*3.1))
+            c.line_to(X1, y); c.close_path()
+        else: c.rectangle(X0, y1, X1-X0, h_)
+        g = cairo.LinearGradient(0, y1, 0, y); g.add_color_stop_rgba(0, *rgb(colr, 1.0, .28), a*dim); g.add_color_stop_rgba(1, *rgb(colr, .78), a*dim)
+        c.set_source(g); c.fill()
+        if i > 0 and hs[i-1] > .3: c.move_to(X0, y); c.line_to(X1, y); c.set_line_width(1.5); col(c, 'FFFFFF', .28*a); c.stroke()
+        bounds.append((y1, y)); y = y1
+    rng = np.random.default_rng(5)                                           # bulles qui remontent dans le carburant
+    for k in range(16):
+        bx = rng.uniform(X0+10, X1-10); sp_ = rng.uniform(40, 90); ph = rng.uniform(0, 600); r = rng.uniform(2, 4.5)
+        H_ = max(1, TUBE_Y1-top-6); by = TUBE_Y1-((t*sp_+ph) % H_)
+        if by < top+6: continue
+        c.arc(bx+3*math.sin(t*3+k), by, r, 0, 2*math.pi); c.set_line_width(1.4); col(c, 'FFFFFF', .35*a); c.stroke()
+    c.restore()
+    # verre (reflets et contour)
+    g = cairo.LinearGradient(TUBE_X0, 0, TUBE_X1, 0)
+    g.add_color_stop_rgba(0, 1, 1, 1, .0); g.add_color_stop_rgba(.12, 1, 1, 1, .26*a); g.add_color_stop_rgba(.24, 1, 1, 1, .04*a); g.add_color_stop_rgba(.85, 1, 1, 1, 0); g.add_color_stop_rgba(.93, 1, 1, 1, .12*a); g.add_color_stop_rgba(1, 1, 1, 1, 0)
+    tube_path(c); c.set_source(g); c.fill()
+    tube_path(c); c.set_line_width(2.5); col(c, 'FFFFFF', .42*a); c.stroke()
+    # étiquettes
+    tops = []; y = TUBE_Y1
+    for i, (v, colr) in enumerate(PARTS):
+        ymid = y-v*pxe/2; tops.append((y-v*pxe, y, ymid)); y -= v*pxe
+    for i, (v, colr) in enumerate(PARTS):
+        tn, tv = STARTS()[i]; ka = 1.0 if final else ease((t-tn)/.4)
+        if ka <= 0 or (mode == 'etat' and i >= 2): continue
+        dim = .32 if mode == 'etat' else 1.0; al = ka*a*dim; ym = tops[i][2]; dx = 24*(1-ka)
+        c.move_to(TUBE_X1+4, ym); c.line_to(TUBE_X1+26, ym); c.set_line_width(2); col(c, colr, al); c.stroke()
+        c.arc(TUBE_X1+26, ym, 4, 0, 2*math.pi); col(c, colr, al); c.fill()
+        lx = TUBE_X1+42+dx
+        put_emoji(EMOS[i], lx+14, ym-20, 28, 1.0 if final else t-tn, al)
+        text(c, NAMES[i], lx+36, ym-20, 'xb', 17, 'E6DDEA', 'l', al, 1)
+        kv = 1.0 if final else ease((t-tv)/.3)
+        if kv > 0: text(c, fmt(v)+" €", lx, ym+20, 'a', 44, fmt_col(colr), 'l', kv*al)
+        if not final and mode != 'etat':
+            if i == 0 and t > T['fevrier']+.9: note(c, "MARGE DES RAFFINEURS ×6", lx, ym+68, C_PET, ease((t-T['fevrier']-.9)/.35))
+            if i == 1 and t > T['station']+1.2: note(c, "DONT STATION : 1 À 4 €", lx, ym+66, C_TRA, ease((t-T['station']-1.2)/.35))
     return tops
-def arrow(c, x0, y0, x1, y1, bend, colr, a, w=5):
-    """flèche courbe de (x0,y0) vers (x1,y1)"""
-    mx, my = (x0+x1)/2+bend, (y0+y1)/2
-    c.move_to(x0, y0); c.curve_to(mx, y0, mx, y1, x1, y1); c.set_line_width(w); c.set_line_cap(cairo.LINE_CAP_ROUND); col(c, colr, a); c.stroke()
-    ang = math.atan2(y1-y1, x1-mx)
+def fmt_col(colr): return '%02X%02X%02X' % tuple(int(x*255) for x in rgb(colr, 1.0, .22))
+def note(c, s_, x, y, colr, a, size=16):
+    """petite pastille contour, pour une précision"""
+    if a <= 0: return
+    w = tw(c, s_, 'xb', size, 1)+28; rr(c, x, y-size*.95, w, size*1.9, size*.95); col(c, colr, .22*a); c.fill_preserve(); c.set_line_width(1.6); col(c, colr, a); c.stroke()
+    text(c, s_, x+14, y, 'xb', size, WHITE, 'l', a, 1)
+def arrow(c, x0, y0, x1, y1, bend, colr, a, w=4):
+    """flèche courbe de (x0,y0) vers (x1,y1), en pointillés"""
+    mx = (x0+x1)/2+bend
+    c.set_dash([10, 7]); c.move_to(x0, y0); c.curve_to(mx, y0, mx, y1, x1, y1); c.set_line_width(w); c.set_line_cap(cairo.LINE_CAP_ROUND); col(c, colr, a); c.stroke(); c.set_dash([])
     for s_ in (-1, 1):
-        c.move_to(x1, y1); c.line_to(x1-18*math.cos(ang+s_*.5), y1-18*math.sin(ang+s_*.5))
-    c.stroke()
+        c.move_to(x1, y1); c.line_to(x1-15*math.cos(s_*.55), y1-15*math.sin(s_*.55))
+    c.set_line_width(w); c.stroke()
 def left(c, t):
     a = 1.0
     if t < T['alors']-.15:                                                 # intro : le chiffre choc
@@ -273,26 +305,26 @@ def left(c, t):
         return
     if t < T['paradoxe']-.12:                                              # la jauge se remplit
         ka = ease((t-T['alors'])/.35); panel(c, ka)
-        text(c, "OÙ PART TON ARGENT ?", (PX0+PX1)/2, PY0+48, 'a', 46, WHITE, 'c', ka)
+        text(c, "OÙ PART TON ARGENT ?", (PX0+PX1)/2, PY0+50, 'a', 46, WHITE, 'c', ka)
+        c.move_to((PX0+PX1)/2-60, PY0+82); c.line_to((PX0+PX1)/2+60, PY0+82); c.set_line_width(3); col(c, NEON, .8*ka); c.stroke()
         mode = 'etat' if t >= T['total'] else 'parts'
         tops = gauge(c, t, ka, mode)
         if T['caroui'] <= t < T['total']:                                  # la TVA se paie aussi sur l'accise
             kt = ease((t-T['taxe']+.2)/.4)
             (a3, b3, m3), (a4, b4, m4) = tops[2], tops[3]
             if kt > 0:
-                arrow(c, TUBE_X0-4, m4, TUBE_X0-4, m3, -46, 'FFD34D', kt)
-                tag(c, "TVA AUSSI SUR L'ACCISE", 300, PY0+104, 'D99A00', kt, 20, INK)
+                arrow(c, TUBE_X0-2, m4, TUBE_X0-2, m3, -40, 'FFD34D', kt)
+                note(c, "TVA CALCULÉE AUSSI SUR L'ACCISE", 160, PY0+102, 'FFC21A', kt, 16)
         if t >= T['total']:
-            (a3, b3, _), (a4, b4, _) = tops[2], tops[3]; ke = ease((t-T['total'])/.35)
-            c.move_to(TUBE_X1+16, a4+4); c.line_to(TUBE_X1+30, a4+4); c.line_to(TUBE_X1+30, b3-4); c.line_to(TUBE_X1+16, b3-4)
-            c.set_line_width(5); col(c, GOLD, ke); c.stroke()
-            ym = (a4+b3)/2
-            text(c, "L'ÉTAT", 372, ym-70, 'xb', 26, GOLD, 'c', ke, 2)
-            big(c, "50 €", 372, ym+6, 110, GOLD, ke, lerp(1.25, 1, back((t-T['total'])/.45)), edge=INK, lw=8)
-            text(c, "42 % DU PLEIN", 372, ym+92, 'xb', 22, WHITE, 'c', ease((t-T['total']-.5)/.3), 1)
+            (a3, b3, _), (a4, b4, _) = tops[2], tops[3]; ke = ease((t-T['total'])/.35); bx = TUBE_X1+14
+            for w_, al in ((10, .18), (4, 1.0)):
+                c.move_to(bx, a4+4); c.line_to(bx+14, a4+4); c.line_to(bx+14, b3-4); c.line_to(bx, b3-4); c.set_line_width(w_); c.set_line_join(cairo.LINE_JOIN_ROUND); col(c, GOLD, al*ke); c.stroke()
+            ym = (a4+b3)/2; cx_ = 392
             ks = t-T['seul']
-            if ks > 0:
-                tag(c, "LE PLUS GROS GAGNANT", 372, ym+148, GOLD, ease(ks/.3), 19, INK); put_emoji('👑', 372, ym-128, 60, ks-.2)
+            if ks > 0: note(c, "LE PLUS GROS GAGNANT", cx_-126, ym-128, GOLD, ease(ks/.3), 17); put_emoji('👑', cx_+150, ym-132, 44, ks-.2)
+            text(c, "L'ÉTAT", cx_, ym-66, 'xb', 24, GOLD, 'c', ke, 3)
+            big(c, "50 €", cx_, ym+6, 112, GOLD, ke, lerp(1.25, 1, back((t-T['total'])/.45)), edge=INK, lw=8)
+            text(c, "42 % DU PLEIN", cx_, ym+88, 'xb', 22, WHITE, 'c', ease((t-T['total']-.5)/.3), 2)
         return
     if t < T['fin']-.12:                                                   # le paradoxe
         kp = t-T['paradoxe']; panel(c, ease(kp/.3))
@@ -301,10 +333,13 @@ def left(c, t):
         for i, (t0, lab, v, cl) in enumerate(((T['an'], "IL Y A UN AN", 54, GREY), (T['auj'], "AUJOURD'HUI", 42, GOLD))):
             u = inout((t-t0-.3)/.7)
             if t < t0: continue
-            y = 390+i*125; w = 300*v/54*u
-            text(c, lab, 76, y, 'xb', 22, WHITE, 'l', ease((t-t0)/.3), 1)
-            rr(c, 76, y+22, max(4, w), 50, 12); col(c, cl, 1); c.fill()
-            text(c, f"{v} %", 76+w+14, y+48, 'a', 44, WHITE, 'l', ease((t-t0-.3)/.3))
+            y = 380+i*130; w = 330*v/54*u; ka_ = ease((t-t0)/.3)
+            text(c, lab, 76, y, 'xb', 21, 'E6DDEA', 'l', ka_, 2)
+            rr(c, 76, y+24, 330, 52, 26); col(c, 'FFFFFF', .07*ka_); c.fill()
+            if w > 4:
+                g = cairo.LinearGradient(76, 0, 76+w, 0); g.add_color_stop_rgba(0, *rgb(cl, .8), 1); g.add_color_stop_rgba(1, *rgb(cl, 1, .25), 1)
+                rr(c, 76, y+24, max(52, w), 52, 26); c.set_source(g); c.fill()
+            text(c, f"{v} %", 76+max(52, w)+16, y+52, 'a', 46, WHITE, 'l', ease((t-t0-.3)/.3))
         kn = t-T['plus']+.4
         if kn > 0:
             text(c, "TAXES PAR LITRE", 76, 680, 'xb', 20, 'D8C9D4', 'l', ease(kn/.3), 2)
@@ -349,14 +384,14 @@ CX_COIN, FEET = 330, 1700
 INQ, TRI = 'classique_parle_inquiet', 'classique_parle_triste'
 # humeur selon le propos (changements calés dans les silences) : enthousiaste au début, inquiet quand l'État arrive, triste sur le total et le paradoxe, de nouveau enjoué à la fin
 MC = VeoCoin([(3.95, [ENT, EXP], 'voix'), (29.0, [INQ, EXP], 'voix'), (39.0, [TRI, INQ], 'voix'), (55.7, [ENT, EXP], 'voix')],
-             voix=VOICE, duree=DUR, x=CX_COIN, pieds=FEET, largeur_piece=220)
+             voix=VOICE, duree=DUR, x=CX_COIN, pieds=FEET, largeur_piece=220, lisse=True)
 def coin_pos(t):
     """il tombe du ciel avec la caméra et se pose devant la pompe"""
     t0 = 3.95
     if t < t0: return None
     if t < T_LAND: u = (t-t0)/(T_LAND-t0); return CX_COIN, lerp(-150, FEET, u**1.8)
     if t < T_LAND+.22: return CX_COIN, FEET+16*math.sin(math.pi*(t-T_LAND)/.22)
-    return CX_COIN, FEET
+    return CX_COIN, FEET+MC.hop_dy(t)                                     # petit saut sur place quand il change de geste
 
 def frame(t):
     EMO.clear()
@@ -388,9 +423,10 @@ def frame(t):
     if p is not None:
         X, Y = p; rgb, al = MC.layer(t, X, Y)
         a = np.asarray(cv.convert('RGB')).astype(np.float32)
-        fx = MC.feet_x(al, Y) if Y > FEET-30 else None
-        if fx is not None:                                                 # ombre douce au sol
-            m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), FEET-3), (100, 15), 0, 0, 360, .45, -1); m = cv2.GaussianBlur(m, (0, 0), 9)
+        fx = MC.feet_x(al, Y) if Y > FEET-30 else (X if Y > 300 else None)
+        if fx is not None:                                                 # ombre douce au sol (plus petite quand il est en l'air)
+            k = 1/(1+max(0, FEET-Y)/150)
+            m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), FEET-3), (int(100*k)+1, int(15*k)+1), 0, 0, 360, .45*k, -1); m = cv2.GaussianBlur(m, (0, 0), 9)
             a *= (1-m[..., None])
         a = a*(1-al[..., None])+rgb*al[..., None]
         cv = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGBA')
@@ -403,12 +439,14 @@ def frame(t):
     return finish(cv, t, 3.0)
 
 def events():
-    ev = [(0.0, 'neon'), (1.2, 'trans'), (T_DESC, 'whoosh'), (T_DESC+.1, 'riser'), (T_LAND, 'thud'), (T['cent'], 'impact'), (T['cent']+.05, 'pump'),
-          (T['prix'], 'pop'), (T['prend'], 'swish'), (T['deux'], 'tick'), (T['alors'], 'beep'), (T['abord'], 'pop'), (T['c53']-.25, 'pump'),
-          (T['fevrier']+.9, 'pop'), (T['ensuite'], 'pop'), (T['c14']-.25, 'pump'), (T['station']+1.2, 'pop'), (T['etat'], 'swish'),
-          (T['accise'], 'pop'), (T['c30']-.25, 'pump'), (T['tva'], 'pop'), (T['c20']-.25, 'pump'), (T['taxe']-.2, 'glint'),
+    ev = [(0.0, 'neon'), (1.2, 'trans'), (T_DESC, 'whoosh'), (T_DESC+.1, 'riser'), (T_LAND, 'thud'), (T['cent'], 'impact'), (P_START-.05, 'nozzle'),
+          (T['prix'], 'pop'), (T['prend'], 'swish'), (T['deux'], 'tick'), (T['alors'], 'swish'),
+          (T['c53']-.25, 'fill0'), (T['c14']-.25, 'fill1'), (T['c30']-.25, 'fill2'), (T['c20']-.25, 'fill3'),
+          (T['fevrier']+.9, 'pop'), (T['station']+1.2, 'pop'), (T['etat'], 'swish'), (T['taxe']-.2, 'glint'),
           (T['total'], 'impact'), (T['total']+.1, 'coins'), (T['seul'], 'glint'), (T['paradoxe'], 'swish'), (T['paradoxe'], 'low'),
-          (T['an']+.3, 'tick'), (T['auj']+.3, 'tick'), (T['plus']-.4, 'pop'), (T['flambe']+.5, 'pop'), (T['fin'], 'swish'), (T['quand']+.6, 'paid')]
+          (T['an']+.3, 'tick'), (T['auj']+.3, 'tick'), (T['plus']-.4, 'pop'), (T['flambe']+.5, 'pop'), (T['fin'], 'swish'),
+          (P_END, 'clack'), (T['quand']+.6, 'paid')]
+    ev += [(h-.05, 'hop') for h in MC._global_sequence() and MC.hops]
     return sorted(ev)
 
 def main():

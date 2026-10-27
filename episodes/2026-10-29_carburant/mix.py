@@ -210,15 +210,37 @@ def shutter():   # déclencheur d'appareil photo : deux clics secs
 def zoom():   # inutile ici, conservé pour compatibilité
     return np.zeros(10)
 def scream(): return np.zeros(10)
-def pump():   # pistolet de pompe : déclic + écoulement doux + compteur qui tourne
-    s = np.zeros(int(1.4*SR)); n = int(.05*SR); t = tt(n)
-    add(s, bp(rng.standard_normal(n), 800, 4000)*np.exp(-t*120)*.25, 0)
-    n = int(1.2*SR); t = tt(n); flow = lp(bp(rng.standard_normal(n), 300, 2500), 2200)*.05*np.minimum(1, t/.1)*np.clip((1.2-t)/.2, 0, 1)
-    add(s, flow, .05); add(s, count()*1.4, .05); return s
-MAP = dict(pump=pump, tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
+def nozzle():   # pistolet qu'on enclenche : déclic métallique sourd
+    s = np.zeros(int(.4*SR)); n = int(.06*SR); t = tt(n)
+    add(s, bp(rng.standard_normal(n), 900, 5000)*np.exp(-t*90)*.3+np.sin(2*np.pi*np.cumsum(420+300*np.exp(-t*80))/SR)*np.exp(-t*60)*.12, 0)
+    return s
+def clack():   # arrêt automatique de la pompe : double clac
+    s = np.zeros(int(.5*SR))
+    for t0, g in ((0, 1.0), (.11, .7)):
+        n = int(.06*SR); t = tt(n); add(s, (bp(rng.standard_normal(n), 700, 4500)*np.exp(-t*110)*.35+np.sin(2*np.pi*np.cumsum(300+200*np.exp(-t*70))/SR)*np.exp(-t*50)*.15)*g, t0)
+    return s
+def hop():     # petit saut de Mister Coin : « boing » feutré
+    n = int(.35*SR); t = tt(n); return np.sin(2*np.pi*np.cumsum(260+340*t/.35)/SR)*np.exp(-t*9)*np.minimum(1, t/.01)*.05
+def fill(k):   # la jauge se remplit : liquide qui coule, bulles dont la note monte (bouteille qui se remplit), puis carillon
+    d = 1.15; n = int(d*SR); t = tt(n); s = np.zeros(int(2.6*SR))
+    env = np.clip(t/.08, 0, 1)*np.clip((d-t)/.25, 0, 1)
+    pour = bp(rng.standard_normal(n), 500, 2600)*(.55+.45*np.sin(2*np.pi*11*t)**2)*env*.05
+    add(s, pour, 0)
+    f0, f1 = (330, 520, 700, 880)[k], (620, 900, 1150, 1400)[k]
+    tb = .02
+    while tb < d-.1:
+        u = tb/d; f = f0+(f1-f0)*u; m = int(.05*SR); tm = tt(m)
+        add(s, np.sin(2*np.pi*np.cumsum(f*(1+.5*tm/.05))/SR)*np.exp(-tm*55)*.07*rng.uniform(.6, 1), tb); tb += rng.uniform(.045, .085)
+    note_ = (72, 76, 79, 84)[k]
+    for m_, g in ((note_, 1), (note_+12, .35)):
+        add(s, bell(m_, .09)*g, d-.12)
+    return s
+def flow(dur):  # moteur de pompe très discret pendant tout le plein
+    n = int(dur*SR); t = tt(n); return (lp(rng.standard_normal(n), 380)*.012+np.sin(2*np.pi*50*t)*.003)*(1+.15*np.sin(2*np.pi*.7*t))
+MAP = dict(nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
 fx = np.zeros(N); duck = np.ones(N)
 for t0, k in V.events():
-    add(fx, MAP[k](), t0-(.35 if k == 'whoosh' else (.12 if k in ('trans', 'swish') else 0)), .45 if k == 'ignite' else 1.0)
+    add(fx, MAP[k](), t0-(.35 if k == 'whoosh' else (.12 if k in ('trans', 'swish') else 0)), .45 if k == 'ignite' else (1.8 if k.startswith('fill') else 1.0))
     if k in ('impact', 'boom'):     # la musique s'efface brièvement sous l'impact : plus de punch sans monter le volume
         i = int(t0*SR); m = int(.5*SR); env = 1-.45*np.exp(-np.arange(m)/(.12*SR))
         if i+m < N: duck[i:i+m] = np.minimum(duck[i:i+m], env)
@@ -251,6 +273,7 @@ seg(0, DUR, rain(DUR+1)*2.2, 1.0)                                               
 def buzz(d):     # bourdonnement électrique des néons, très bas
     n = int(d*SR); t = tt(n); return lp(np.sign(np.sin(2*np.pi*100*t))*.5+np.sin(2*np.pi*200*t)*.5, 900)*.0035
 seg(0, DUR, buzz(DUR+1), 1.0)
+seg(V.P_START, V.P_END+.1, flow(V.P_END-V.P_START+1)*3.0, .5)                         # la pompe tourne pendant le plein
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 _, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 if vo.ndim > 1: vo = vo.mean(1)

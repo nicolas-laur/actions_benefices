@@ -6,3 +6,5 @@
 - Marge brute de raffinage : ≈ 40 €/t en février 2026, 235 €/t en septembre 2026 (Kelwatt, données DGEC).
 - Marge de la station : environ 2 c/L (grande distribution) à 8 c/L (réseau indépendant) (Transitions & Énergies).
 - Prix moyen du gazole au 26/10/2026 : 2,378 € (prix-carburants.gouv.fr, 9 813 stations).
+- Chiffres dérivés affichés dans la vidéo : taxes par litre aujourd'hui = 60,75 + 39,26 = 100,01 c ≈ 1,00 € ; il y a un an ≈ 60,75 c d'accise + TVA de 1,62/6 ≈ 27 c, soit ≈ 0,88 € ; produit raffiné ≈ 0,52 € il y a un an contre 1,07 € aujourd'hui. Station : 2 à 8 c/L × 50 L = 1 à 4 € par plein.
+- La TVA (20 %) s'applique sur le prix hors TVA, accise comprise : 20 % × (106,70 + 28,84 + 60,75) = 39,26 c.

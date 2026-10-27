@@ -54,10 +54,16 @@ class VeoCoin:
     def _frames(self, name):
         """images du clip déjà mises à l'échelle finale (uint8), en mémoire ; décalage du coin haut-gauche par rapport au point (x, pieds)"""
         (w, h), cw, cx, fy, anc = CLIPS[name]; s = self.cw/cw
-        ws, hs = int(round(w*s/2))*2, int(round(h*s/2))*2
-        p = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', f'{self.dir}/{name}.mp4', '-vf', f'scale={ws}:{hs}:flags=lanczos',
+        # recadrage autour du personnage (les clips 16:9 ont de grandes marges vertes) : 2,5 fois moins de mémoire
+        if anc == 'bord': x0, x1 = 0, w
+        else: x0, x1 = max(0, int(cx-cw*1.9)), min(w, int(cx+cw*1.9))
+        y0 = max(0, int(fy-cw*3.6)); y1 = min(h, int(fy+cw*.15))
+        cw_, ch_ = (x1-x0)//2*2, (y1-y0)//2*2
+        ws, hs = int(round(cw_*s/2))*2, int(round(ch_*s/2))*2
+        p = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', f'{self.dir}/{name}.mp4', '-vf', f'crop={cw_}:{ch_}:{x0}:{y0},scale={ws}:{hs}:flags=lanczos',
                             '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
         F = np.frombuffer(p, np.uint8).reshape(-1, hs, ws, 3)
+        cx, fy = cx-x0, fy-y0
         return F, (-cx*s, -fy*s), anc
     def _sequence(self, k):
         """mode 'voix' : liste (clip, image, clip en fondu, image en fondu, poids) à 24 i/s, calée sur la voix.

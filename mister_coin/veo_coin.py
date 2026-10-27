@@ -13,9 +13,10 @@ import numpy as np, cv2
 D = os.path.dirname(os.path.abspath(__file__)); V = f'{D}/veo'
 W, H = 1080, 1920; FONDU = .4; CLIP_FPS = 24
 # zones où il parle (images) et où il se tait, mesurées sur l'ouverture de la bouche
-PAROLE = {'aristo_parle_neutre': ((24, 196), (198, 239))}
+PAROLE = {'aristo_parle_neutre': ((24, 196), (198, 239)), 'aristo_parle_enthousiaste_16x9': ((27, 212), (214, 239))}
 CLIPS = {'aristo_entre_gauche': ((1280, 720), 280, 637, 711, 'bord'),
          'aristo_parle_neutre': ((720, 1280), 347, 346, 1117, 'centre'),
+         'aristo_parle_enthousiaste_16x9': ((1280, 720), 174, 634, 579, 'centre'),
          'aristo_parle_enthousiaste': ((720, 1280), 440, 343, 1143, 'centre')}
 
 def _key(a):
@@ -61,17 +62,21 @@ class VeoCoin:
         if k in self.seq: return self.seq[k]
         t0, name, mode = self.plan[k]; t1 = self.plan[k+1][0] if k+1 < len(self.plan) else len(self.speak)/CLIP_FPS
         (a, b), (qa, qb) = PAROLE[name]; n = len(self._frames(name)[0])
-        out = []; p = a; fade = []                                   # fade : liste de (image de continuation, pas restants)
+        # anti-répétition : à chaque reprise de parole, départ à un endroit différent du passage parlé,
+        # lecture en aller-retour (le geste se « rembobine » naturellement), sens alterné
+        rng = np.random.default_rng(11+k); out = []; p = a; d = 1; prev_talk = None; fade = None
         for s in range(int(t0*CLIP_FPS), int(t1*CLIP_FPS)+2):
             talk = bool(self.speak[min(len(self.speak)-1, s)])
-            if talk and not (a <= p <= b): fade = [(p, 6)]; p = a
-            elif not talk and not (qa <= p <= qb) and p < b-2: fade = [(p, 6)]; p = qa
-            elif talk and p >= b: fade = [(p, 6)]; p = a
-            elif not talk and p >= qb: fade = [(p, 6)]; p = qa
-            if fade and fade[0][1] > 0:
-                c, r = fade[0]; out.append((p, min(n-1, c), r/7)); fade = [(min(n-1, c+1), r-1)]
-            else: out.append((p, p, 0.)); fade = []
-            p += 1
+            lo, hi = (a, b) if talk else (qa, qb)
+            if talk != prev_talk:
+                old = p; p = int(rng.integers(lo, max(lo+1, hi-30))) if talk else lo; d = 1 if rng.random() < .6 else -1
+                if prev_talk is not None: fade = (old, 6)
+                prev_talk = talk
+            if p >= hi: p, d = hi, -1
+            if p <= lo and d < 0: p, d = lo, 1
+            if fade and fade[1] > 0: out.append((p, min(n-1, max(0, fade[0])), fade[1]/7)); fade = (fade[0]+d, fade[1]-1)
+            else: out.append((p, p, 0.))
+            p += d
         self.seq[k] = (int(t0*CLIP_FPS), out); return self.seq[k]
     def _parts(self, k, t):
         t0, name, mode = self.plan[k]; F, off, anc = self._frames(name); n = len(F)

@@ -50,7 +50,7 @@ class VeoCoin:
                 else: i += 1
             self.speak = np.pad(sp, (0, int(((duree or 0)+5)*CLIP_FPS)))
         self.seq = {}
-    @functools.lru_cache(maxsize=4)
+    @functools.lru_cache(maxsize=8)
     def _frames(self, name):
         """images du clip déjà mises à l'échelle finale (uint8), en mémoire ; décalage du coin haut-gauche par rapport au point (x, pieds)"""
         (w, h), cw, cx, fy, anc = CLIPS[name]; s = self.cw/cw
@@ -60,39 +60,72 @@ class VeoCoin:
         F = np.frombuffer(p, np.uint8).reshape(-1, hs, ws, 3)
         return F, (-cx*s, -fy*s), anc
     def _sequence(self, k):
-        """pour un passage en mode 'voix' : liste (image, image en fondu, poids) à 24 i/s, calée sur la voix"""
+        """mode 'voix' : liste (clip, image, clip en fondu, image en fondu, poids) à 24 i/s, calée sur la voix.
+        Plusieurs clips possibles : il change de clip dans les silences (poses neutres, fondu invisible), et chaque reprise de parole
+        part des images les moins vues récemment, pour limiter au maximum les répétitions."""
         if k in self.seq: return self.seq[k]
-        t0, name, mode = self.plan[k]; t1 = self.plan[k+1][0] if k+1 < len(self.plan) else len(self.speak)/CLIP_FPS
-        tp, (qa, qb) = PAROLE[name]; n = len(self._frames(name)[0])
-        segs = [tp] if isinstance(tp[0], int) else list(tp)            # plusieurs plages possibles (images défectueuses exclues)
-        a, b = segs[0]
-        # anti-répétition : à chaque reprise de parole, départ à un endroit différent du passage parlé,
-        # lecture en aller-retour (le geste se « rembobine » naturellement), sens alterné
-        rng = np.random.default_rng(11+k); out = []; p = a; d = 1; prev_talk = None; fade = None
-        for s in range(int(t0*CLIP_FPS), int(t1*CLIP_FPS)+2):
-            talk = bool(self.speak[min(len(self.speak)-1, s)])
-            if talk != prev_talk:
-                if talk: a, b = segs[int(rng.integers(len(segs)))]
-                lo, hi = (a, b) if talk else (qa, qb)
-                old = p; p = int(rng.integers(lo, max(lo+1, hi-min(30, (hi-lo)//2)))) if talk else lo; d = 1 if rng.random() < .6 else -1
-                if prev_talk is not None: fade = (old, 6)
-                prev_talk = talk
-            if p >= hi: p, d = hi, -1
-            if p <= lo and d < 0: p, d = lo, 1
-            if fade and fade[1] > 0: out.append((p, min(n-1, max(0, fade[0])), fade[1]/7)); fade = (fade[0] if len(segs) > 1 else fade[0]+d, fade[1]-1)   # continuation figée si des images sont exclues
-            else: out.append((p, p, 0.))
-            p += d
-        self.seq[k] = (int(t0*CLIP_FPS), out); return self.seq[k]
+        t0, names, mode = self.plan[k]; t1 = self.plan[k+1][0] if k+1 < len(self.plan) else len(self.speak)/CLIP_FPS
+        names = [names] if isinstance(names, str) else list(names)
+        info = {}
+        for nm in names:
+            tp, q = PAROLE[nm]; info[nm] = ([tp] if isinstance(tp[0], int) else list(tp), q, len(self._frames(nm)[0]))
+        used = {nm: np.full(info[nm][2], -1e9) for nm in names}       # dernière fois (pas) où chaque image a été montrée
+        S0, S1 = int(t0*CLIP_FPS), int(t1*CLIP_FPS)+2
+        sp = np.array([bool(self.speak[min(len(self.speak)-1, s)]) for s in range(S0, S1)])
+        out = []; cur = names[0]; p = info[cur][1][0]; d = 1; seg = info[cur][1]; fade = None; last_talk = None
+        def run_len(i, val):
+            j = i
+            while j < len(sp) and sp[j] == val: j += 1
+            return j-i
+        i = 0
+        while i < len(sp):
+            talk = bool(sp[i]); L = run_len(i, talk)
+            old = (cur, p)
+            if talk:
+                cands = [nm for nm in names if nm != last_talk] or names
+                best = None
+                for nm in cands:                                       # meilleur départ : images les moins récemment vues
+                    for (a, b) in info[nm][0]:
+                        span = b-a
+                        for st, dd in [(x, 1) for x in range(a, min(b, a+10)+1, 2)]+[(x, -1) for x in range(max(a, b-10), b+1, 2)]:   # départs proches de la pose neutre
+                            if True:
+                                q = st; ddd = dd; last = []
+                                for _ in range(min(L, 48)):
+                                    last.append(q); q += ddd
+                                    if q >= b: q, ddd = b, -1
+                                    if q <= a and ddd < 0: q, ddd = a, 1
+                                score = float(np.mean(i+S0-used[nm][last])) + (30 if nm != cur else 0)
+                                if best is None or score > best[0]: best = (score, nm, (a, b), st, dd)
+                _, nm, seg, p, d = best; last_talk = nm
+            else:
+                nm = cur
+                if L >= 8 and len(names) > 1:                          # silence assez long : on passe au clip le moins vu
+                    nm = min(names, key=lambda x: (used[x].max(), x == cur))
+                seg = info[nm][1]; p = seg[0]; d = 1
+            if (nm, p) != old and i > 0: fade = (old[0], old[1], 6)
+            cur = nm
+            for _ in range(L):
+                a, b = seg
+                if p >= b: p, d = b, -1
+                if p <= a and d < 0: p, d = a, 1
+                if fade and fade[2] > 0:
+                    fc, fp, r = fade; n_ = info[fc][2]
+                    out.append((cur, p, fc, min(n_-1, max(0, fp)), r/7)); fade = (fc, fp, r-1)
+                else: out.append((cur, p, cur, p, 0.))
+                used[cur][p] = i+S0; p += d; i += 1
+        self.seq[k] = (S0, out); return self.seq[k]
     def _parts(self, k, t):
-        t0, name, mode = self.plan[k]; F, off, anc = self._frames(name); n = len(F)
-        if mode == 'une': return F, off, anc, [(F[min(n-1, int((t-t0)*CLIP_FPS))], 1.)]
-        s0, seq = self._sequence(k); i = min(len(seq)-1, max(0, int(t*CLIP_FPS)-s0)); p, c, w = seq[i]
-        return F, off, anc, ([(F[p], 1-w), (F[c], w)] if w > 0 else [(F[p], 1.)])
+        t0, name, mode = self.plan[k]
+        if mode == 'une':
+            F, off, anc = self._frames(name); n = len(F); return [(F, off, anc, F[min(n-1, int((t-t0)*CLIP_FPS))], 1.)]
+        s0, seq = self._sequence(k); i = min(len(seq)-1, max(0, int(t*CLIP_FPS)-s0)); nm, p, nc, c, w = seq[i]
+        F, off, anc = self._frames(nm); parts = [(F, off, anc, F[p], 1-w)]
+        if w > 0: G, offc, ancc = self._frames(nc); parts.append((G, offc, ancc, G[c], w))
+        return parts
     def _layer_one(self, k, t, X, Y):
-        F, (ox, oy), anc, parts = self._parts(k, t)
-        ox = int(round(0 if anc == 'bord' else X+ox)); oy = int(round(Y+oy))
         rgb = np.zeros((H, W, 3), np.float32); al = np.zeros((H, W), np.float32)
-        for f, wgt in parts:
+        for F, (ox, oy), anc, f, wgt in self._parts(k, t):
+            ox = int(round(0 if anc == 'bord' else X+ox)); oy = int(round(Y+oy))
             a, m = _key(f); h, w = m.shape
             x0, y0 = max(0, ox), max(0, oy); x1, y1 = min(W, ox+w), min(H, oy+h)
             if x1 <= x0 or y1 <= y0: continue

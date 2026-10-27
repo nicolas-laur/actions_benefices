@@ -15,6 +15,8 @@ W, H = 1080, 1920; FONDU = .4; CLIP_FPS = 24
 # zones où il parle (images) et où il se tait, mesurées sur l'ouverture de la bouche
 PAROLE = {'aristo_parle_neutre': ((24, 196), (198, 239)), 'aristo_parle_enthousiaste_16x9': ((27, 212), (214, 239)),
           'aristo_parle_explique': (((36, 86), (132, 188)), (200, 239))}   # images 88-130 : une troisième main sur la canne, exclues
+# hauteur du personnage (chapeau → pieds, pose neutre) : c'est elle qui sert à la mise à l'échelle, pour qu'il garde la même taille d'un clip à l'autre
+HAUTEUR = {'aristo_entre_gauche': 518*280/105*0+0, 'aristo_parle_neutre': 965, 'aristo_parle_enthousiaste_16x9': 417, 'aristo_parle_explique': 419, 'aristo_parle_enthousiaste': 1053}
 CLIPS = {'aristo_entre_gauche': ((1280, 720), 280, 637, 711, 'bord'),
          'aristo_parle_neutre': ((720, 1280), 347, 346, 1117, 'centre'),
          'aristo_parle_enthousiaste_16x9': ((1280, 720), 174, 634, 579, 'centre'),
@@ -53,7 +55,7 @@ class VeoCoin:
     @functools.lru_cache(maxsize=8)
     def _frames(self, name):
         """images du clip déjà mises à l'échelle finale (uint8), en mémoire ; décalage du coin haut-gauche par rapport au point (x, pieds)"""
-        (w, h), cw, cx, fy, anc = CLIPS[name]; s = self.cw/cw
+        (w, h), cw, cx, fy, anc = CLIPS[name]; s = self.cw*2.45/HAUTEUR[name] if HAUTEUR.get(name) else self.cw/cw
         # recadrage autour du personnage (les clips 16:9 ont de grandes marges vertes) : 2,5 fois moins de mémoire
         if anc == 'bord': x0, x1 = 0, w
         else: x0, x1 = max(0, int(cx-cw*1.9)), min(w, int(cx+cw*1.9))

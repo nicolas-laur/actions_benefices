@@ -12,7 +12,7 @@ def frames(path):
     p = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', path, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout
     return (w, h), np.frombuffer(p, np.uint8).reshape(-1, h, w, 3)
 def analyse(path):
-    (w, h), F = frames(path); ws, cxs, feet, act = [], [], [], []
+    (w, h), F = frames(path); ws, cxs, feet, act, hts = [], [], [], [], []
     for a in F:
         a = a.astype(int); R, G, B = a[..., 0], a[..., 1], a[..., 2]
         m = (R > 200) & (G > 140) & (G < 220) & (B < 110) & (R-B > 110); lab, n = ndimage.label(m)
@@ -22,7 +22,7 @@ def analyse(path):
         cw = xs.max()-xs.min(); cx = (xs.min()+xs.max())//2; top = ys.min()
         box = a[top+int(cw*.62):top+int(cw*.85), max(0, cx-int(cw*.22)):cx+int(cw*.16)]
         r, g, b = box[..., 0], box[..., 1], box[..., 2]
-        ws.append(int(cw)); cxs.append(int(cx)); feet.append(int(yy.max())); act.append(int((((r < 140) & (g < 90)) | ((r > 170) & (g < 120) & (b < 120))).sum()))
+        hts.append(int(yy.max()-yy.min())); ws.append(int(cw)); cxs.append(int(cx)); feet.append(int(yy.max())); act.append(int((((r < 140) & (g < 90)) | ((r > 170) & (g < 120) & (b < 120))).sum()))
     ws_ = np.array(ws); ok = ws_ > np.percentile(ws_, 50)*.8
     cw = int(np.median(ws_[ok])); act = np.array(act, float)/max(1, cw*cw)
     base = np.percentile(act, 10); var = np.abs(np.diff(act, prepend=act[0]))
@@ -34,7 +34,8 @@ def analyse(path):
         runs.append((bool(talk[i]), i, j-1)); i = j
     parle = [(a, b) for t, a, b in runs if t and b-a > 24]
     silence = [(a, b) for t, a, b in runs if not t and b-a > 10]
-    return dict(format=[w, h], piece=cw, cx=int(np.median(np.array(cxs)[ok])), pieds=int(np.median(np.array(feet)[ok])),
+    return dict(format=[w, h], piece=cw, hauteur=int(np.median(np.array(hts)[:30] if len(hts) > 30 else hts)),   # hauteur en pose neutre (début du clip) : sert à l'échelle commune
+                cx=int(np.median(np.array(cxs)[ok])), pieds=int(np.median(np.array(feet)[ok])),
                 images=len(F), parle=parle, silence=silence)
 if __name__ == '__main__':
     cat = json.load(open(CAT)) if os.path.exists(CAT) else {}

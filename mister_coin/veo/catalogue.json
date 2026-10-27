@@ -202,5 +202,59 @@
     239
    ]
   ]
+ },
+ "classique_parle_inquiet": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 186,
+  "hauteur": 395,
+  "cx": 654,
+  "pieds": 571,
+  "images": 240,
+  "parle": [
+   [
+    20,
+    223
+   ]
+  ],
+  "silence": [
+   [
+    0,
+    19
+   ],
+   [
+    224,
+    239
+   ]
+  ]
+ },
+ "classique_parle_triste": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 184,
+  "hauteur": 395,
+  "cx": 651,
+  "pieds": 571,
+  "images": 240,
+  "parle": [
+   [
+    29,
+    163
+   ]
+  ],
+  "silence": [
+   [
+    0,
+    28
+   ],
+   [
+    164,
+    239
+   ]
+  ]
  }
 }

@@ -346,7 +346,10 @@ def rain(lay, t, k=1.0):
 # ---------- Mister Coin (clips Veo, version classique) ----------
 EXP, ENT = 'classique_parle_explique', 'classique_parle_enthousiaste'
 CX_COIN, FEET = 330, 1700
-MC = VeoCoin([(3.95, [ENT, EXP], 'voix')], voix=VOICE, duree=DUR, x=CX_COIN, pieds=FEET, largeur_piece=220)
+INQ, TRI = 'classique_parle_inquiet', 'classique_parle_triste'
+# humeur selon le propos (changements calés dans les silences) : enthousiaste au début, inquiet quand l'État arrive, triste sur le total et le paradoxe, de nouveau enjoué à la fin
+MC = VeoCoin([(3.95, [ENT, EXP], 'voix'), (29.0, [INQ, EXP], 'voix'), (39.0, [TRI, INQ], 'voix'), (55.7, [ENT, EXP], 'voix')],
+             voix=VOICE, duree=DUR, x=CX_COIN, pieds=FEET, largeur_piece=220)
 def coin_pos(t):
     """il tombe du ciel avec la caméra et se pose devant la pompe"""
     t0 = 3.95

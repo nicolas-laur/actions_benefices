@@ -72,7 +72,7 @@ Banque au 28/10 (9 clips classiques sur 26) :
 - Tenue aristocrate (Hermès) : `aristo_parle_neutre`, `aristo_parle_enthousiaste_16x9`, `aristo_parle_explique` (images 88-130 exclues : troisième main), `aristo_entre_gauche` ; `aristo_parle_enthousiaste` (portrait) rejeté, mains coupées.
 - Images de référence : `aristocrate_reference_hd.jpg`, `*_reference_marges_16x9.jpg`.
 
-Le texte complet des 26 prompts Gemini a été donné à Nicolas le 26/10 (il l'a noté de son côté) ; il n'est pas dans le dépôt.
+Le texte complet des 26 prompts Gemini, avec le statut de chaque clip, est dans `mister_coin/veo/PROMPTS_GEMINI.md`.
 
 ## 5. Épisodes produits
 

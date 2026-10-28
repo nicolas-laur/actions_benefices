@@ -24,6 +24,7 @@ VOICE = f'{D}/voice_full.wav'
 T = dict(vo=0.0, cent=4.35, prix=5.99, prend=9.15, deux=11.13, alors=12.88, abord=14.82, c53=16.96, fevrier=18.34, ensuite=22.39, c14=24.57,
          station=25.63, etat=29.30, accise=30.77, c30=33.11, tva=34.11, c20=35.05, caroui=36.06, taxe=38.02, total=39.23, seul=42.34,
          paradoxe=44.66, an=45.71, auj=49.06, c42=49.76, nonpas=51.02, plus=52.65, flambe=53.96, fin=55.96, quand=57.29, end=59.7)
+for _k in ('paradoxe', 'an', 'auj', 'c42', 'nonpas', 'plus', 'flambe', 'fin', 'quand', 'end'): T[_k] += .51    # phrase « lui qui encaisse le plus » refaite le 28/10 (0,51 s plus longue)
 if os.path.exists(f'{D}/timing.json'): T.update(json.load(open(f'{D}/timing.json')))
 DUR = T['end']
 T_DESC, T_LAND = 3.25, 4.33          # plongée vers la station, puis Mister Coin se pose
@@ -418,8 +419,8 @@ INQ, TRI = 'classique_parle_inquiet', 'classique_parle_triste'
 # humeur selon le propos (changements calés dans les silences) : enthousiaste au début, inquiet quand l'État arrive, triste sur le total et le paradoxe, de nouveau enjoué à la fin
 CONF, QUES = 'classique_parle_confidence', 'classique_parle_question'
 # confidence sur « tu paies de la TVA… sur une taxe », question sur « Le paradoxe ? »
-MC = VeoCoin([(3.95, [ENT, EXP], 'voix'), (29.0, [INQ, EXP], 'voix'), (35.75, CONF, 'voix'), (39.0, [TRI, INQ], 'voix'), (44.3, QUES, 'voix'),
-              (48.75, [TRI, INQ], 'voix'), (55.7, [ENT, EXP], 'voix')],
+MC = VeoCoin([(3.95, [ENT, EXP], 'voix'), (29.0, [INQ, EXP], 'voix'), (35.75, CONF, 'voix'), (39.0, [TRI, INQ], 'voix'), (44.81, QUES, 'voix'),
+              (49.26, [TRI, INQ], 'voix'), (56.21, [ENT, EXP], 'voix')],
              voix=VOICE, duree=DUR, x=CX_COIN, pieds=FEET, largeur_piece=220, lisse=True)
 def coin_pos(t):
     """il tombe du ciel avec la caméra et se pose devant la pompe"""

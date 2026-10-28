@@ -92,7 +92,9 @@ def emoji(ch, size):
     ImageDraw.Draw(im).text((10, 10), ch, font=f, embedded_color=True); im = im.crop(im.getbbox())
     return im.resize((size, int(size*im.height/im.width)), Image.LANCZOS)
 EMO = []
+FADE = [1.0]                                 # opacité du contenu du panneau (fondu entre deux contenus)
 def put_emoji(ch, x, y, size, k, a=1.0):
+    a *= FADE[0]
     if k > 0 and a > 0: EMO.append((ch, x, y, size, k, a))
 def draw_emoji(cv, ch, x, y, size, k, a):
     if not os.path.exists(EMOJI_FONT): return
@@ -313,6 +315,16 @@ def arrow(c, x0, y0, x1, y1, bend, colr, a, w=4):
         c.move_to(x1, y1); c.line_to(x1-15*math.cos(s_*.55), y1-15*math.sin(s_*.55))
     c.set_line_width(w); c.stroke()
 def left(c, t):
+    """le fond du panneau reste en place ; seul son contenu change, en fondu enchaîné (pas de saut)"""
+    FADE[0] = 1.0
+    if T['alors']-.15 <= t < T['paradoxe']-.12: fo = 1-ease((t-(T['paradoxe']-.45))/.3)
+    elif T['paradoxe']-.12 <= t < T['fin']-.12: fo = 1-ease((t-(T['fin']-.45))/.3)
+    else: fo = 1.0
+    if t >= T['alors']-.15: panel(c, ease((t-T['alors'])/.35))
+    if fo < 1:
+        FADE[0] = fo; c.push_group(); _left(c, t); c.pop_group_to_source(); c.paint_with_alpha(max(0, fo)); return
+    _left(c, t)
+def _left(c, t):
     a = 1.0
     if t < T['alors']-.15:                                                 # intro : le chiffre choc
         k = t-T['cent']
@@ -327,7 +339,7 @@ def left(c, t):
         if kd > 0: text(c, "PRIX MOYEN · SEMAINE DU 2 OCTOBRE", 300, 890, 'xb', 17, 'D8C9D4', 'c', ease(kd/.3), 1)
         return
     if t < T['paradoxe']-.12:                                              # le tableau se remplit
-        ka = ease((t-T['alors'])/.35); panel(c, ka)
+        ka = ease((t-T['alors'])/.35)
         text(c, "OÙ PART TON ARGENT ?", (PX0+PX1)/2, PY0+50, 'a', 46, WHITE, 'c', ka)
         mode = 'etat' if t >= T['total'] else 'parts'
         rows = gauge(c, t, ka, mode)
@@ -349,7 +361,7 @@ def left(c, t):
                 kk = ease(ks_/.3); note(c, "LE PLUS GROS GAGNANT", (PX0+PX1)/2-118, rows[2]-56, GOLD, kk, 18); put_emoji('👑', (PX0+PX1)/2+176, rows[2]-58, 40, ks_-.15)
         return
     if t < T['fin']-.12:                                                   # le paradoxe
-        kp = t-T['paradoxe']; panel(c, ease(kp/.3))
+        kp = t-T['paradoxe']
         text(c, "LE PARADOXE", (PX0+PX1)/2, PY0+50, 'a', 50, GOLD, 'c', ease(kp/.3))
         text(c, "PART DES TAXES DANS LE PRIX", (PX0+PX1)/2, PY0+104, 'xb', 19, 'D8C9D4', 'c', ease((kp-.2)/.3), 2)
         for i, (t0, lab, v, cl) in enumerate(((T['an'], "IL Y A UN AN", 54, GREY), (T['auj'], "AUJOURD'HUI", 42, GOLD))):
@@ -370,7 +382,7 @@ def left(c, t):
             text(c, "PÉTROLE PAR LITRE", BX0, 800, 'xb', 18, 'D8C9D4', 'l', ease(kf/.3), 2)
             text(c, "≈ 0,52 € → 1,07 €", BX1, 844, 'xb', 36, C_PET, 'r', ease(kf/.3)); put_emoji('🔥', BX0+20, 844, 44, kf-.3)
         return
-    kf = t-T['fin']; ka = ease(kf/.35); panel(c, ka)                       # récapitulatif final
+    kf = t-T['fin']; ka = ease(kf/.35)                       # récapitulatif final
     text(c, "TON PLEIN DE 117,78 €", (PX0+PX1)/2, PY0+48, 'a', 44, WHITE, 'c', ka)
     gauge(c, t, ka, 'final')
     al = ease((t-T['quand']-.6)/.4)

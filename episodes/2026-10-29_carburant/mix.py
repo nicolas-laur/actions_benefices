@@ -219,6 +219,8 @@ def clack():   # arrêt automatique de la pompe : double clac
     for t0, g in ((0, 1.0), (.11, .7)):
         n = int(.06*SR); t = tt(n); add(s, (bp(rng.standard_normal(n), 700, 4500)*np.exp(-t*110)*.35+np.sin(2*np.pi*np.cumsum(300+200*np.exp(-t*70))/SR)*np.exp(-t*50)*.15)*g, t0)
     return s
+def zap():     # grésillement électrique très bref de l'afficheur
+    n = int(.06*SR); t = tt(n); return hp(rng.standard_normal(n), 3000)*np.exp(-t*90)*(.5+.5*np.sign(np.sin(2*np.pi*120*t)))*.025
 def hop():     # petit saut de Mister Coin : « boing » feutré
     n = int(.35*SR); t = tt(n); return np.sin(2*np.pi*np.cumsum(260+340*t/.35)/SR)*np.exp(-t*9)*np.minimum(1, t/.01)*.05
 def fill(k):   # la jauge se remplit : liquide qui coule, bulles dont la note monte (bouteille qui se remplit), puis carillon
@@ -237,7 +239,7 @@ def fill(k):   # la jauge se remplit : liquide qui coule, bulles dont la note mo
     return s
 def flow(dur):  # moteur de pompe très discret pendant tout le plein
     n = int(dur*SR); t = tt(n); return (lp(rng.standard_normal(n), 380)*.012+np.sin(2*np.pi*50*t)*.003)*(1+.15*np.sin(2*np.pi*.7*t))
-MAP = dict(nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
+MAP = dict(zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
 fx = np.zeros(N); duck = np.ones(N)
 for t0, k in V.events():
     add(fx, MAP[k](), t0-(.35 if k == 'whoosh' else (.12 if k in ('trans', 'swish') else 0)), .45 if k == 'ignite' else (1.8 if k.startswith('fill') else 1.0))

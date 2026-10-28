@@ -158,20 +158,58 @@ def euros_at(t):
     g = .88*u+.12*inout(u)                                                # débit régulier, démarrage et arrêt adoucis
     return 117.78*g
 def fmt(v, d=2): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',')
+# afficheur à 7 segments (comme sur les pompes) : segments éteints visibles en fantôme, segments allumés en néon rouge
+SEG = {'0': 'abcdef', '1': 'bc', '2': 'abged', '3': 'abgcd', '4': 'fgbc', '5': 'afgcd', '6': 'afgedc', '7': 'abc', '8': 'abcdefg', '9': 'abcdfg', ' ': ''}
+def seg_digit(c, ch, x, y, h, lit, ghost=.07):
+    """un chiffre à 7 segments ; (x, y) = coin bas gauche ; lit = intensité 0..1"""
+    w = h*.52; th = h*.13; sl = h*.09                                       # largeur, épaisseur, inclinaison
+    def P(px, py): return x+px+sl*(py/h), y-py                              # point incliné
+    def seg(name):
+        hh = h/2; g = th*.18
+        if name in 'ad g'.replace(' ', ''):
+            yy = {'a': h, 'g': hh, 'd': 0}[name]; x0_, x1_ = g+th*.5, w-g-th*.5
+            pts = [(x0_, yy), (x0_+th*.5, yy+th*.5), (x1_-th*.5, yy+th*.5), (x1_, yy), (x1_-th*.5, yy-th*.5), (x0_+th*.5, yy-th*.5)]
+        else:
+            xx = {'b': w, 'c': w, 'e': 0, 'f': 0}[name]; y0_, y1_ = ((hh+g, h-g) if name in 'bf' else (g, hh-g))
+            pts = [(xx, y0_+th*.3), (xx+th*.5, y0_+th*.8), (xx+th*.5, y1_-th*.8), (xx, y1_-th*.3), (xx-th*.5, y1_-th*.8), (xx-th*.5, y0_+th*.8)]
+        c.move_to(*P(*pts[0]))
+        for q in pts[1:]: c.line_to(*P(*q))
+        c.close_path()
+    on = SEG.get(ch, '')
+    for nm in 'abcdefg':
+        seg(nm); col(c, 'FF2D55', ghost); c.fill()
+    for nm in on:
+        for wdt, al in ((th*1.6, .10), (th*.8, .22)):
+            seg(nm); c.set_line_width(wdt); c.set_line_join(cairo.LINE_JOIN_ROUND); col(c, NEON, al*lit); c.stroke()
+        seg(nm); col(c, 'FF3B5F', lit); c.fill_preserve(); col(c, 'FFC9D4', .35*lit); c.set_line_width(1); c.stroke()
+    return w+h*.2
+def seg_text(c, s_, xr, y, h, t, seed=0):
+    """nombre aligné à droite sur xr ; la virgule est un point lumineux ; chaque chiffre crépite légèrement"""
+    xs = []; wd = h*.52+h*.2; x = xr
+    for k, ch in enumerate(reversed(s_)):
+        if ch == ',':
+            x -= h*.22; xs.append((ch, x)); continue
+        x -= wd; xs.append((ch, x))
+    for k, (ch, x) in enumerate(xs):
+        n = k+seed*7
+        lit = .9+.08*math.sin(t*37+n*1.7)+.05*math.sin(t*91+n*3.1)        # grésillement permanent
+        for a0, d0 in CRACK:
+            if a0 <= t < a0+d0 and (int(a0*10)+n) % 5 == 0: lit *= .55     # micro-coupure rare d'un chiffre
+        if ch == ',':
+            c.arc(x+h*.08, y-h*.05, h*.06, 0, 2*math.pi); col(c, 'FF3B5F', lit); c.fill()
+        else: seg_digit(c, ch, x, y, h, lit)
+CRACK = [(a/10, .05) for a in range(52, 600, 23)]                       # instants de crépitement (environ toutes les 2,3 s)
 def counter(c, t, ox):
-    x0, y0, x1, y1 = SCR; x0 += ox; x1 += ox; cx = (x0+x1)/2
-    rr(c, x0+6, y0+6, x1-x0-12, y1-y0-12, 8); col(c, '07040A', .96); c.fill()
+    x0, y0, x1, y1 = SCR; x0 += ox; x1 += ox
+    rr(c, x0+5, y0+5, x1-x0-10, y1-y0-10, 8); col(c, '050206', .97); c.fill()
+    g = cairo.LinearGradient(0, y0, 0, y1); g.add_color_stop_rgba(0, 1, .2, .35, .05); g.add_color_stop_rgba(1, 1, .2, .35, 0)
+    rr(c, x0+5, y0+5, x1-x0-10, y1-y0-10, 8); c.set_source(g); c.fill()
     e = euros_at(t); L = e/PRICE
-    blink = 1.0
-    text(c, "TOTAL", x0+22, y0+34, 'xb', 15, NEON2, 'l', .9, 2); text(c, "€", x1-22, y0+34, 'xb', 18, NEON2, 'r', .9)
-    c.save(); c.select_font_face('Anton')
-    s = fmt(e); c.set_font_size(74); ext = c.text_extents(s)
-    for r_, al in ((7, .18), (3, .35)):
-        c.move_to(x1-24-ext.x_advance, y0+108); c.text_path(s); c.set_line_width(r_*2); col(c, NEON, al*blink); c.stroke()
-    c.move_to(x1-24-ext.x_advance, y0+108); c.text_path(s); col(c, 'FF5A78', blink); c.fill(); c.restore()
-    c.move_to(x0+16, y0+128); c.line_to(x1-16, y0+128); c.set_line_width(1.5); col(c, NEON, .35); c.stroke()
-    text(c, "LITRES", x0+22, y0+152, 'xb', 14, NEON2, 'l', .9, 2); text(c, fmt(L), x1-24, y0+152, 'a', 30, 'FF8FA3', 'r', blink)
-    text(c, "PRIX/L", x0+22, y0+190, 'xb', 14, NEON2, 'l', .9, 2); text(c, "2,356", x1-24, y0+190, 'a', 30, 'FFC2CF', 'r', .95)
+    text(c, "€ À PAYER", x0+18, y0+26, 'xb', 12, 'FF8FA3', 'l', .9, 2)
+    seg_text(c, fmt(e), x1-14, y0+100, 52, t, 0)
+    c.move_to(x0+14, y0+120); c.line_to(x1-14, y0+120); c.set_line_width(1.2); col(c, NEON, .3); c.stroke()
+    text(c, "LITRES", x0+18, y0+142, 'xb', 12, 'FF8FA3', 'l', .9, 2); seg_text(c, fmt(L), x1-16, y0+164, 30, t, 1)
+    text(c, "PRIX/L", x0+18, y0+184, 'xb', 12, 'FF8FA3', 'l', .9, 2); seg_text(c, "2,356", x1-16, y0+202, 26, t, 2)
 
 # ---------- caméra ----------
 def view(arr, box):
@@ -211,71 +249,56 @@ def panel(c, a):
     g = cairo.LinearGradient(0, PY0, 0, PY1); g.add_color_stop_rgba(0, .07, .03, .08, .86*a); g.add_color_stop_rgba(1, .03, .01, .04, .90*a)
     rr(c, PX0, PY0, PX1-PX0, PY1-PY0, 30); c.set_source(g); c.fill()
     rr(c, PX0, PY0, PX1-PX0, PY1-PY0, 30); c.set_line_width(1.6); col(c, 'FF8FA6', .55*a); c.stroke()
-def tube_path(c, inset=0):
-    rr(c, TUBE_X0+inset, TUBE_Y1-TUBE_H-inset*0, TUBE_X1-TUBE_X0-2*inset, TUBE_H, 26-inset)
 STARTS = lambda: [(T['abord'], T['c53']), (T['ensuite'], T['c14']), (T['accise'], T['c30']), (T['tva'], T['c20'])]
-NAMES = ["PÉTROLE ET RAFFINAGE", "TRANSPORT ET STATION", "ACCISE (EX-TICPE)", "TVA"]
-EMOS = ["🛢️", "🚚", "🏛️", "🏛️"]
+NAMES = ["PÉTROLE ET RAFFINAGE", "TRANSPORT ET STATION", "ACCISE (EX-TICPE)", "TVA (20 %)"]
+BX0, BX1 = 66, 536; BW = BX1-BX0; SB_Y = PY0+112; R0 = PY0+192; RH = 118
 def fill_k(i, t, final=False):
     if final: return 1.0
     return inout((t-STARTS()[i][1]+.25)/1.0)
+def bar(c, x, y, w, h, colr, a, track=True, full=BW):
+    if track: rr(c, x, y, full, h, h/2); col(c, 'FFFFFF', .08*a); c.fill()
+    if w > .5:
+        g = cairo.LinearGradient(x, 0, x+max(w, 1), 0); g.add_color_stop_rgba(0, *rgb(colr, .85), a); g.add_color_stop_rgba(1, *rgb(colr, 1, .2), a)
+        rr(c, x, y, max(w, h), h, h/2); c.set_source(g); c.fill()
+        g2 = cairo.LinearGradient(0, y, 0, y+h); g2.add_color_stop_rgba(0, 1, 1, 1, .28*a); g2.add_color_stop_rgba(.5, 1, 1, 1, 0)
+        rr(c, x, y, max(w, h), h, h/2); c.set_source(g2); c.fill()
 def gauge(c, t, a, mode='parts'):
-    """réservoir en verre : le carburant monte par couches, surface ondulante, bulles ; étiquettes reliées à chaque couche"""
-    pxe = TUBE_H/117.78; final = mode == 'final'; X0, X1 = TUBE_X0+7, TUBE_X1-7
-    # verre (fond)
-    tube_path(c); col(c, 'FFFFFF', .05*a); c.fill()
-    for k in range(1, 6):                                                    # graduations tous les 20 €
-        yy = TUBE_Y1-k*20*pxe; c.move_to(TUBE_X1-16, yy); c.line_to(TUBE_X1-4, yy); c.set_line_width(2); col(c, 'FFFFFF', .22*a); c.stroke()
-    ks = [fill_k(i, t, final) for i in range(4)]; hs = [v*pxe*k for (v, _), k in zip(PARTS, ks)]
-    top = TUBE_Y1-sum(hs); filling = any(0 < k < 1 for k in ks)
-    amp = 5.5 if filling else 2.2
-    c.save(); tube_path(c, 7); c.clip()
-    y = TUBE_Y1; bounds = []
-    for i, ((v, colr), h_) in enumerate(zip(PARTS, hs)):
-        if h_ <= .3: bounds.append(None); continue
-        dim = .32 if (mode == 'etat' and i < 2) else 1.0
-        y1 = y-h_; is_top = i == max(j for j in range(4) if hs[j] > .3)
-        c.new_path()
-        if is_top:                                                           # surface ondulée du liquide
-            c.move_to(X0, y)
-            for xx in range(int(X0), int(X1)+1, 4): c.line_to(xx, y1+amp*math.sin(xx*.075+t*5.2)+amp*.5*math.sin(xx*.13-t*3.1))
-            c.line_to(X1, y); c.close_path()
-        else: c.rectangle(X0, y1, X1-X0, h_)
-        g = cairo.LinearGradient(0, y1, 0, y); g.add_color_stop_rgba(0, *rgb(colr, 1.0, .28), a*dim); g.add_color_stop_rgba(1, *rgb(colr, .78), a*dim)
-        c.set_source(g); c.fill()
-        if i > 0 and hs[i-1] > .3: c.move_to(X0, y); c.line_to(X1, y); c.set_line_width(1.5); col(c, 'FFFFFF', .28*a); c.stroke()
-        bounds.append((y1, y)); y = y1
-    rng = np.random.default_rng(5)                                           # bulles qui remontent dans le carburant
-    for k in range(16):
-        bx = rng.uniform(X0+10, X1-10); sp_ = rng.uniform(40, 90); ph = rng.uniform(0, 600); r = rng.uniform(2, 4.5)
-        H_ = max(1, TUBE_Y1-top-6); by = TUBE_Y1-((t*sp_+ph) % H_)
-        if by < top+6: continue
-        c.arc(bx+3*math.sin(t*3+k), by, r, 0, 2*math.pi); c.set_line_width(1.4); col(c, 'FFFFFF', .35*a); c.stroke()
-    c.restore()
-    # verre (reflets et contour)
-    g = cairo.LinearGradient(TUBE_X0, 0, TUBE_X1, 0)
-    g.add_color_stop_rgba(0, 1, 1, 1, .0); g.add_color_stop_rgba(.12, 1, 1, 1, .26*a); g.add_color_stop_rgba(.24, 1, 1, 1, .04*a); g.add_color_stop_rgba(.85, 1, 1, 1, 0); g.add_color_stop_rgba(.93, 1, 1, 1, .12*a); g.add_color_stop_rgba(1, 1, 1, 1, 0)
-    tube_path(c); c.set_source(g); c.fill()
-    tube_path(c); c.set_line_width(2.5); col(c, 'FFFFFF', .42*a); c.stroke()
-    # étiquettes
-    tops = []; y = TUBE_Y1
-    for i, (v, colr) in enumerate(PARTS):
-        ymid = y-v*pxe/2; tops.append((y-v*pxe, y, ymid)); y -= v*pxe
-    for i, (v, colr) in enumerate(PARTS):
-        tn, tv = STARTS()[i]; ka = 1.0 if final else ease((t-tn)/.4)
-        if ka <= 0 or (mode == 'etat' and i >= 2): continue
-        dim = .32 if mode == 'etat' else 1.0; al = ka*a*dim; ym = tops[i][2]; dx = 24*(1-ka)
-        c.move_to(TUBE_X1+4, ym); c.line_to(TUBE_X1+26, ym); c.set_line_width(2); col(c, colr, al); c.stroke()
-        c.arc(TUBE_X1+26, ym, 4, 0, 2*math.pi); col(c, colr, al); c.fill()
-        lx = TUBE_X1+42+dx
-        put_emoji(EMOS[i], lx+14, ym-20, 28, 1.0 if final else t-tn, al)
-        text(c, NAMES[i], lx+36, ym-20, 'xb', 17, 'E6DDEA', 'l', al, 1)
-        kv = 1.0 if final else ease((t-tv)/.3)
-        if kv > 0: text(c, fmt(v)+" €", lx, ym+20, 'a', 44, fmt_col(colr), 'l', kv*al)
+    """tableau de décomposition : barre empilée graduée en haut, une ligne par poste (barre proportionnelle + montant exact), total en bas"""
+    final = mode == 'final'; ks = [fill_k(i, t, final) for i in range(4)]
+    # barre empilée, graduée
+    rr(c, BX0, SB_Y, BW, 30, 15); col(c, 'FFFFFF', .08*a); c.fill()
+    c.save(); rr(c, BX0, SB_Y, BW, 30, 15); c.clip(); x = BX0
+    for i, ((v, colr), k) in enumerate(zip(PARTS, ks)):
+        w = BW*v/117.78*k; dim = .3 if (mode == 'etat' and i < 2) else 1.0
+        if w > .3:
+            c.rectangle(x, SB_Y, w, 30); col(c, colr, a*dim); c.fill()
+            if x > BX0: c.move_to(x, SB_Y); c.line_to(x, SB_Y+30); c.set_line_width(2); col(c, '0B0610', a); c.stroke()
+        x += w
+    g2 = cairo.LinearGradient(0, SB_Y, 0, SB_Y+30); g2.add_color_stop_rgba(0, 1, 1, 1, .25*a); g2.add_color_stop_rgba(.5, 1, 1, 1, 0)
+    c.rectangle(BX0, SB_Y, BW, 30); c.set_source(g2); c.fill(); c.restore()
+    for v in (0, 25, 50, 75, 100):
+        xx = BX0+BW*v/117.78; c.move_to(xx, SB_Y+36); c.line_to(xx, SB_Y+43); c.set_line_width(1.5); col(c, 'FFFFFF', .35*a); c.stroke()
+        text(c, f"{v} €" if v == 100 else str(v), xx, SB_Y+56, 'xb', 12, 'B9AEC0', 'c', a)
+    # lignes
+    rows = []
+    for i, ((v, colr), k) in enumerate(zip(PARTS, ks)):
+        tn, tv = STARTS()[i]; y = R0+i*RH; rows.append(y)
+        ka = 1.0 if final else ease((t-tn)/.4)
+        if ka <= 0: continue
+        dim = .3 if (mode == 'etat' and i < 2) else 1.0; al = ka*a*dim; dx = 18*(1-ka)
+        rr(c, BX0+dx, y-9, 16, 16, 4); col(c, colr, al); c.fill()
+        text(c, NAMES[i], BX0+28+dx, y, 'xb', 18, 'EDE6F0', 'l', al, 1)
+        if k > 0: text(c, fmt(v*k)+" €", BX1, y+2, 'a', 40, fmt_col(colr), 'r', al)
+        bar(c, BX0, y+30, BW*v/117.78*k, 14, colr, al)
         if not final and mode != 'etat':
-            if i == 0 and t > T['fevrier']+.9: note(c, "MARGE DES RAFFINEURS ×6", lx, ym+68, C_PET, ease((t-T['fevrier']-.9)/.35))
-            if i == 1 and t > T['station']+1.2: note(c, "DONT STATION : 1 À 4 €", lx, ym+66, C_TRA, ease((t-T['station']-1.2)/.35))
-    return tops
+            if i == 0 and t > T['fevrier']+.9: note(c, "MARGE DES RAFFINEURS ×6 DEPUIS FÉVRIER", BX0, y+70, C_PET, ease((t-T['fevrier']-.9)/.35), 14)
+            if i == 1 and t > T['station']+1.2: note(c, "DONT STATION : 1 À 4 € PAR PLEIN", BX0, y+70, C_TRA, ease((t-T['station']-1.2)/.35), 14)
+    # total
+    ty = R0+4*RH; tot = sum(v*k for (v, _), k in zip(PARTS, ks))
+    if tot > 0 and mode != 'etat':
+        c.move_to(BX0, ty-36); c.line_to(BX1, ty-36); c.set_line_width(1.5); col(c, 'FFFFFF', .3*a); c.stroke()
+        text(c, "TOTAL DU PLEIN", BX0, ty, 'xb', 18, WHITE, 'l', a, 2); text(c, fmt(tot)+" €", BX1, ty+2, 'a', 44, WHITE, 'r', a)
+    return rows
 def fmt_col(colr): return '%02X%02X%02X' % tuple(int(x*255) for x in rgb(colr, 1.0, .22))
 def note(c, s_, x, y, colr, a, size=16):
     """petite pastille contour, pour une précision"""
@@ -303,28 +326,27 @@ def left(c, t):
         kd = t-T['deux']
         if kd > 0: text(c, "PRIX MOYEN · SEMAINE DU 2 OCTOBRE", 300, 890, 'xb', 17, 'D8C9D4', 'c', ease(kd/.3), 1)
         return
-    if t < T['paradoxe']-.12:                                              # la jauge se remplit
+    if t < T['paradoxe']-.12:                                              # le tableau se remplit
         ka = ease((t-T['alors'])/.35); panel(c, ka)
         text(c, "OÙ PART TON ARGENT ?", (PX0+PX1)/2, PY0+50, 'a', 46, WHITE, 'c', ka)
-        c.move_to((PX0+PX1)/2-60, PY0+82); c.line_to((PX0+PX1)/2+60, PY0+82); c.set_line_width(3); col(c, NEON, .8*ka); c.stroke()
         mode = 'etat' if t >= T['total'] else 'parts'
-        tops = gauge(c, t, ka, mode)
+        rows = gauge(c, t, ka, mode)
         if T['caroui'] <= t < T['total']:                                  # la TVA se paie aussi sur l'accise
             kt = ease((t-T['taxe']+.2)/.4)
-            (a3, b3, m3), (a4, b4, m4) = tops[2], tops[3]
             if kt > 0:
-                arrow(c, TUBE_X0-2, m4, TUBE_X0-2, m3, -40, 'FFD34D', kt)
-                note(c, "TVA CALCULÉE AUSSI SUR L'ACCISE", 160, PY0+102, 'FFC21A', kt, 16)
+                arrow(c, BX0-8, rows[3]+36, BX0-8, rows[2]+30, -22, 'FFD34D', kt, 3)
+                note(c, "CALCULÉE AUSSI SUR L'ACCISE", BX0, rows[3]+70, 'FFC21A', kt, 14)
         if t >= T['total']:
-            (a3, b3, _), (a4, b4, _) = tops[2], tops[3]; ke = ease((t-T['total'])/.35); bx = TUBE_X1+14
-            for w_, al in ((10, .18), (4, 1.0)):
-                c.move_to(bx, a4+4); c.line_to(bx+14, a4+4); c.line_to(bx+14, b3-4); c.line_to(bx, b3-4); c.set_line_width(w_); c.set_line_join(cairo.LINE_JOIN_ROUND); col(c, GOLD, al*ke); c.stroke()
-            ym = (a4+b3)/2; cx_ = 392
-            ks = t-T['seul']
-            if ks > 0: note(c, "LE PLUS GROS GAGNANT", cx_-126, ym-128, GOLD, ease(ks/.3), 17); put_emoji('👑', cx_+150, ym-132, 44, ks-.2)
-            text(c, "L'ÉTAT", cx_, ym-66, 'xb', 24, GOLD, 'c', ke, 3)
-            big(c, "50 €", cx_, ym+6, 112, GOLD, ke, lerp(1.25, 1, back((t-T['total'])/.45)), edge=INK, lw=8)
-            text(c, "42 % DU PLEIN", cx_, ym+88, 'xb', 22, WHITE, 'c', ease((t-T['total']-.5)/.3), 2)
+            ke = ease((t-T['total'])/.35); y0_, y1_ = rows[2]-28, rows[3]+56
+            for w_, al in ((8, .15), (2.5, 1.0)):
+                rr(c, BX0-14, y0_, BW+28, y1_-y0_, 16); c.set_line_width(w_); col(c, GOLD, al*ke); c.stroke()
+            ty = R0+4*RH
+            c.move_to(BX0, ty-36); c.line_to(BX1, ty-36); c.set_line_width(1.5); col(c, GOLD, .5*ke); c.stroke()
+            text(c, "L'ÉTAT", BX0, ty-6, 'xb', 20, GOLD, 'l', ke, 3); text(c, "42 % DU PLEIN", BX0, ty+20, 'xb', 15, 'F6E2B0', 'l', ease((t-T['total']-.4)/.3), 2)
+            big(c, "50,01 €", BX1-118, ty+2, 56, GOLD, ke, lerp(1.2, 1, back((t-T['total'])/.45)), edge=INK, lw=6)
+            ks_ = t-T['seul']
+            if ks_ > 0:
+                kk = ease(ks_/.3); note(c, "LE PLUS GROS GAGNANT", (PX0+PX1)/2-118, rows[2]-56, GOLD, kk, 18); put_emoji('👑', (PX0+PX1)/2+176, rows[2]-58, 40, ks_-.15)
         return
     if t < T['fin']-.12:                                                   # le paradoxe
         kp = t-T['paradoxe']; panel(c, ease(kp/.3))
@@ -333,21 +355,20 @@ def left(c, t):
         for i, (t0, lab, v, cl) in enumerate(((T['an'], "IL Y A UN AN", 54, GREY), (T['auj'], "AUJOURD'HUI", 42, GOLD))):
             u = inout((t-t0-.3)/.7)
             if t < t0: continue
-            y = 380+i*130; w = 330*v/54*u; ka_ = ease((t-t0)/.3)
-            text(c, lab, 76, y, 'xb', 21, 'E6DDEA', 'l', ka_, 2)
-            rr(c, 76, y+24, 330, 52, 26); col(c, 'FFFFFF', .07*ka_); c.fill()
-            if w > 4:
-                g = cairo.LinearGradient(76, 0, 76+w, 0); g.add_color_stop_rgba(0, *rgb(cl, .8), 1); g.add_color_stop_rgba(1, *rgb(cl, 1, .25), 1)
-                rr(c, 76, y+24, max(52, w), 52, 26); c.set_source(g); c.fill()
-            text(c, f"{v} %", 76+max(52, w)+16, y+52, 'a', 46, WHITE, 'l', ease((t-t0-.3)/.3))
+            y = 400+i*130; ka_ = ease((t-t0)/.3)
+            text(c, lab, BX0, y, 'xb', 20, 'EDE6F0', 'l', ka_, 2); text(c, f"{round(v*u)} %", BX1, y+2, 'a', 44, fmt_col(cl), 'r', ka_)
+            bar(c, BX0, y+32, BW*v/100*u, 34, cl, ka_)
+            for q in (25, 50, 75):
+                xx = BX0+BW*q/100; c.move_to(xx, y+32); c.line_to(xx, y+66); c.set_line_width(1); col(c, '0B0610', .6*ka_); c.stroke()
         kn = t-T['plus']+.4
         if kn > 0:
-            text(c, "TAXES PAR LITRE", 76, 680, 'xb', 20, 'D8C9D4', 'l', ease(kn/.3), 2)
-            text(c, "≈ 0,88 € → 1,00 €", 76, 724, 'xb', 38, GREEN, 'l', ease(kn/.3)); put_emoji('⬆️', 470, 720, 44, kn-.3)
+            c.move_to(BX0, 650); c.line_to(BX1, 650); c.set_line_width(1.5); col(c, 'FFFFFF', .25*ease(kn/.3)); c.stroke()
+            text(c, "TAXES PAR LITRE", BX0, 690, 'xb', 18, 'D8C9D4', 'l', ease(kn/.3), 2)
+            text(c, "≈ 0,88 € → 1,00 €", BX1, 734, 'xb', 36, GREEN, 'r', ease(kn/.3)); put_emoji('⬆️', BX0+20, 734, 40, kn-.3)
         kf = t-T['flambe']-.5
         if kf > 0:
-            text(c, "PÉTROLE PAR LITRE", 76, 800, 'xb', 20, 'D8C9D4', 'l', ease(kf/.3), 2)
-            text(c, "≈ 0,52 € → 1,07 €", 76, 844, 'xb', 38, C_PET, 'l', ease(kf/.3)); put_emoji('🔥', 470, 838, 50, kf-.3)
+            text(c, "PÉTROLE PAR LITRE", BX0, 800, 'xb', 18, 'D8C9D4', 'l', ease(kf/.3), 2)
+            text(c, "≈ 0,52 € → 1,07 €", BX1, 844, 'xb', 36, C_PET, 'r', ease(kf/.3)); put_emoji('🔥', BX0+20, 844, 44, kf-.3)
         return
     kf = t-T['fin']; ka = ease(kf/.35); panel(c, ka)                       # récapitulatif final
     text(c, "TON PLEIN DE 117,78 €", (PX0+PX1)/2, PY0+48, 'a', 44, WHITE, 'c', ka)
@@ -383,7 +404,10 @@ EXP, ENT = 'classique_parle_explique', 'classique_parle_enthousiaste'
 CX_COIN, FEET = 330, 1700
 INQ, TRI = 'classique_parle_inquiet', 'classique_parle_triste'
 # humeur selon le propos (changements calés dans les silences) : enthousiaste au début, inquiet quand l'État arrive, triste sur le total et le paradoxe, de nouveau enjoué à la fin
-MC = VeoCoin([(3.95, [ENT, EXP], 'voix'), (29.0, [INQ, EXP], 'voix'), (39.0, [TRI, INQ], 'voix'), (55.7, [ENT, EXP], 'voix')],
+CONF, QUES = 'classique_parle_confidence', 'classique_parle_question'
+# confidence sur « tu paies de la TVA… sur une taxe », question sur « Le paradoxe ? »
+MC = VeoCoin([(3.95, [ENT, EXP], 'voix'), (29.0, [INQ, EXP], 'voix'), (35.75, CONF, 'voix'), (39.0, [TRI, INQ], 'voix'), (44.3, QUES, 'voix'),
+              (48.75, [TRI, INQ], 'voix'), (55.7, [ENT, EXP], 'voix')],
              voix=VOICE, duree=DUR, x=CX_COIN, pieds=FEET, largeur_piece=220, lisse=True)
 def coin_pos(t):
     """il tombe du ciel avec la caméra et se pose devant la pompe"""
@@ -447,6 +471,7 @@ def events():
           (T['an']+.3, 'tick'), (T['auj']+.3, 'tick'), (T['plus']-.4, 'pop'), (T['flambe']+.5, 'pop'), (T['fin'], 'swish'),
           (P_END, 'clack'), (T['quand']+.6, 'paid')]
     ev += [(h-.05, 'hop') for h in MC._global_sequence() and MC.hops]
+    ev += [(a0, 'zap') for a0, _ in CRACK if P_START < a0 < P_END]          # grésillement de l'afficheur
     return sorted(ev)
 
 def main():

@@ -272,7 +272,7 @@ def gauge(c, t, a, mode='parts'):
     rr(c, BX0, SB_Y, BW, 30, 15); col(c, 'FFFFFF', .08*a); c.fill()
     c.save(); rr(c, BX0, SB_Y, BW, 30, 15); c.clip(); x = BX0
     for i, ((v, colr), k) in enumerate(zip(PARTS, ks)):
-        w = BW*v/117.78*k; dim = .3 if (mode == 'etat' and i < 2) else 1.0
+        w = BW*v/117.78*k; dim = (1-.7*ease((t-T['total'])/.35)) if (mode == 'etat' and i < 2) else 1.0
         if w > .3:
             c.rectangle(x, SB_Y, w, 30); col(c, colr, a*dim); c.fill()
             if x > BX0: c.move_to(x, SB_Y); c.line_to(x, SB_Y+30); c.set_line_width(2); col(c, '0B0610', a); c.stroke()
@@ -288,7 +288,7 @@ def gauge(c, t, a, mode='parts'):
         tn, tv = STARTS()[i]; y = R0+i*RH; rows.append(y)
         ka = 1.0 if final else ease((t-tn)/.4)
         if ka <= 0: continue
-        dim = .3 if (mode == 'etat' and i < 2) else 1.0; al = ka*a*dim; dx = 18*(1-ka)
+        dim = (1-.7*ease((t-T['total'])/.35)) if (mode == 'etat' and i < 2) else 1.0; al = ka*a*dim; dx = 18*(1-ka)
         rr(c, BX0+dx, y-9, 16, 16, 4); col(c, colr, al); c.fill()
         text(c, NAMES[i], BX0+28+dx, y, 'xb', 18, 'EDE6F0', 'l', al, 1)
         if k > 0: text(c, fmt(v*k)+" €", BX1, y+2, 'a', 40, fmt_col(colr), 'r', al)
@@ -473,6 +473,7 @@ def frame(t):
     s2, c2 = surface(); kk = cap_at(t)
     if kk is not None and t < DUR-.9 and CAPS[kk][1]:
         st0 = CAPS[kk][0]; al_ = 1.0 if st0 == 0 else ease((t-st0)/.12)
+        al_ *= 1-ease((t-(DUR-1.2))/.3)                                  # le dernier sous-titre s'efface en douceur
         caption(c2, parse(CAPS[kk][1]), HL.get(st0, NEON), a=al_)
     cv.alpha_composite(to_img(s2))
     return finish(cv, t, 3.0)

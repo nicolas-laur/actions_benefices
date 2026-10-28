@@ -298,9 +298,10 @@ def gauge(c, t, a, mode='parts'):
             if i == 1 and t > T['station']+1.2: note(c, "DONT STATION : 1 À 4 € PAR PLEIN", BX0, y+70, C_TRA, ease((t-T['station']-1.2)/.35), 14)
     # total
     ty = R0+4*RH; tot = sum(v*k for (v, _), k in zip(PARTS, ks))
-    if tot > 0 and mode != 'etat':
-        c.move_to(BX0, ty-36); c.line_to(BX1, ty-36); c.set_line_width(1.5); col(c, 'FFFFFF', .3*a); c.stroke()
-        text(c, "TOTAL DU PLEIN", BX0, ty, 'xb', 18, WHITE, 'l', a, 2); text(c, fmt(tot)+" €", BX1, ty+2, 'a', 44, WHITE, 'r', a)
+    tf = 1.0 if mode != 'etat' else 1-ease((t-T['total'])/.25)               # le total s'efface quand l'État prend sa place
+    if tot > 0 and tf > 0:
+        c.move_to(BX0, ty-36); c.line_to(BX1, ty-36); c.set_line_width(1.5); col(c, 'FFFFFF', .3*a*tf); c.stroke()
+        text(c, "TOTAL DU PLEIN", BX0, ty, 'xb', 18, WHITE, 'l', a*tf, 2); text(c, fmt(tot)+" €", BX1, ty+2, 'a', 44, WHITE, 'r', a*tf)
     return rows
 def fmt_col(colr): return '%02X%02X%02X' % tuple(int(x*255) for x in rgb(colr, 1.0, .22))
 def note(c, s_, x, y, colr, a, size=16):
@@ -318,7 +319,8 @@ def arrow(c, x0, y0, x1, y1, bend, colr, a, w=4):
 def left(c, t):
     """le fond du panneau reste en place ; seul son contenu change, en fondu enchaîné (pas de saut)"""
     FADE[0] = 1.0
-    if T['alors']-.15 <= t < T['paradoxe']-.12: fo = 1-ease((t-(T['paradoxe']-.45))/.3)
+    if t < T['alors']-.15: fo = 1-ease((t-(T['alors']-.45))/.3)          # l'intro s'efface avant l'arrivée du tableau
+    elif T['alors']-.15 <= t < T['paradoxe']-.12: fo = 1-ease((t-(T['paradoxe']-.45))/.3)
     elif T['paradoxe']-.12 <= t < T['fin']-.12: fo = 1-ease((t-(T['fin']-.45))/.3)
     else: fo = 1.0
     if t >= T['alors']-.15: panel(c, ease((t-T['alors'])/.35))

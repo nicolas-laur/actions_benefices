@@ -322,5 +322,61 @@
     239
    ]
   ]
+ },
+ "classique_joie": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 181,
+  "hauteur": 401,
+  "cx": 651,
+  "pieds": 571,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    86
+   ],
+   [
+    192,
+    239
+   ]
+  ],
+  "type": "reaction",
+  "action": [
+   80,
+   200
+  ],
+  "note": "saute de joie bras en l'air, bouche ouverte de joie (pas de parole) ; à jouer d'un bloc dans un silence"
+ },
+ "classique_saut_place": {
+  "format": [
+   720,
+   1280
+  ],
+  "piece": 321,
+  "hauteur": 721,
+  "cx": 369,
+  "pieds": 1013,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    103
+   ],
+   [
+    127,
+    239
+   ]
+  ],
+  "type": "reaction",
+  "action": [
+   100,
+   200
+  ],
+  "note": "saut sur place (format portrait) : élan, saut, réception ; à jouer d'un bloc dans un silence"
  }
 }

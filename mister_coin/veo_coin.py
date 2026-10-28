@@ -23,6 +23,7 @@ CLIPS = {'aristo_entre_gauche': ((1280, 720), 280, 637, 711, 'bord'),
          'aristo_parle_explique': ((1280, 720), 175, 635, 581, 'centre'),
          'aristo_parle_enthousiaste': ((720, 1280), 440, 343, 1143, 'centre')}
 
+REACTIONS = {}
 def _from_catalogue():
     """les clips analysés par veo_catalogue.py complètent automatiquement CLIPS, PAROLE et HAUTEUR"""
     import json
@@ -32,6 +33,7 @@ def _from_catalogue():
         if nm in CLIPS: continue
         CLIPS[nm] = (tuple(c['format']), c['piece'], c['cx'], c['pieds'], 'bord' if 'entre' in nm or 'sort' in nm else 'centre')
         if c.get('hauteur'): HAUTEUR[nm] = c['hauteur']
+        if c.get('type') == 'reaction': REACTIONS[nm] = tuple(c['action']); continue      # réactions (joie, saut…) : jouées d'un bloc, jamais pour parler
         if c.get('parle') and c.get('silence'):
             pl = [tuple(x) for x in c['parle']]; PAROLE[nm] = ((pl[0] if len(pl) == 1 else tuple(pl)), tuple(c['silence'][-1]))
 _from_catalogue()

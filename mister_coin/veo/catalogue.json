@@ -378,5 +378,89 @@
    200
   ],
   "note": "saut sur place (format portrait) : élan, saut, réception ; à jouer d'un bloc dans un silence"
+ },
+ "classique_montre_haut_droite": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 189,
+  "hauteur": 403,
+  "cx": 656,
+  "pieds": 569,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    78
+   ],
+   [
+    160,
+    239
+   ]
+  ],
+  "type": "reaction",
+  "action": [
+   40,
+   180
+  ],
+  "note": "pointe l'index vers le coin haut droit et regarde dans cette direction"
+ },
+ "classique_pouce": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 181,
+  "hauteur": 399,
+  "cx": 654,
+  "pieds": 569,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    89
+   ],
+   [
+    159,
+    239
+   ]
+  ],
+  "type": "reaction",
+  "action": [
+   50,
+   180
+  ],
+  "note": "pouce levé avec un clin d'œil"
+ },
+ "classique_rire": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 181,
+  "hauteur": 405,
+  "cx": 654,
+  "pieds": 571,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    27
+   ],
+   [
+    195,
+    239
+   ]
+  ],
+  "type": "reaction",
+  "action": [
+   40,
+   190
+  ],
+  "note": "éclate de rire en se tenant le ventre, puis se calme"
  }
 }

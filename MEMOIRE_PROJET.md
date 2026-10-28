@@ -64,10 +64,10 @@ Montage (`VeoCoin(..., lisse=True)`, version du 27-28/10) :
 - Les réactions (`type: reaction` dans le catalogue) se jouent d'un bloc dans un silence, jamais pour parler.
 - Mise à l'échelle commune sur la hauteur du personnage, ombre au sol qui rétrécit en l'air.
 
-Banque au 28/10 (9 clips classiques sur 26) :
+Banque au 28/10 (12 clips classiques sur 26) :
 
 - Parole : `classique_parle_enthousiaste`, `classique_parle_explique`, `classique_parle_inquiet`, `classique_parle_triste`, `classique_parle_confidence` (main devant la bouche, pour une révélation), `classique_parle_question` (haussement d'épaules, bras ouverts).
-- Réactions : `classique_saut_place` (format portrait, élan, saut, réception), `classique_joie` (saute de joie, bras en l'air). Il faut 4 à 5 s de silence prévu dans le script pour les placer.
+- Réactions : `classique_saut_place` (format portrait, élan, saut, réception), `classique_joie` (saute de joie, bras en l'air), `classique_rire` (éclate de rire), `classique_pouce` (pouce levé et clin d'œil), `classique_montre_haut_droite` (pointe le coin haut droit). Il faut 4 à 5 s de silence prévu dans le script pour les placer.
 - Entrée : `clip_b` (entrée par la gauche, ancienne génération).
 - Tenue aristocrate (Hermès) : `aristo_parle_neutre`, `aristo_parle_enthousiaste_16x9`, `aristo_parle_explique` (images 88-130 exclues : troisième main), `aristo_entre_gauche` ; `aristo_parle_enthousiaste` (portrait) rejeté, mains coupées.
 - Images de référence : `aristocrate_reference_hd.jpg`, `*_reference_marges_16x9.jpg`.

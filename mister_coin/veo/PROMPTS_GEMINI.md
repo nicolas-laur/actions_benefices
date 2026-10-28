@@ -1,6 +1,6 @@
 # Banque Mister Coin : prompts Gemini (Veo)
 
-Texte fourni par Nicolas le 28/10 (prompts établis le 26/10). Statut au 28/10 : 9 clips classiques sur 26 reçus.
+Texte fourni par Nicolas le 28/10 (prompts établis le 26/10). Statut au 28/10 : 12 clips classiques sur 26 reçus.
 Le dernier bloc en bas est la version renforcée du bloc commun (cohérence du personnage, grandes marges vertes) : c'est celle à utiliser.
 Formats : 16:9 avec l'image de référence `classique_reference_marges_16x9.jpg` (ou `aristocrate_reference_marges_16x9.jpg` pour la tenue aristocrate).
 Nommage dans le dépôt : `classique_<nom>.mp4` dans `mister_coin/veo/`, puis `python3 mister_coin/veo_catalogue.py` ; les réactions sont marquées `type: reaction` dans `catalogue.json`.
@@ -30,9 +30,9 @@ Pour les entrées et les sorties, il ne doit pas revenir à la pose neutre au bo
 3. Les réactions (dans les silences de la voix, sans parler)
 Pour chaque prompt, ajoute à la fin : « He does not talk. »
 * [joie] « He jumps for joy with both arms up and laughs, then calms down. »  ✅ reçu
-* [rire] « He bursts out laughing, holding his belly, then calms down. »  ⏳ à générer
-* [pouce] « He gives the camera a big thumbs up with a wink. »  ⏳ à générer
-* [montre_haut_droite] « He points enthusiastically with his index finger toward the top right corner of the frame and looks there. »  ⏳ à générer
+* [rire] « He bursts out laughing, holding his belly, then calms down. »  ✅ reçu
+* [pouce] « He gives the camera a big thumbs up with a wink. »  ✅ reçu
+* [montre_haut_droite] « He points enthusiastically with his index finger toward the top right corner of the frame and looks there. »  ✅ reçu
 * [montre_haut_gauche] « He points enthusiastically with his index finger toward the top left corner of the frame and looks there. »  ⏳ à générer
 * [deception] « His smile fades, his eyebrows rise in worry, his arms drop and he sighs. »  ⏳ à générer
 * [choc] « He is shocked: his eyes go wide, his jaw drops, his hat jumps up off his head and lands back on it. »  ⏳ à générer

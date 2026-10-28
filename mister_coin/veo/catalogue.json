@@ -256,5 +256,71 @@
     239
    ]
   ]
+ },
+ "classique_parle_confidence": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 181,
+  "hauteur": 401,
+  "cx": 643,
+  "pieds": 571,
+  "images": 240,
+  "parle": [
+   [
+    71,
+    178
+   ]
+  ],
+  "silence": [
+   [
+    0,
+    58
+   ],
+   [
+    179,
+    239
+   ]
+  ]
+ },
+ "classique_parle_question": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 182,
+  "hauteur": 402,
+  "cx": 642,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    49,
+    82
+   ],
+   [
+    160,
+    191
+   ]
+  ],
+  "silence": [
+   [
+    0,
+    48
+   ],
+   [
+    83,
+    95
+   ],
+   [
+    126,
+    159
+   ],
+   [
+    192,
+    239
+   ]
+  ]
  }
 }

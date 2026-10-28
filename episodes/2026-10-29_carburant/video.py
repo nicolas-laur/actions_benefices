@@ -36,7 +36,7 @@ CAPS = [(T['vo'], "Je vais te révéler ce qu'on ne te dit pas forcément sur [l
         (T['station'], "Et la station, elle, ne garde [qu'1 à 4 euros] sur ton plein."),
         (T['etat'], "Et puis il y a [l'État]."), (T['accise'], "[L'accise], l'ancienne TICPE :"), (T['c30'], "[30 euros]."),
         (T['tva'], "Et la [TVA] :"), (T['c20'], "[20 euros]."), (T['caroui'], "Car oui, tu paies de la TVA… [sur une taxe] !"),
-        (T['total'], "Au total, l'État encaisse [50 euros] sur ton plein."), (T['seul'], "À lui seul, c'est le [plus gros gagnant]."),
+        (T['total'], "Au total, l'État encaisse [50 euros] sur ton plein."), (T['seul'], "À lui seul, c'est [lui qui encaisse le plus]."),
         (T['paradoxe'], "Le [paradoxe] ?"), (T['an'], "Il y a un an, les taxes pesaient [54 %] du prix."), (T['auj'], "Aujourd'hui, [42 %]."),
         (T['nonpas'], "Non pas parce que l'État prend moins, il encaisse [même plus],"), (T['flambe'], "mais parce que le pétrole [a flambé]."),
         (T['fin'], "Maintenant, tu comprendras tout quand tu iras faire [ton plein] d'essence !")]
@@ -358,7 +358,7 @@ def _left(c, t):
             big(c, "50,01 €", BX1-118, ty+2, 56, GOLD, ke, lerp(1.2, 1, back((t-T['total'])/.45)), edge=INK, lw=6)
             ks_ = t-T['seul']
             if ks_ > 0:
-                kk = ease(ks_/.3); note(c, "LE PLUS GROS GAGNANT", (PX0+PX1)/2-118, rows[2]-56, GOLD, kk, 18); put_emoji('👑', (PX0+PX1)/2+176, rows[2]-58, 40, ks_-.15)
+                kk = ease(ks_/.3); note(c, "LE PREMIER ENCAISSEUR", (PX0+PX1)/2-118, rows[2]-56, GOLD, kk, 18); put_emoji('👑', (PX0+PX1)/2+176, rows[2]-58, 40, ks_-.15)
         return
     if t < T['fin']-.12:                                                   # le paradoxe
         kp = t-T['paradoxe']

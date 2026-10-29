@@ -1,6 +1,6 @@
 # Banque Mister Coin : prompts Gemini (Veo)
 
-Texte fourni par Nicolas le 28/10 (prompts établis le 26/10). Statut au 28/10 : 12 clips classiques sur 26 reçus.
+Texte fourni par Nicolas le 28/10 (prompts établis le 26/10). Statut au 28/10 : 14 clips classiques sur 26 reçus.
 Le dernier bloc en bas est la version renforcée du bloc commun (cohérence du personnage, grandes marges vertes) : c'est celle à utiliser.
 Formats : 16:9 avec l'image de référence `classique_reference_marges_16x9.jpg` (ou `aristocrate_reference_marges_16x9.jpg` pour la tenue aristocrate).
 Nommage dans le dépôt : `classique_<nom>.mp4` dans `mister_coin/veo/`, puis `python3 mister_coin/veo_catalogue.py` ; les réactions sont marquées `type: reaction` dans `catalogue.json`.
@@ -35,8 +35,8 @@ Pour chaque prompt, ajoute à la fin : « He does not talk. »
 * [montre_haut_droite] « He points enthusiastically with his index finger toward the top right corner of the frame and looks there. »  ✅ reçu
 * [montre_haut_gauche] « He points enthusiastically with his index finger toward the top left corner of the frame and looks there. »  ⏳ à générer
 * [deception] « His smile fades, his eyebrows rise in worry, his arms drop and he sighs. »  ⏳ à générer
-* [choc] « He is shocked: his eyes go wide, his jaw drops, his hat jumps up off his head and lands back on it. »  ⏳ à générer
-* [facepalm] « He slowly puts his hand on his face, embarrassed, then shakes his head. »  ⏳ à générer
+* [choc] « He is shocked: his eyes go wide, his jaw drops, his hat jumps up off his head and lands back on it. »  ✅ reçu
+* [facepalm] « He slowly puts his hand on his face, embarrassed, then shakes his head. »  ✅ reçu
 * [haussement] « He shrugs with both palms up, as if saying I don't know. »  ⏳ à générer
 * [reflechit] « He thinks, one hand on his chin, looking up, then has an idea and raises his index finger. »  ⏳ à générer
 * [sueur] « He looks nervous, a drop of sweat runs down his face and he pulls at his bow tie. »  ⏳ à générer

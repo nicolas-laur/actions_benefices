@@ -242,10 +242,10 @@ def hud_card(c, t):
     ka = ease((t-T['places']+.1)/.35)
     card(c, CX0, CY0, CX1-CX0, CY1-CY0, ka)
     a = ka
-    text(c, "Hypothèse : 7 % par an, intérêts réinvestis · avant inflation et impôts", 540, CY1-32, 'b', 19, GREY, 'c', a)
+    text(c, "Hypothèse : 7 %/an, intérêts réinvestis · avant inflation et impôts", 540, CY1-34, 'b', 23, '5A6478', 'c', a)
     if t < T['pq']-.12:
         y = years_at(t)
-        text(c, "ANNÉE", CX0+50, CY0+62, 'xb', 22, GREY, 'l', a, 3)
+        text(c, "ANNÉE", CX0+50, CY0+62, 'xb', 24, '5A6478', 'l', a, 3)
         big(c, f"{int(y+1e-6)}", CX0+50+60, CY0+140, 96, NAVY, a, 1, edge=WHITE, lw=2, shadow=False)
         pill(c, "100 €/MOIS", CX1-40, CY0+70, BLUE, WHITE, a, 22, 'r'); pill(c, "7 %/AN", CX1-40, CY0+136, GREEN, WHITE, a, 22, 'r')
         # frise des années
@@ -253,12 +253,12 @@ def hud_card(c, t):
         rr(c, fx0, fy-9, fx1-fx0, 18, 9); col(c, 'E6EAF2', a); c.fill()
         rr(c, fx0, fy-9, max(18, (fx1-fx0)*y/40), 18, 9); col(c, GOLD, a); c.fill()
         for k in (0, 10, 20, 30, 40):
-            xx = fx0+(fx1-fx0)*k/40; text(c, str(k), xx, fy+32, 'xb', 16, GREY, 'c', a)
+            xx = fx0+(fx1-fx0)*k/40; text(c, str(k), xx, fy+36, 'xb', 22, '5A6478', 'c', a)
         # versements
-        text(c, "TU AS VERSÉ", CX0+50, CY0+240, 'xb', 24, GREY, 'l', a, 2)
+        text(c, "TU AS VERSÉ", CX0+50, CY0+240, 'xb', 28, '5A6478', 'l', a, 2)
         text(c, fmt(1200*y)+" €", CX1-50, CY0+242, 'a', 64, BLUE, 'r', a)
         # capital
-        text(c, "TU AS", CX0+50, CY0+352, 'xb', 24, GREY, 'l', a, 2)
+        text(c, "TU AS", CX0+50, CY0+352, 'xb', 28, '5A6478', 'l', a, 2)
         if t < T['a51']-.05 or T['b40'] <= t < T['a250']-.05:
             pu = .5+.5*math.sin(t*9)
             big(c, "?", CX1-110, CY0+352, 110, PINK, a*(.75+.25*pu), 1+.06*pu, edge=NAVY, lw=8, shadow=False)
@@ -281,12 +281,12 @@ def hud_card(c, t):
             g = cairo.LinearGradient(0, by, 0, by+56); g.add_color_stop_rgba(0, 1, 1, 1, .35); g.add_color_stop_rgba(.5, 1, 1, 1, 0); c.rectangle(bx0, by, wv+wi, 56); c.set_source(g); c.fill(); c.restore()
             rr(c, bx0, by, BW, 56, 28); c.set_line_width(4); col(c, NAVY, a); c.stroke()
             kl = ease((t-(T['a51'] if t < T['b40'] else T['a250'])-.5)/.3)
-            rr(c, bx0, by+80, 22, 22, 6); col(c, BLUE, a*kl); c.fill(); text(c, f"VERSÉ {fmt(v)} €", bx0+32, by+91, 'xb', 21, NAVY, 'l', a*kl, 1)
-            rr(c, bx0+430, by+80, 22, 22, 6); col(c, GOLD, a*kl); c.fill(); text(c, f"INTÉRÊTS {fmt(i_)} €", bx0+462, by+91, 'xb', 21, NAVY, 'l', a*kl, 1)
+            rr(c, bx0, by+80, 22, 22, 6); col(c, BLUE, a*kl); c.fill(); text(c, f"VERSÉ {fmt(v)} €", bx0+32, by+91, 'xb', 24, NAVY, 'l', a*kl, 1)
+            rr(c, bx0+400, by+80, 22, 22, 6); col(c, GOLD, a*kl); c.fill(); text(c, f"INTÉRÊTS {fmt(i_)} €", bx0+432, by+91, 'xb', 24, NAVY, 'l', a*kl, 1)
         else:
             rr(c, bx0, by, BW, 56, 28); c.set_line_width(4); col(c, NAVY, a); c.stroke()
         if t >= T['a250']+.7:
-            pill(c, "×4,9 EN 20 ANS", CX0+50, CY0+402, PINK, WHITE, a*ease((t-T['a250']-.7)/.3), 20, 'l'); put_emoji('🚀', CX0+330, CY0+398, 44, t-T['a250']-.9)
+            pill(c, "×4,9 EN 20 ANS", CX0+50, CY0+404, PINK, WHITE, a*ease((t-T['a250']-.7)/.3), 22, 'l'); put_emoji('🚀', CX0+330, CY0+398, 44, t-T['a250']-.9)
         return
     if t < T['secret']-.12:                                            # pourquoi : les intérêts rapportent des intérêts
         kp = t-T['pq']
@@ -295,12 +295,13 @@ def hud_card(c, t):
         for i, (v, gnr) in enumerate(steps):
             ti = T['parce']+.2+i*.55; k = ease((t-ti)/.3)
             if k <= 0: continue
-            x = CX0+110+i*248; y = CY0+300
-            rr(c, x-95, y-62, 190, 124, 26); col(c, 'FFF6D6', a*k); c.fill_preserve(); c.set_line_width(4); col(c, NAVY, a*k); c.stroke()
-            text(c, f"ANNÉE {i}", x, y-34, 'xb', 16, GREY, 'c', a*k, 2); text(c, v, x, y+12, 'a', 40, NAVY, 'c', a*k)
-            if gnr: pill(c, gnr, x, y+92, GREEN, WHITE, a*k, 18)
-            if i: c.move_to(x-150, y); c.line_to(x-104, y); c.set_line_width(5); col(c, NAVY, a*k); c.stroke(); c.move_to(x-114, y-10); c.line_to(x-104, y); c.line_to(x-114, y+10); c.stroke()
-        text(c, "CHAQUE ANNÉE, TU GAGNES UN PEU PLUS QUE L'ANNÉE D'AVANT", 540, CY0+452, 'xb', 21, NAVY, 'c', ease((t-T['parce']-1.8)/.3), 1)
+            x = 540+(i-1.5)*232; y = CY0+300
+            rr(c, x-90, y-62, 180, 124, 26); col(c, 'FFF6D6', a*k); c.fill_preserve(); c.set_line_width(4); col(c, NAVY, a*k); c.stroke()
+            text(c, f"ANNÉE {i}", x, y-34, 'xb', 20, '5A6478', 'c', a*k, 1); text(c, v, x, y+14, 'a', 44, NAVY, 'c', a*k)
+            if gnr: pill(c, gnr, x, y+94, GREEN, WHITE, a*k, 22)
+            if i: c.move_to(x-138, y); c.line_to(x-98, y); c.set_line_width(5); col(c, NAVY, a*k); c.stroke(); c.move_to(x-108, y-10); c.line_to(x-98, y); c.line_to(x-108, y+10); c.stroke()
+        text(c, "CHAQUE ANNÉE, TU GAGNES PLUS", 540, CY0+452, 'xb', 28, NAVY, 'c', ease((t-T['parce']-1.8)/.3), 1)
+        text(c, "QUE L'ANNÉE D'AVANT", 540, CY0+490, 'xb', 28, NAVY, 'c', ease((t-T['parce']-1.8)/.3), 1)
         kb = t-T['boule']
         if kb > 0: pill(c, "L'EFFET BOULE DE NEIGE", 540, CY0+560, GOLD, NAVY, ease(kb/.25), 34); put_emoji('❄️', 870, CY0+556, 64, kb-.15)
         return
@@ -312,12 +313,12 @@ def hud_card(c, t):
             k = ease((t-t0)/.3)
             if k <= 0: continue
             y = CY0+215+i*175; v = capital(yrs); w = BW*v/mx*inout((t-t0)/.8)
-            text(c, lab, bx0, y, 'xb', 22, NAVY, 'l', a*k, 1)
+            text(c, lab, bx0, y, 'xb', 25, NAVY, 'l', a*k, 1)
             rr(c, bx0, y+30, BW, 60, 30); col(c, 'EEF1F7', a*k); c.fill()
             if w > 4: rr(c, bx0, y+30, max(60, w), 60, 30); col(c, colr, a*k); c.fill()
             rr(c, bx0, y+30, BW, 60, 30); c.set_line_width(4); col(c, NAVY, a*k); c.stroke()
             text(c, fmt(v)+" €", bx0+max(60, w)-20, y+61, 'a', 40, WHITE if w > 300 else NAVY, 'r' if w > 300 else 'l', a*ease((t-t0-.5)/.3))
-        if t > T['tot']+.9: pill(c, "2 FOIS PLUS, SANS VERSER PLUS PAR MOIS", 540, CY0+590, GOLD, NAVY, ease((t-T['tot']-.9)/.3), 21)
+        if t > T['tot']+.9: pill(c, "2 FOIS PLUS, SANS VERSER PLUS", 540, CY0+590, GOLD, NAVY, ease((t-T['tot']-.9)/.3), 26)
         return
     kt = t-T['toi']                                                    # question finale
     big(c, "ET TOI,", 540, CY0+180, 110, NAVY, ease(kt/.25), edge=WHITE, lw=2, shadow=False)

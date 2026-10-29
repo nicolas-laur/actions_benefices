@@ -1,5 +1,5 @@
-"""Intérêts composés : 100 € par mois pendant 40 ans à 7 %. Colline cartoon animée ; graphique en courbes façon dessin animé
-(capital et versements tracés année après année, aire des intérêts, bulles de valeurs) ; polices cartoon ; Mister Coin classique.
+"""Intérêts composés : 100 € par mois pendant 40 ans à 7 %. DA de la vidéo PEA/CTO (validée) : fond sombre étoilé, panneaux de verre
+en perspective (courbes du capital et des versements), grands chiffres lumineux ; Mister Coin classique.
 usage : python3 video.py info | png t1 t2 … | seg sortie.mp4 f0 f1"""
 import sys, os, math, functools, subprocess, re, json
 import numpy as np, cairo, cv2
@@ -44,7 +44,7 @@ def cap_at(t):
         if t >= a: k = i
     return k
 def caption(c, words, hl, y=1060, size=44, a=1):
-    sp = tw(c, ' ', 'fd', size); wd = [tw(c, w, 'fd', size)+(20 if k else 0) for w, k in words]
+    sp = tw(c, ' ', 'b', size); wd = [tw(c, w, 'b', size)+(20 if k else 0) for w, k in words]
     lines, cur, cw = [], [], 0
     for i, w in enumerate(wd):
         need = w+(sp if cur else 0)
@@ -52,14 +52,13 @@ def caption(c, words, hl, y=1060, size=44, a=1):
         cur.append(i); cw += need
     lines.append((cur, cw)); y0 = y-(len(lines)-1)*36
     bw = max(lw for _, lw in lines)+60; bh = len(lines)*72+28
-    rr(c, 540-bw/2+6, y0-50+8, bw, bh, 26); col(c, NAVY, .35*a); c.fill()
-    rr(c, 540-bw/2, y0-50, bw, bh, 26); col(c, NAVY, .88*a); c.fill()
+    rr(c, 540-bw/2, y0-50, bw, bh, 26); col(c, '0B0E14', .72*a); c.fill()
     for li, (idx, lw) in enumerate(lines):
         x = 540-lw/2; yy = y0+li*72
         for i in idx:
             w, k = words[i]
-            if k: rr(c, x, yy-34, wd[i], 64, 14); col(c, hl, a); c.fill(); text(c, w, x+10, yy, 'fd', size, NAVY if hl in (GOLD, GOLD2) else WHITE, 'l', a)
-            else: text(c, w, x, yy, 'fd', size, WHITE, 'l', a)
+            if k: rr(c, x, yy-34, wd[i], 64, 14); col(c, hl, a); c.fill(); text(c, w, x+10, yy, 'b', size, NAVY if hl in (GOLD, GOLD2) else WHITE, 'l', a)
+            else: text(c, w, x, yy, 'b', size, WHITE, 'l', a)
             x += wd[i]+sp
 
 # ---------- outils ----------
@@ -110,190 +109,154 @@ def years_at(t):
     if t < T['mais']: return 20*inout((t-T['places'])/(T['b20']+.5-T['places']))
     return 20+20*clamp((t-T['b40']+.1)/1.25)**1.6
 
-# ---------- décor : colline, nuages qui dérivent, soleil, pollen ----------
-@functools.lru_cache(maxsize=1)
-def decor_layers():
-    im = Image.open(f'{D}/decors/colline.jpg').convert('RGB'); im = im.resize((int(im.width*1920/im.height), 1920), Image.LANCZOS)
-    x0 = (im.width-W)//2; a = np.asarray(im.crop((x0, 0, x0+W, H))).astype(np.float32)
-    R, G, B = a[..., 0], a[..., 1], a[..., 2]; yy = np.mgrid[0:H, 0:W][0]
-    cl = ((R > 205) & (G > 210) & (B > 225) & (B >= R-4) & (yy < 760)).astype(np.uint8)
-    cl = cv2.dilate(cl, np.ones((9, 9), np.uint8))
-    small = cv2.resize(a.astype(np.uint8), (W//3, H//3)); ms = cv2.resize(cl, (W//3, H//3), interpolation=cv2.INTER_NEAREST)
-    clean = cv2.inpaint(small, ms, 9, cv2.INPAINT_TELEA); clean = cv2.resize(clean, (W, H), interpolation=cv2.INTER_CUBIC).astype(np.float32)
-    clean = cv2.GaussianBlur(clean, (0, 0), 3)
-    m = cv2.GaussianBlur(cl.astype(np.float32), (0, 0), 2.5)
-    sky = a*(1-m[..., None])+clean*m[..., None]                     # ciel sans nuages
-    return a, sky, m
-def decor(t):
-    a, sky, m = decor_layers()
-    dx = 7.0*t                                                         # les nuages dérivent doucement vers la droite
-    M = np.float32([[1, 0, dx], [0, 1, 0]])
-    cl = cv2.warpAffine(a, M, (W, H), borderMode=cv2.BORDER_CONSTANT); mm = cv2.warpAffine(m, M, (W, H), borderMode=cv2.BORDER_CONSTANT)
-    out = sky*(1-mm[..., None])+cl*mm[..., None]
-    out = out*(1-m[..., None]*0)                                       # sol et collines inchangés hors des nuages
-    im = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).convert('RGBA')
-    lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay)
-    for k in range(7):                                                 # rayons du soleil qui tournent lentement
-        ang = -.25+k*.16+.05*math.sin(t*.5+k); L = 1500
-        p = [(0, 560), (L*math.cos(ang-.035), 560+L*math.sin(ang-.035)), (L*math.cos(ang+.035), 560+L*math.sin(ang+.035))]
-        d.polygon(p, fill=(255, 250, 215, int(26+14*math.sin(t*1.3+k*1.7))))
-    lay = lay.filter(ImageFilter.GaussianBlur(18)); im.alpha_composite(lay)
-    lay = Image.new('RGBA', (W, H), 0); d = ImageDraw.Draw(lay); rng = np.random.default_rng(7)
-    for i in range(45):                                                # pollen doré qui flotte
-        x0_, y0_, sp = rng.uniform(0, W), rng.uniform(700, 1900), rng.uniform(10, 30)
-        x = (x0_+sp*t+25*math.sin(t*.7+i)) % W; y = y0_-12*t+18*math.sin(t*.9+i*1.3); y = (y-700) % 1200+700; r = rng.uniform(1.5, 3.5)
-        d.ellipse((x-r, y-r, x+r, y+r), fill=(255, 245, 180, int(rng.uniform(90, 200))))
-    im.alpha_composite(lay.filter(ImageFilter.GaussianBlur(.6)))
-    return im
-
-# ---------- polices cartoon ----------
-import mty
-mty.FAM['lg'] = ('Luckiest Guy', 0); mty.FAM['fd'] = ('Fredoka', 1); mty.FAM['fs'] = ('Fredoka SemiBold', 0)
-
-# ---------- panneau : graphique en courbes ----------
-CX0, CY0, CX1, CY1 = 50, 200, 1030, 958
-PX0, PX1, PY0, PY1 = 196, 975, 372, 832                          # zone du tracé
-VMAX = 280000
-def gx(y): return PX0+(PX1-PX0)*y/40
-def gy(v): return PY1-(PY1-PY0)*v/VMAX
-def bubble(c, s, x, y, bg, fg, a=1, size=40, k=1.0, tail=True):
-    """bulle de valeur façon BD, pointe vers (x, y)"""
+# ---------- DA « PEA/CTO » : fond sombre étoilé, panneaux de verre en perspective, grands chiffres lumineux ----------
+sys.path.insert(0, f'{ROOT}/archives/msft'); sys.path.insert(0, f'{ROOT}/archives/btc')
+from bglass import gpanel, place, glow_text, tilt_quad, darkspot, darken_band, surf, pil, with_alpha, lowblur
+import nty
+CY = '35D6FF'; CY2 = 'A8EEFF'; GD = 'FFC24A'; GD2 = 'FFE3A0'; GR = '3FE08A'; RD = 'FF4057'; ICE = 'E8EEF8'; INK = '0B0E14'
+def grp(c, a, fn, dy=0):
     if a <= 0: return
-    c.save(); c.translate(x, y); c.scale(k, k)
-    w = tw(c, s, 'lg', size)+40; h = size*1.45; bx, by = -w/2, -h-22
-    rr(c, bx+5, by+7, w, h, h/2); col(c, NAVY, .3*a); c.fill()
-    rr(c, bx, by, w, h, h/2); col(c, bg, a); c.fill_preserve(); c.set_line_width(4); col(c, NAVY, a); c.stroke()
-    if tail:
-        c.move_to(-12, by+h-2); c.line_to(0, -4); c.line_to(12, by+h-2); c.close_path(); col(c, bg, a); c.fill_preserve(); c.set_line_width(4); col(c, NAVY, a); c.stroke()
-        c.rectangle(-10, by+h-8, 20, 8); col(c, bg, a); c.fill()
-    text(c, s, 0, by+h/2+2, 'lg', size, fg, 'c', a)
-    c.restore()
-def curve(c, f, y0, y1, step=.2):
-    ys = np.arange(y0, y1+1e-6, step)
-    if len(ys) == 0 or ys[-1] < y1: ys = np.append(ys, y1)
-    c.move_to(gx(ys[0]), gy(f(ys[0])))
-    for y in ys[1:]: c.line_to(gx(y), gy(f(y)))
-    return ys
-def dot(c, x, y, colr, a, r=13):
-    c.arc(x, y, r+4, 0, 2*math.pi); col(c, NAVY, a); c.fill(); c.arc(x, y, r, 0, 2*math.pi); col(c, colr, a); c.fill()
-    c.arc(x-r*.3, y-r*.35, r*.35, 0, 2*math.pi); col(c, WHITE, .7*a); c.fill()
-def chart(c, t, a, Y, phase):
-    """grille, aires (versé / intérêts), courbes épaisses à contour marine, tête de courbe animée"""
-    for v in range(0, 250001, 50000):
-        yy = gy(v); c.set_dash([2, 10] if v else []); c.move_to(PX0, yy); c.line_to(PX1, yy); c.set_line_width(3 if v == 0 else 2.5); c.set_line_cap(cairo.LINE_CAP_ROUND)
-        col(c, NAVY if v == 0 else 'B8C2D6', a); c.stroke(); c.set_dash([])
-        text(c, "0" if v == 0 else f"{v//1000} k€", PX0-18, yy, 'fd', 24, '5A6478', 'r', a)
-    for k in (0, 10, 20, 30, 40):
-        text(c, str(k), gx(k), PY1+34, 'fd', 26, '5A6478', 'c', a)
-    text(c, "ANS", PX1, PY1+34, 'fd', 22, '5A6478', 'r', a*0)                # (l'année est déjà affichée en grand)
-    if Y <= 0: return
-    dim = 1-.55*ease((t-T['secret'])/.4)
-    # aires
-    curve(c, lambda y: 1200*y, 0, Y); c.line_to(gx(Y), gy(0)); c.line_to(gx(0), gy(0)); c.close_path(); col(c, 'CFE0FF', .9*a); c.fill()
-    ys = curve(c, capital, 0, Y)
-    for y in ys[::-1]: c.line_to(gx(y), gy(1200*y))
-    c.close_path()
-    pulse = 1.0
-    if phase == 'pq' and t > T['parce']: pulse = .8+.2*math.sin((t-T['parce'])*7)
-    col(c, 'FFE38A', .95*a*pulse*dim+.0); c.fill()
-    # courbes
-    for f_, colr, w_ in ((lambda y: 1200*y, BLUE, 9), (capital, GOLD, 13)):
-        curve(c, f_, 0, Y); c.set_line_width(w_+8); c.set_line_join(cairo.LINE_JOIN_ROUND); c.set_line_cap(cairo.LINE_CAP_ROUND); col(c, NAVY, a); c.stroke()
-        curve(c, f_, 0, Y); c.set_line_width(w_); col(c, colr, a); c.stroke()
-    # étiquettes des aires
-    if Y >= 36:                                                        # étiquettes posées seulement là où l'aire est déjà tracée
-        ka = a*clamp((Y-36)/2)*(1-ease((t-T['secret'])/.3))
-        text(c, "INTÉRÊTS", gx(33.5), gy((capital(33.5)+1200*33.5)/2)+4, 'lg', 30, 'B57F00', 'c', ka)
-        text(c, "VERSÉ", gx(34.5), gy(1200*34.5/2)+2, 'lg', 24, '2F6FD6', 'c', ka)
-    dot(c, gx(Y), gy(1200*Y), BLUE, a, 11); dot(c, gx(Y), gy(capital(Y)), GOLD, a, 14)
-def years_panel_header(c, t, a, Y):
-    text(c, "ANNÉE", CX0+46, CY0+56, 'fd', 26, '5A6478', 'l', a, 2)
-    text(c, f"{int(Y+1e-6)}", CX0+46, CY0+118, 'lg', 76, NAVY, 'l', a)
-    kp = a*(1-ease((t-T['pq']+.3)/.3))                                  # les pastilles laissent la place aux titres « Pourquoi ? » et « Le secret ? »
-    pill(c, "100 €/MOIS", CX1-226, CY0+70, BLUE, WHITE, kp, 26, 'r'); pill(c, "7 %/AN", CX1-40, CY0+70, GREEN, WHITE, kp, 26, 'r')
-def hud(c, t):
-    """chiffre choc dès l'image 0"""
-    pill(c, "100 € PAR MOIS", 540, 330, BLUE, WHITE, 1, 34)
-    big(c, "249 000 €", 540, 515, 170, GOLD, 1, 1+.03*math.sin(t*3), edge=NAVY, lw=16)
-    pill(c, "PENDANT 40 ANS", 540, 720, WHITE, NAVY, 1, 34)
-    return 1-ease((t-(T['places']-.45))/.3)
-def hud_card(c, t, with_card=True):
-    ka = ease((t-T['places']+.1)/.35)
-    if with_card: card(c, CX0, CY0, CX1-CX0, CY1-CY0, ka)
-    a = ka
-    text(c, "Hypothèse : 7 %/an, intérêts réinvestis · avant inflation et impôts", 540, CY1-30, 'fs', 23, '5A6478', 'c', a)
-    if t < T['toi']-.12:
-        Y = years_at(t); phase = 'pq' if T['pq'] <= t < T['secret'] else ('secret' if t >= T['secret'] else 'main')
-        years_panel_header(c, t, a, Y)
-        chart(c, t, a, Y, phase)
-        # bulles « versé » et « capital »
-        if T['b20'] <= t < T['b40']+.2:
-            kv = ease((t-T['b20']-.6)/.3); bubble(c, "24 000 €", gx(20)+100, gy(24000)+78, BLUE, WHITE, a*kv, 28, lerp(.6, 1, back(kv)), tail=False)
-        if T['a51'] <= t:
-            k = t-T['a51']; ka5 = ease(k/.25)
-            if t < T['b40']: bubble(c, "51 041 €", gx(20), gy(capital(20))-6, GOLD, NAVY, a*ka5, 44, lerp(1.5, 1, back(k/.45)))
-            elif t < T['secret']: bubble(c, "51 041 €", gx(20), gy(capital(20))-6, 'FFF1B8', NAVY, a*.9*(1-ease((t-(T['secret']-.35))/.3)), 28)
-        if T['b40']+1.3 <= t < T['pq']:
-            kv = ease((t-T['b40']-1.3)/.3); bubble(c, "48 000 €", gx(40)-90, gy(48000)+82, BLUE, WHITE, a*kv, 28, lerp(.6, 1, back(kv)), tail=False)
-        if T['b40'] <= t < T['a250']-.05 and years_at(t) >= 39.99:
-            pu = .5+.5*math.sin(t*9); bubble(c, "?", gx(40), gy(capital(40))-6, PINK, WHITE, a, 50, 1+.08*pu)
-        if t >= T['a250']-.05:
-            k = t-T['a250']; ka5 = ease(k/.25)
-            hb = 1-ease((t-T['pq']+.2)/.3)+ease((t-T['secret'])/.3)          # la bulle s'efface pendant « Pourquoi ? »
-            bubble(c, "248 552 €", gx(40)-190, gy(capital(40))+40, GOLD, NAVY, a*ka5*clamp(hb), 52, lerp(1.5, 1, back(k/.45)), tail=False)
-            if t >= T['a250']+.7 and t < T['pq']-.1:
-                pill(c, "×4,9 EN 20 ANS", gx(20)+10, gy(160000), PINK, WHITE, a*ease((t-T['a250']-.7)/.3), 28); put_emoji('🚀', gx(20)+205, gy(160000)-4, 52, t-T['a250']-.9)
-        if phase == 'pq':                                                  # pourquoi : les intérêts rapportent des intérêts
-            kp = t-T['pq']; fq = 1-ease((t-(T['secret']-.35))/.3)          # tout s'efface avant « Le secret ? »
-            c.push_group()
-            big(c, "POURQUOI ?", 540, CY0+66, 64, PINK, ease(kp/.25), lerp(1.3, 1, back(kp/.4)), edge=NAVY, lw=8)
-            steps = [("100 €", None), ("107 €", "+7 €"), ("114,49 €", "+7,49 €"), ("122,50 €", "+8,01 €")]
-            for i, (v, gnr) in enumerate(steps):
-                ti = T['parce']+.2+i*.55; k = ease((t-ti)/.3)
-                if k <= 0: continue
-                x = PX0+76+i*146; y = PY0+120
-                rr(c, x-66, y-46, 132, 92, 22); col(c, 'FFF6D6', a*k); c.fill_preserve(); c.set_line_width(4); col(c, NAVY, a*k); c.stroke()
-                text(c, f"AN {i}", x, y-22, 'fd', 20, '5A6478', 'c', a*k); text(c, v, x, y+14, 'lg', 26 if len(v) > 6 else 30, NAVY, 'c', a*k)
-                if gnr: pill(c, gnr, x, y+76, GREEN, WHITE, a*k, 21)
-                if i: c.move_to(x-82, y); c.line_to(x-70, y); c.set_line_width(4); col(c, NAVY, a*k); c.stroke()
-            kb = t-T['boule']
-            if kb > 0: pill(c, "L'EFFET BOULE DE NEIGE", PX0+305, PY0+272, GOLD, NAVY, ease(kb/.25), 32); put_emoji('❄️', PX0+52, PY0+268, 56, kb-.15, fq)
-            c.pop_group_to_source(); c.paint_with_alpha(max(0, fq))
-        if phase == 'secret':                                              # le secret : commencer tôt
-            ks = t-T['secret']
-            big(c, "LE SECRET ?", 540, CY0+66, 64, BLUE, ease(ks/.25), lerp(1.3, 1, back(ks/.4)), edge=NAVY, lw=8)
-            kl = inout((t-T['secret']-.6)/1.2)
-            if kl > 0:
-                late = lambda y: capital(max(0, y-10))
-                yl = 10+30*kl
-                curve(c, late, 10, yl); c.set_line_width(19); c.set_line_cap(cairo.LINE_CAP_ROUND); c.set_line_join(cairo.LINE_JOIN_ROUND); col(c, NAVY, a); c.stroke()
-                curve(c, late, 10, yl); c.set_line_width(11); col(c, '9AA4BA', a); c.stroke()
-                dot(c, gx(yl), gy(late(yl)), '8A95AD', a, 12)
-                if kl >= 1:
-                    ke = ease((t-T['secret']-1.8)/.3)
-                    bubble(c, "117 606 €", gx(40)-118, gy(capital(30))+92, 'E3E8F1', NAVY, a*ke, 40, tail=False)
-                    text(c, "10 ANS PLUS TARD", gx(40)-118, gy(capital(30))-8, 'lg', 24, '5A6478', 'c', a*ke)
-            kt = t-T['tot']
-            if kt > 0:
-                text(c, "COMMENCER TÔT", gx(27), gy(capital(34))-6, 'lg', 32, 'B57F00', 'c', ease(kt/.3))
-                if kt > .9: pill(c, "×2,1 EN COMMENÇANT TÔT", PX0+10, PY0+40, GOLD, NAVY, ease((kt-.9)/.3), 26, 'l')
+    c.save(); c.translate(0, dy); c.push_group(); fn(c); c.pop_group_to_source(); c.paint_with_alpha(min(1, a)); c.restore()
+def gp(w, h, draw, tint='CFE8FF'): return gpanel(w, h, draw, tint=tint, ta=.08, edge=.75)
+def gpill(c, s, x, y, colr, size=34, a=1, fg=INK):
+    w = tw(c, s, 'xb', size, 2)+60; rr(c, x-w/2, y-size*.95, w, size*1.9, size*.95); col(c, colr, a); c.fill(); text(c, s, x, y, 'xb', size, fg, 'c', a, 2)
+@functools.lru_cache(maxsize=1)
+def bg_base():
+    s, c = surface()
+    g = cairo.LinearGradient(0, 0, 0, H); g.add_color_stop_rgb(0, *rgb('04060B')); g.add_color_stop_rgb(.55, *rgb('070A12')); g.add_color_stop_rgb(1, *rgb('0B0F18')); c.set_source(g); c.paint()
+    return to_img(s)
+@functools.lru_cache(maxsize=1)
+def stars():
+    rng = np.random.default_rng(2); return rng.uniform(0, W, 260), rng.uniform(0, H, 260), rng.uniform(.6, 1.7, 260), rng.uniform(.08, .35, 260), rng.uniform(0, 6.3, 260)
+def background(t):
+    cv = bg_base().copy(); s, c = surface()
+    X, Y, R, A, P = stars()
+    for x, y, r, a_, p in zip(X, Y, R, A, P):                          # poussière d'étoiles qui scintille doucement
+        c.arc(x, y, r, 0, 2*math.pi); c.set_source_rgba(1, 1, 1, a_*(.7+.3*math.sin(t*1.3+p))); c.fill()
+    for k, (cx, cy, rad, colr) in enumerate(((300, 520, 520, GD), (820, 1250, 560, CY), (520, 1780, 480, GD))):      # halos colorés qui dérivent
+        x = cx+60*math.sin(t*.25+k*2); y = cy+40*math.cos(t*.2+k)
+        g = cairo.RadialGradient(x, y, 0, x, y, rad); g.add_color_stop_rgba(0, *rgb(colr), .10); g.add_color_stop_rgba(1, *rgb(colr), 0)
+        c.set_source(g); c.arc(x, y, rad, 0, 2*math.pi); c.fill()
+    cv.alpha_composite(to_img(s)); return cv
+
+# ---------- scènes ----------
+VMAX = 260000
+def sHook(cv, c, t, a):
+    glow_text(cv, "249 000 €", 540, 420, 190, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7, a=a, scale=lerp(1.25, 1, back(t/.45, 1.3)))
+    grp(c, a*ease((t-.5)/.3), lambda c: text(c, "AVEC 100 € PAR MOIS", 540, 590, 'xb', 42, WHITE, 'c', 1, 4))
+    grp(c, a*ease((t-.9)/.3), lambda c: gpill(c, "PENDANT 40 ANS", 540, 690, GD, 34))
+    put_emoji('⏳', 540, 240, 100, t-.3, a)
+def chart_panel(t):
+    """panneau de verre : courbe du capital (or) et des versements (cyan), aire des intérêts, année et montants"""
+    Y = years_at(t)
+    def d(kk, w, h):
+        X0, X1, Y0, Y1 = 150, w-60, 210, h-110
+        gx = lambda y: X0+(X1-X0)*y/40; gy = lambda v: Y1-(Y1-Y0)*v/VMAX
+        text(kk, "ANNÉE", 50, 58, 'sb', 24, ICE, 'l', .75, 3)
+        text(kk, f"{int(Y+1e-6)}", 50, 120, 'a', 74, WHITE, 'l', 1)
+        text(kk, "100 €/MOIS · 7 %/AN", w-50, 58, 'xb', 24, GD2, 'r', .9, 2)
+        for v in range(0, 250001, 50000):
+            yy = gy(v); kk.move_to(X0, yy); kk.line_to(X1, yy); kk.set_line_width(1.5 if v else 2); col(kk, 'FFFFFF', .10 if v else .35); kk.stroke()
+            text(kk, "0" if v == 0 else f"{v//1000} k€", X0-16, yy, 'sb', 22, ICE, 'r', .7)
+        for k in (0, 10, 20, 30, 40): text(kk, f"{k} ANS" if k == 40 else str(k), gx(k), Y1+36, 'sb', 22, ICE, 'c', .7)
+        text(kk, "Hypothèse : 7 %/an, intérêts réinvestis · avant inflation et impôts", w/2, h-28, 'sb', 22, ICE, 'c', .65)
+        if Y <= 0: return
+        ys = np.append(np.arange(0, Y, .2), Y)
+        # aire des intérêts (entre les deux courbes) puis aire des versements
+        kk.move_to(gx(0), gy(0))
+        for y in ys: kk.line_to(gx(y), gy(capital(y)))
+        for y in ys[::-1]: kk.line_to(gx(y), gy(1200*y))
+        kk.close_path(); g = cairo.LinearGradient(0, Y0, 0, Y1); g.add_color_stop_rgba(0, *rgb(GD), .38); g.add_color_stop_rgba(1, *rgb(GD), .10); kk.set_source(g); kk.fill()
+        kk.move_to(gx(0), gy(0))
+        for y in ys: kk.line_to(gx(y), gy(1200*y))
+        kk.line_to(gx(Y), gy(0)); kk.close_path(); col(kk, CY, .14); kk.fill()
+        for f_, colr, lw in ((lambda y: 1200*y, CY, 5), (capital, GD, 7)):
+            for wdt, al in ((lw*3.2, .12), (lw*1.8, .22), (lw, 1.0)):
+                kk.move_to(gx(0), gy(0))
+                for y in ys: kk.line_to(gx(y), gy(f_(y)))
+                kk.set_line_width(wdt); kk.set_line_cap(cairo.LINE_CAP_ROUND); kk.set_line_join(cairo.LINE_JOIN_ROUND); col(kk, colr if al < 1 else (CY2 if colr == CY else GD2), al); kk.stroke()
+            kk.arc(gx(Y), gy(f_(Y)), lw*1.3, 0, 2*math.pi); col(kk, WHITE, 1); kk.fill()
+        if Y >= 34:
+            ka = clamp((Y-34)/3)
+            text(kk, "INTÉRÊTS", gx(32), gy((capital(32)+1200*32)/2), 'xb', 26, GD2, 'c', ka, 3)
+            text(kk, "VERSÉ", gx(33), gy(1200*33/2)+2, 'xb', 22, CY2, 'c', ka, 3)
+        # repères aux révélations
+        for yr, t0, cap in ((20, T['a51'], capital(20)), (40, T['a250'], capital(40))):
+            if t >= t0:
+                k = ease((t-t0)/.3); kk.set_dash([6, 8]); kk.move_to(gx(yr), gy(cap)); kk.line_to(gx(yr), Y1); kk.set_line_width(2); col(kk, GD2, .5*k); kk.stroke(); kk.set_dash([])
         return
-    kt = t-T['toi']                                                        # question finale
-    big(c, "ET TOI,", 540, CY0+230, 120, NAVY, ease(kt/.25), edge=WHITE, lw=2, shadow=False)
-    big(c, "TU COMMENCES", 540, CY0+390, 96, PINK, ease((kt-.15)/.3), lerp(1.25, 1, back((kt-.15)/.4)), edge=NAVY, lw=8)
-    big(c, "QUAND ?", 540, CY0+520, 110, PINK, ease((kt-.3)/.3), lerp(1.25, 1, back((kt-.3)/.4)), edge=NAVY, lw=8)
-    al = ease((kt-.8)/.4)
-    if al > 0:
-        c.push_group(); logo_symbol(c, 408, CY0+640, 26); c.pop_group_to_source(); c.paint_with_alpha(al)
-        text(c, "Actions_Benefices", 434, CY0+640, 'fd', 28, NAVY, 'l', al)
-def hud_all(c, t):
-    """le cadre reste en place ; seul le contenu passe en fondu vers la question finale"""
-    FADE[0] = 1.0; edge = T['toi']
-    if edge-.45 <= t < edge-.12:
-        fo = 1-ease((t-(edge-.45))/.3)
-        card(c, CX0, CY0, CX1-CX0, CY1-CY0, 1.0)
-        FADE[0] = fo; c.push_group(); hud_card(c, t, False); c.pop_group_to_source(); c.paint_with_alpha(max(0, fo)); return
-    hud_card(c, t)
+    return gp(900, 720, d), Y
+def money_lines(cv, c, t, a):
+    """sous le panneau : versé (cyan) et capital (or, en grand chiffre lumineux) ; le capital reste caché jusqu'à la voix"""
+    Y = years_at(t)
+    grp(c, a, lambda c: (text(c, "TU AS VERSÉ", 120, 905, 'xb', 30, ICE, 'l', .85, 3), text(c, fmt(1200*Y)+" €", 960, 905, 'a', 58, CY2, 'r', 1)))
+def sChart(cv, c, t, a):
+    panel, Y = chart_panel(t)
+    k = t-T['places']; e = ease(k/.45)
+    place(cv, panel, tilt_quad(540, 500+40*(1-e), 900, 720, ry=-.10-.25*(1-e), rx=.05), a*e, 14, .55)
+    # bulle de capital (grand chiffre lumineux) près de la tête de courbe
+    if T['a51'] <= t < T['b40']:
+        kk = t-T['a51']; glow_text(cv, "51 041 €", 640, 360, 110, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.75, a=a*ease(kk/.25), scale=lerp(1.35, 1, back(kk/.45)))
+    if T['b20'] <= t < T['b40']:
+        grp(c, a*ease((t-T['b20']-.4)/.3), lambda c: gpill(c, "VERSÉ : 24 000 €", 640, 460, CY, 28))
+    if T['b40'] <= t < T['a250']-.05 and years_at(t) > 39.9:
+        pu = .5+.5*math.sin(t*8); glow_text(cv, "?", 760, 330, 120, top='FFFFFF', bottom='FF9AA6', glow='FF4057', ga=.7, a=a*(.7+.3*pu))
+    if T['b40']+1.2 <= t:
+        grp(c, a*ease((t-T['b40']-1.2)/.3), lambda c: gpill(c, "VERSÉ : 48 000 €", 640, 460, CY, 28))
+    if t >= T['a250']:
+        kk = t-T['a250']; glow_text(cv, "248 552 €", 600, 350, 120, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.8, a=a*ease(kk/.25), scale=lerp(1.4, 1, back(kk/.45)))
+        if kk > .8: grp(c, a*ease((kk-.8)/.3), lambda c: gpill(c, "×4,9 EN 20 ANS", 600, 540, GR, 28))
+def sWhy(cv, c, t, a):
+    k = t-T['pq']
+    glow_text(cv, "POURQUOI ?", 540, 290, 130, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.55, a=a*ease(k/.3), scale=lerp(1.25, 1, back(k/.4)))
+    def d(kk, w, h):
+        text(kk, "100 € PLACÉS À 7 % PAR AN", w/2, 60, 'xb', 28, WHITE, 'c', 1, 3)
+        steps = [("100 €", None), ("107 €", "+7 €"), ("114,49 €", "+7,49 €"), ("122,50 €", "+8,01 €")]
+        for i, (v, g_) in enumerate(steps):
+            u = ease((t-T['parce']-.2-i*.55)/.35)
+            if u <= 0: continue
+            x = 120+i*(w-240)/3; y = 190
+            grp(kk, u, lambda kk, x=x, y=y, v=v, i=i, g_=g_: (text(kk, f"AN {i}", x, y-58, 'sb', 22, ICE, 'c', .75, 3), text(kk, v, x, y, 'a', 52 if len(v) < 7 else 44, GD2 if i else WHITE, 'c', 1),
+                                                                (gpill(kk, g_, x, y+70, GR, 24) if g_ else None)))
+            if i: grp(kk, u, lambda kk, x=x, y=y: (kk.move_to(x-(w-240)/6-24, y), kk.line_to(x-(w-240)/6+10, y), kk.set_line_width(3), col(kk, ICE, .6), kk.stroke()))
+        text(kk, "CHAQUE ANNÉE, LES INTÉRÊTS RAPPORTENT DES INTÉRÊTS", w/2, h-50, 'xb', 24, GD2, 'c', ease((t-T['parce']-1.9)/.3), 2)
+    e = ease((k-.2)/.45)
+    place(cv, gp(900, 360, d, 'FFE9C0'), tilt_quad(540, 560+40*(1-e), 900, 360, ry=.10+.25*(1-e), rx=.05), a*e, 14, .55)
+    kb = t-T['boule']
+    if kb > 0:
+        glow_text(cv, "L'EFFET BOULE DE NEIGE", 540, 830, 82, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.6, a=a*ease(kb/.25), scale=lerp(1.25, 1, back(kb/.4)))
+        put_emoji('❄️', 540, 930, 80, kb-.2, a)
+def sSecret(cv, c, t, a):
+    k = t-T['secret']
+    glow_text(cv, "LE SECRET ?", 540, 290, 120, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.55, a=a*ease(k/.3), scale=lerp(1.25, 1, back(k/.4)))
+    def card(name, colr, tint, yrs, sub, t0):
+        def d(kk, w, h):
+            text(kk, name, w/2, 60, 'xb', 28, colr, 'c', 1, 3)
+            YB, HB = 420, 200; X = w/2-65; WB = 130; u = ease((t-t0)/.9); v = capital(yrs)
+            hb = HB*v/capital(40)*u; rr(kk, X, YB-hb, WB, hb, 12); col(kk, GD if colr == GD else CY2, .9); kk.fill()
+            text(kk, fmt(v*u)+" €", w/2, YB-hb-42, 'a', 54, WHITE, 'c', 1)
+            text(kk, sub, w/2, h-60, 'xb', 22, ICE, 'c', .85, 1)
+        return gp(440, 520, d, tint)
+    e1 = ease((k-.3)/.45); e2 = ease((t-T['tot']+.2)/.45)
+    place(cv, card("10 ANS PLUS TARD", CY, 'CFE8FF', 30, "30 ANS DE VERSEMENTS", T['secret']+.5), tilt_quad(290, 620+40*(1-e1), 440, 520, ry=.16+.3*(1-e1), rx=.05), a*e1, 14, .55)
+    if t > T['tot']-.25:
+        place(cv, card("COMMENCER TÔT", GD, 'FFE9C0', 40, "40 ANS DE VERSEMENTS", T['tot']), tilt_quad(790, 620+40*(1-e2), 440, 520, ry=-.16-.3*(1-e2), rx=.05), a*e2, 14, .55)
+    kd = t-T['tot']-.9
+    if kd > 0: grp(c, a*ease(kd/.3), lambda c: gpill(c, "×2,1 EN COMMENÇANT 10 ANS PLUS TÔT", 540, 940, GR, 26))
+def sCta(cv, c, t, a):
+    k = t-T['toi']
+    glow_text(cv, "ET TOI,", 540, 380, 130, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.5, a=a*ease(k/.3))
+    glow_text(cv, "TU COMMENCES", 540, 540, 100, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7, a=a*ease((k-.15)/.3), scale=lerp(1.3, 1, back((k-.15)/.4)))
+    glow_text(cv, "QUAND ?", 540, 680, 120, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7, a=a*ease((k-.3)/.3), scale=lerp(1.3, 1, back((k-.3)/.4)))
+    al = ease((k-.8)/.4)
+    def lg(c):
+        c.push_group(); logo_symbol(c, 410, 820, 46); c.pop_group_to_source(); c.paint_with_alpha(al)
+        text(c, "Actions_Benefices", 445, 820, 'b', 30, WHITE, 'l', al)
+    grp(c, a, lg)
+SCENES = [(sHook, 0.0, T['places']), (sChart, T['places']-.1, T['pq']), (sWhy, T['pq']-.1, T['secret']), (sSecret, T['secret']-.1, T['toi']), (sCta, T['toi']-.1, DUR+1)]
+def hypothese(c, t):
+    if False:                         # rappel de l'hypothèse sous les cartes du « secret »
+        text(c, "Hypothèse : 7 %/an · avant inflation et impôts", 540, 920, 'sb', 22, ICE, 'c', .6*ease((t-T['secret']-.2)/.4)*clamp((T['toi']-.1-t)/.25))
 
 # ---------- Mister Coin ----------
 ENT, EXP, CONF, QUES = 'classique_parle_enthousiaste', 'classique_parle_explique', 'classique_parle_confidence', 'classique_parle_question'
@@ -303,35 +266,36 @@ MC = VeoCoin([(0.0, [ENT, EXP], 'voix'), (11.55, CONF, 'voix'), (12.74, ENT, 'vo
 def coin_pos(t): return CX_COIN, FEET+MC.hop_dy(t)
 
 def frame(t):
-    EMO.clear()
-    cv = decor(t)
+    EMO.clear(); FADE[0] = 1.0
+    cv = background(t)
+    s, c = surface()
+    for fn, a0, b0 in SCENES:
+        al = 1.0 if (a0 <= 0 and t < b0-.25) else (0.0 if t < a0 or t > b0 else min(ease((t-a0)/.3), clamp((b0-t)/.25)))
+        if al > 0: fn(cv, c, t, al)
+    hypothese(c, t)
+    cv.alpha_composite(to_img(s))
+    for e in EMO: draw_emoji(cv, *e)
     X, Y = coin_pos(t); rgb_, al = MC.layer(t, X, Y)
     a = np.asarray(cv.convert('RGB')).astype(np.float32)
     fx = MC.feet_x(al, Y) if Y > FEET-30 else X
     if fx is not None:
         k = 1/(1+max(0, FEET-Y)/150)
-        m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), FEET-3), (int(100*k)+1, int(15*k)+1), 0, 0, 360, .4*k, -1); m = cv2.GaussianBlur(m, (0, 0), 9)
+        m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), FEET-3), (int(100*k)+1, int(15*k)+1), 0, 0, 360, .55*k, -1); m = cv2.GaussianBlur(m, (0, 0), 9)
         a *= (1-m[..., None])
     a = a*(1-al[..., None])+rgb_*al[..., None]
     cv = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGBA')
-    s, c = surface()
-    if t < T['places']-.15:
-        c.push_group(); fo = hud(c, t); c.pop_group_to_source(); c.paint_with_alpha(fo)
-    else: hud_all(c, t)
-    cv.alpha_composite(to_img(s))
-    for e in EMO: draw_emoji(cv, *e)
     s2, c2 = surface(); kk = cap_at(t)
     if kk is not None and t < DUR-.4 and CAPS[kk][1]:
         st0 = CAPS[kk][0]; al_ = 1.0 if st0 == 0 else ease((t-st0)/.12)
         al_ *= 1-ease((t-(DUR-.7))/.3)
         caption(c2, parse(CAPS[kk][1]), HL.get(st0, GOLD), a=al_)
     cv.alpha_composite(to_img(s2))
-    return finish(cv, t, 2.0)
+    return finish(cv, t, 3.0)
 
 def events():
     ev = [(0.0, 'impact'), (T['places'], 'swish'), (T['a51'], 'impact'), (T['a51']+.05, 'coins'), (T['mais'], 'riser'),
           (T['b40'], 'whoosh'), (T['a250'], 'impact'), (T['a250']+.05, 'tadaa'), (T['a250']+.7, 'pop'), (T['pq'], 'swish'),
-          (T['boule'], 'glint'), (T['secret'], 'swish'), (T['secret']+.6, 'draw'), (T['tot'], 'pop'), (T['tot']+.9, 'pop'), (T['toi'], 'swish'), (T['toi']+.8, 'paid')]
+          (T['boule'], 'glint'), (T['secret'], 'swish'), (T['tot'], 'pop'), (T['tot']+.9, 'pop'), (T['toi'], 'swish'), (T['toi']+.8, 'paid')]
     ev += [(T['parce']+.2+i*.55, 'pop') for i in range(4)]
     ev += [(T['places']+(T['b20']+.5-T['places'])*k/20, 'tick') for k in range(0, 20, 2)]       # tic de la frise des années
     ev += [(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops)]

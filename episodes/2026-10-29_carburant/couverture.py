@@ -1,5 +1,5 @@
 """Couverture Carburant, DA historique de la ligne fil rouge : fond noir, rubans de lumière aux couleurs du sujet (rouge néon, rose, bordeaux),
-nom épuré + « Et toi, tu achètes ? », Mister Coin classique (image de référence Gemini détourée). Sujet « utile » : pas de « Et toi, tu achètes ? »."""
+nom épuré + « Et toi, tu achètes ? », Mister Coin classique inquiet et étonné (image 48 du clip parle_inquiet, détourée). Sujet « utile » : pas de « Et toi, tu achètes ? »."""
 import cairo, math, numpy as np, sys, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin')
@@ -25,7 +25,7 @@ for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_log
     path = f'{HERE}/{name}'; cards.card("CARBURANT", slot, path, sub=("118 € LE PLEIN :", "OÙ PART TON ARGENT ?"))
     if slot: continue
     im = Image.open(path).convert('RGBA')
-    a, m = VC._key(np.asarray(Image.open(f"{ROOT}/mister_coin/veo/classique_reference_marges_16x9.jpg").convert("RGB")))
+    a, m = VC._key(np.asarray(Image.open(f"{HERE}/decors/coin_inquiet_couverture.png").convert("RGB")))
     ch = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGBA"); ch.putalpha(Image.fromarray((m*255).astype(np.uint8))); ch = ch.crop(ch.getbbox())
     h = 560; ch = ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS); cx, feet = 540, 1770
     sh = Image.new('L', (W, H), 0); ImageDraw.Draw(sh).ellipse((cx-ch.width*.4, feet-16, cx+ch.width*.4, feet+14), fill=170)

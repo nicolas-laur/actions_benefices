@@ -187,7 +187,7 @@ def chart(c, t, a, Y, phase):
         text(c, str(k), gx(k), PY1+34, 'fd', 26, '5A6478', 'c', a)
     text(c, "ANS", PX1, PY1+34, 'fd', 22, '5A6478', 'r', a*0)                # (l'année est déjà affichée en grand)
     if Y <= 0: return
-    dim = .45 if phase == 'secret' else 1.0
+    dim = 1-.55*ease((t-T['secret'])/.4)
     # aires
     curve(c, lambda y: 1200*y, 0, Y); c.line_to(gx(Y), gy(0)); c.line_to(gx(0), gy(0)); c.close_path(); col(c, 'CFE0FF', .9*a); c.fill()
     ys = curve(c, capital, 0, Y)
@@ -201,10 +201,10 @@ def chart(c, t, a, Y, phase):
         curve(c, f_, 0, Y); c.set_line_width(w_+8); c.set_line_join(cairo.LINE_JOIN_ROUND); c.set_line_cap(cairo.LINE_CAP_ROUND); col(c, NAVY, a); c.stroke()
         curve(c, f_, 0, Y); c.set_line_width(w_); col(c, colr, a); c.stroke()
     # étiquettes des aires
-    if Y >= 30:
-        ka = a*clamp((Y-30)/4)*(1-ease((t-T['secret'])/.3))
-        text(c, "INTÉRÊTS", gx(35.6), gy((capital(35.6)+1200*35.6)/2)+4, 'lg', 30, 'B57F00', 'c', ka)
-        text(c, "VERSÉ", gx(36.5), gy(1200*36.5/2)+2, 'lg', 24, '2F6FD6', 'c', ka)
+    if Y >= 36:                                                        # étiquettes posées seulement là où l'aire est déjà tracée
+        ka = a*clamp((Y-36)/2)*(1-ease((t-T['secret'])/.3))
+        text(c, "INTÉRÊTS", gx(33.5), gy((capital(33.5)+1200*33.5)/2)+4, 'lg', 30, 'B57F00', 'c', ka)
+        text(c, "VERSÉ", gx(34.5), gy(1200*34.5/2)+2, 'lg', 24, '2F6FD6', 'c', ka)
     dot(c, gx(Y), gy(1200*Y), BLUE, a, 11); dot(c, gx(Y), gy(capital(Y)), GOLD, a, 14)
 def years_panel_header(c, t, a, Y):
     text(c, "ANNÉE", CX0+46, CY0+56, 'fd', 26, '5A6478', 'l', a, 2)
@@ -232,7 +232,7 @@ def hud_card(c, t, with_card=True):
         if T['a51'] <= t:
             k = t-T['a51']; ka5 = ease(k/.25)
             if t < T['b40']: bubble(c, "51 041 €", gx(20), gy(capital(20))-6, GOLD, NAVY, a*ka5, 44, lerp(1.5, 1, back(k/.45)))
-            elif t < T['secret']: bubble(c, "51 041 €", gx(20), gy(capital(20))-6, 'FFF1B8', NAVY, a*.9, 28)
+            elif t < T['secret']: bubble(c, "51 041 €", gx(20), gy(capital(20))-6, 'FFF1B8', NAVY, a*.9*(1-ease((t-(T['secret']-.35))/.3)), 28)
         if T['b40']+1.3 <= t < T['pq']:
             kv = ease((t-T['b40']-1.3)/.3); bubble(c, "48 000 €", gx(40)-90, gy(48000)+82, BLUE, WHITE, a*kv, 28, lerp(.6, 1, back(kv)), tail=False)
         if T['b40'] <= t < T['a250']-.05 and years_at(t) >= 39.99:
@@ -244,7 +244,8 @@ def hud_card(c, t, with_card=True):
             if t >= T['a250']+.7 and t < T['pq']-.1:
                 pill(c, "×4,9 EN 20 ANS", gx(20)+10, gy(160000), PINK, WHITE, a*ease((t-T['a250']-.7)/.3), 28); put_emoji('🚀', gx(20)+205, gy(160000)-4, 52, t-T['a250']-.9)
         if phase == 'pq':                                                  # pourquoi : les intérêts rapportent des intérêts
-            kp = t-T['pq']
+            kp = t-T['pq']; fq = 1-ease((t-(T['secret']-.35))/.3)          # tout s'efface avant « Le secret ? »
+            c.push_group()
             big(c, "POURQUOI ?", 540, CY0+66, 64, PINK, ease(kp/.25), lerp(1.3, 1, back(kp/.4)), edge=NAVY, lw=8)
             steps = [("100 €", None), ("107 €", "+7 €"), ("114,49 €", "+7,49 €"), ("122,50 €", "+8,01 €")]
             for i, (v, gnr) in enumerate(steps):
@@ -256,7 +257,8 @@ def hud_card(c, t, with_card=True):
                 if gnr: pill(c, gnr, x, y+76, GREEN, WHITE, a*k, 21)
                 if i: c.move_to(x-82, y); c.line_to(x-70, y); c.set_line_width(4); col(c, NAVY, a*k); c.stroke()
             kb = t-T['boule']
-            if kb > 0: pill(c, "L'EFFET BOULE DE NEIGE", PX0+305, PY0+272, GOLD, NAVY, ease(kb/.25), 32); put_emoji('❄️', PX0+52, PY0+268, 56, kb-.15)
+            if kb > 0: pill(c, "L'EFFET BOULE DE NEIGE", PX0+305, PY0+272, GOLD, NAVY, ease(kb/.25), 32); put_emoji('❄️', PX0+52, PY0+268, 56, kb-.15, fq)
+            c.pop_group_to_source(); c.paint_with_alpha(max(0, fq))
         if phase == 'secret':                                              # le secret : commencer tôt
             ks = t-T['secret']
             big(c, "LE SECRET ?", 540, CY0+66, 64, BLUE, ease(ks/.25), lerp(1.3, 1, back(ks/.4)), edge=NAVY, lw=8)

@@ -196,9 +196,9 @@ def sChart(cv, c, t, a):
     place(cv, panel, tilt_quad(540, 500+40*(1-e), 900, 720, ry=-.10-.25*(1-e), rx=.05), a*e, 14, .55)
     # bulle de capital (grand chiffre lumineux) près de la tête de courbe
     if T['a51'] <= t < T['b40']:
-        kk = t-T['a51']; glow_text(cv, "51 041 €", 640, 360, 110, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.75, a=a*ease(kk/.25), scale=lerp(1.35, 1, back(kk/.45)))
+        kk = t-T['a51']; glow_text(cv, "51 041 €", 640, 360, 110, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.75, a=a*ease(kk/.25)*clamp((T['b40']-t)/.25), scale=lerp(1.35, 1, back(kk/.45)))
     if T['b20'] <= t < T['b40']:
-        grp(c, a*ease((t-T['b20']-.4)/.3), lambda c: gpill(c, "VERSÉ : 24 000 €", 640, 460, CY, 28))
+        grp(c, a*ease((t-T['b20']-.4)/.3)*clamp((T['b40']-t)/.25), lambda c: gpill(c, "VERSÉ : 24 000 €", 640, 460, CY, 28))
     if T['b40'] <= t < T['a250']-.05 and years_at(t) > 39.9:
         pu = .5+.5*math.sin(t*8); glow_text(cv, "?", 760, 330, 120, top='FFFFFF', bottom='FF9AA6', glow='FF4057', ga=.7, a=a*(.7+.3*pu))
     if T['b40']+1.2 <= t:

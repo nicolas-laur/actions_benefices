@@ -23,11 +23,11 @@ def eur(usd_md): return usd_md/EURUSD
 # feux : 'v' vert, 'o' orange, 'r' rouge ; res = verdict sur les résultats, bourse = variation du cours le lendemain de l'annonce
 DATA = {
     'MSFT': dict(nom="MICROSOFT", ca=92.3, ca_g=19, bn=36.6, bn_g=32, cloud="AZURE", cloud_g=48, capex=39.4, capex_x=2.0,
-                 res='v', res_txt="SOLIDES", bourse=None, bfeu=None, pose='pouce', bulle="Le cloud porte tout !"),
+                 res='v', res_txt="SOLIDES", bourse=-0.2, bfeu='o', bnote="clôture du 29/10", pose='pouce', bulle="Et la bourse dit… bof."),
     'GOOGL': dict(nom="ALPHABET", ca=127.6, ca_g=25, bn=26.5, bn_g=-24, cloud="GOOGLE CLOUD", cloud_g=103, capex=51.4, capex_x=2.1,
-                  res='o', res_txt="MITIGÉS", bourse=None, bfeu=None, pose='choc', bulle="Ça coûte combien ?!"),
-    'AMZN': dict(nom="AMAZON", ca=None, ca_g=None, bn=None, bn_g=None, cloud="AWS", cloud_g=None, capex=None, capex_x=None,
-                 res=None, res_txt="?", bourse=None, bfeu=None, pose='joie', bulle="…"),
+                  res='o', res_txt="MITIGÉS", bourse=-12.6, bfeu='r', bnote="clôture du 29/10", pose='choc', bulle="Aïe, la claque !"),
+    'AMZN': dict(nom="AMAZON", ca=201.9, ca_g=12, bn=20.7, bn_g=-2, cloud="AWS", cloud_g=39, capex=77.3, capex_x=2.2,
+                 res='o', res_txt="MITIGÉS", bourse=-6.0, bfeu='r', bnote="après la clôture du 29/10", pose='facepalm', bulle="Les dépenses font peur…"),
 }
 FEU = {'v': '3FE08A', 'o': 'FFA63D', 'r': 'FF4D5E'}
 
@@ -131,7 +131,9 @@ def kpi_panel(rows, w=860, h=600, tint='CFE8FF', vcol={}):
                 pw = tw(k, dv, 'xb', 34)+44; rr(k, w-46-pw, y-30, pw, 60, 30); col(k, dcol, .16); k.fill_preserve(); k.set_line_width(2.5); col(k, dcol, .9); k.stroke()
                 text(k, dv, w-46-pw/2, y, 'xb', 34, dcol, 'c')
     return gp(w, h, dr, tint)
-def sgn(v, unit=' %'): return ("+" if v > 0 else "−")+fmt(abs(v), 0)+unit.replace(' ', NB)
+def sgn(v, unit=' %', d=None):
+    d = (1 if abs(v) < 1 else 0) if d is None else d
+    return ("+" if v > 0 else "−")+fmt(abs(v), d)+unit.replace(' ', NB)
 def pagination(c, i, n=7):
     for k in range(n):
         x = 540+(k-(n-1)/2)*26; c.arc(x, 1470, 6 if k == i else 4.5, 0, 2*math.pi); col(c, WHITE, .95 if k == i else .3); c.fill()
@@ -161,7 +163,8 @@ def entreprise(key, idx):
         logo(cv, c, key, x0+48, 340, 96); glow_text(cv, d['nom'], x0+120+nw/2, 340, 112, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.4)
         b = d['bourse']
         place(cv, feu_panel("LES RÉSULTATS", d['res'], d['res_txt']), tilt_quad(305, 530, 410, 200, ry=.12, rx=.04), 1, 16, .45)
-        place(cv, feu_panel("LA BOURSE", d['bfeu'], sgn(b, ' %').replace('+', '+') if b is not None else "?"), tilt_quad(775, 530, 410, 200, ry=-.12, rx=.04), 1, 16, .45)
+        place(cv, feu_panel("LA BOURSE", d['bfeu'], sgn(b, ' %', 1) if b is not None else "?"), tilt_quad(775, 530, 410, 200, ry=-.12, rx=.04), 1, 16, .45)
+        text(c, d['bnote'], 775, 652, 'sb', 22, ICE, 'c', .7)
         rows = [("CHIFFRE D'AFFAIRES", f"{fmt(eur(d['ca']))} Md€" if d['ca'] else "?", None, sgn(d['ca_g']) if d['ca_g'] is not None else None, GR),
                 ("BÉNÉFICE NET", f"{fmt(eur(d['bn']))} Md€" if d['bn'] else "?", None, sgn(d['bn_g']) if d['bn_g'] is not None else None, GR if (d['bn_g'] or 0) > 0 else RD),
                 (f"CROISSANCE DU CLOUD ({d['cloud']})", sgn(d['cloud_g']) if d['cloud_g'] is not None else "?", "sur un an", None, GR),
@@ -183,7 +186,7 @@ def s5(cv, c):
             if j: k.move_to(30, y-82); k.line_to(w-30, y-82); k.set_line_width(1.5); col(k, WHITE, .12); k.stroke()
             text(k, d['nom'], 150, y, 'xb', 30, (CY, GD, GR)[j], 'l', 1, 1)
             lampes(k, 470, y-26, d['res'], 13, 34); text(k, d['res_txt'], 470, y+30, 'a', 40, FEU[d['res']] if d['res'] else WHITE, 'c')
-            b = d['bourse']; lampes(k, 730, y-26, d['bfeu'], 13, 34); text(k, sgn(b, ' %') if b is not None else "?", 730, y+30, 'a', 40, FEU[d['bfeu']] if d['bfeu'] else WHITE, 'c')
+            b = d['bourse']; lampes(k, 730, y-26, d['bfeu'], 13, 34); text(k, sgn(b, ' %', 1) if b is not None else "?", 730, y+30, 'a', 40, FEU[d['bfeu']] if d['bfeu'] else WHITE, 'c')
     place(cv, gp(880, 560, dr), tilt_quad(540, 760, 880, 560, rx=.05), 1, 18, .5)
     for j, kk in enumerate(keys):
         s_, k_ = surface(); logo(cv, k_, kk, 165, 760-280+150+j*165, 64); cv.alpha_composite(to_img(s_))
@@ -199,9 +202,9 @@ def s6(cv, c):
     text(c, "INVESTIS EN UN SEUL TRIMESTRE", 540, 545, 'xb', 36, WHITE, 'c', 1, 3)
     text(c, "surtout des data centers et des puces pour l'IA", 540, 600, 'sb', 30, ICE, 'c', .75)
     def dr(k, w, h):
-        text(k, "La bourse ne récompense pas", w/2, 90, 'xb', 38, WHITE, 'c')
-        text(k, "la croissance à n'importe quel prix.", w/2, 145, 'xb', 38, WHITE, 'c')
-        text(k, "Elle regarde ce que l'IA coûte", w/2, 235, 'sb', 34, GD2, 'c')
+        text(k, "Résultat : les trois actions reculent.", w/2, 90, 'xb', 38, WHITE, 'c')
+        text(k, "La croissance ne suffit plus :", w/2, 145, 'xb', 38, WHITE, 'c')
+        text(k, "la bourse veut savoir ce que l'IA coûte", w/2, 235, 'sb', 34, GD2, 'c')
         text(k, "et quand elle rapportera.", w/2, 285, 'sb', 34, GD2, 'c')
     place(cv, gp(840, 370, dr, 'FFE9C0'), tilt_quad(520, 860, 840, 370, rx=.05), 1, 18, .5)
     coin(cv, 'inquiet', 330, 1460, 400)

@@ -238,9 +238,9 @@ def hud(c, t):
         fo = 1-ease((t-(T['places']-.45))/.3)
         return fo
     return 1.0
-def hud_card(c, t):
+def hud_card(c, t, with_card=True):
     ka = ease((t-T['places']+.1)/.35)
-    card(c, CX0, CY0, CX1-CX0, CY1-CY0, ka)
+    if with_card: card(c, CX0, CY0, CX1-CX0, CY1-CY0, ka)
     a = ka
     text(c, "Hypothèse : 7 %/an, intérêts réinvestis · avant inflation et impôts", 540, CY1-34, 'b', 23, '5A6478', 'c', a)
     if t < T['pq']-.12:
@@ -281,8 +281,9 @@ def hud_card(c, t):
             g = cairo.LinearGradient(0, by, 0, by+56); g.add_color_stop_rgba(0, 1, 1, 1, .35); g.add_color_stop_rgba(.5, 1, 1, 1, 0); c.rectangle(bx0, by, wv+wi, 56); c.set_source(g); c.fill(); c.restore()
             rr(c, bx0, by, BW, 56, 28); c.set_line_width(4); col(c, NAVY, a); c.stroke()
             kl = ease((t-(T['a51'] if t < T['b40'] else T['a250'])-.5)/.3)
-            rr(c, bx0, by+80, 22, 22, 6); col(c, BLUE, a*kl); c.fill(); text(c, f"VERSÉ {fmt(v)} €", bx0+32, by+91, 'xb', 24, NAVY, 'l', a*kl, 1)
-            rr(c, bx0+400, by+80, 22, 22, 6); col(c, GOLD, a*kl); c.fill(); text(c, f"INTÉRÊTS {fmt(i_)} €", bx0+432, by+91, 'xb', 24, NAVY, 'l', a*kl, 1)
+            rr(c, bx0, by+80, 22, 22, 6); col(c, BLUE, a*kl); c.fill(); vt, it = (24000, capital(20)-24000) if t < T['b40'] else (48000, capital(40)-48000)      # légende : valeurs finales, jamais des valeurs intermédiaires
+            text(c, f"VERSÉ {fmt(vt)} €", bx0+32, by+91, 'xb', 24, NAVY, 'l', a*kl, 1)
+            rr(c, bx0+400, by+80, 22, 22, 6); col(c, GOLD, a*kl); c.fill(); text(c, f"INTÉRÊTS {fmt(it)} €", bx0+432, by+91, 'xb', 24, NAVY, 'l', a*kl, 1)
         else:
             rr(c, bx0, by, BW, 56, 28); c.set_line_width(4); col(c, NAVY, a); c.stroke()
         if t >= T['a250']+.7:
@@ -339,8 +340,8 @@ def hud_all(c, t):
     for edge in (T['pq'], T['secret'], T['toi']):
         if edge-.45 <= t < edge-.12: fo = 1-ease((t-(edge-.45))/.3)
     if fo < 1:
-        FADE[0] = fo; c.push_group(); hud_card(c, t); c.pop_group_to_source(); c.paint_with_alpha(max(0, fo))
-        ka = ease((t-T['places']+.1)/.35); card(c, CX0, CY0, CX1-CX0, CY1-CY0, ka*(1-fo)); return 1.0
+        card(c, CX0, CY0, CX1-CX0, CY1-CY0, ease((t-T['places']+.1)/.35))       # le cadre reste opaque, seul le contenu s'efface
+        FADE[0] = fo; c.push_group(); hud_card(c, t, False); c.pop_group_to_source(); c.paint_with_alpha(max(0, fo)); return 1.0
     hud_card(c, t); return 1.0
 
 # ---------- Mister Coin ----------

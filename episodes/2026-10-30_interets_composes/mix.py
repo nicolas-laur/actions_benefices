@@ -240,7 +240,7 @@ def fill(k):   # la jauge se remplit : liquide qui coule, bulles dont la note mo
     return s
 def flow(dur):  # moteur de pompe très discret pendant tout le plein
     n = int(dur*SR); t = tt(n); return (lp(rng.standard_normal(n), 380)*.012+np.sin(2*np.pi*50*t)*.003)*(1+.15*np.sin(2*np.pi*.7*t))
-MAP = dict(roll=lambda: np.zeros(10), zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
+MAP = dict(draw=lambda: whoosh()*1.5, zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
 fx = np.zeros(N); duck = np.ones(N)
 for t0, k in V.events():
     add(fx, MAP[k](), t0-(.35 if k == 'whoosh' else (.12 if k in ('trans', 'swish') else 0)), .45 if k == 'ignite' else (1.8 if k.startswith('fill') else 1.0))
@@ -281,14 +281,14 @@ def birds(d):   # oiseaux lointains : petits gazouillis (création originale)
         tb += rng.uniform(.9, 2.2)
     return lp(x, 6000)
 seg(0, DUR, birds(DUR+1), 1.0)
-def rumble():  # roulement de la boule : grave, plus fort quand elle est grosse et rapide
-    n = int(DUR*SR); out = np.zeros(n); base = lp(rng.standard_normal(n), 140)+.3*lp(rng.standard_normal(n), 600)
-    env = np.zeros(n); prev = None
-    for k in range(int(DUR*50)):
-        t = k/50; p, r, u = V.ball_state(t); sp = 0 if prev is None else np.linalg.norm(p-prev)*50; prev = p
-        env[int(t*SR):int((t+.02)*SR)] = min(1, r/250)*min(1, sp/400) if t >= V.T['places'] else 0
-    env = np.convolve(env, np.ones(int(.08*SR))/int(.08*SR), 'same'); return base*env*.05
-amb[:int(DUR*SR)] += rumble()[:len(amb[:int(DUR*SR)])]
+def pen():     # la courbe se trace : petit son tonal qui monte avec le capital (glissando satisfaisant), seulement quand les années avancent
+    n = int(DUR*SR); tl = np.arange(n)/SR; Y = np.array([V.years_at(t) for t in np.arange(0, DUR, .01)]); Yi = np.interp(tl, np.arange(len(Y))*.01, Y)
+    cap = np.array([V.capital(y) for y in Yi[::480]]); cap = np.interp(tl, tl[::480], cap)
+    f = 330+700*np.sqrt(cap/V.capital(40)); ph = 2*np.pi*np.cumsum(f)/SR
+    sp = np.abs(np.gradient(Yi))*SR; env = np.clip(sp/6, 0, 1); env = np.convolve(env, np.ones(int(.05*SR))/int(.05*SR), 'same')
+    tone = (np.sin(ph)+.3*np.sin(2*ph)+.12*np.sin(3*ph))*(.6+.4*np.sin(2*np.pi*7*tl))
+    return lp(tone, 3500)*env*.035
+amb[:int(DUR*SR)] += pen()[:len(amb[:int(DUR*SR)])]
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 _, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 if vo.ndim > 1: vo = vo.mean(1)

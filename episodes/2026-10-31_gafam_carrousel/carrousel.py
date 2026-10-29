@@ -1,4 +1,4 @@
-"""Carrousel « GAFAM : le bulletin de notes » (résultats du 3e trimestre 2026 : Microsoft, Alphabet, Amazon).
+"""Carrousel « Les News : résultats vs bourse » (3e trimestre 2026 : Microsoft, Alphabet, Amazon, Intel).
 DA de la vidéo PEA/CTO : fond sombre étoilé, panneaux de verre, grands chiffres lumineux ; Mister Coin classique change d'émotion à chaque diapo.
 Chaque diapo est dessinée sur une toile 1080×1920 ; le contenu tient dans la bande y = 200…1500 (zone sûre TikTok),
 la version Instagram 4:5 (1080×1350) est découpée dans cette même toile (y = 175…1525).
@@ -28,11 +28,23 @@ DATA = {
                   res='o', res_txt="MITIGÉS", bourse=-12.6, bfeu='r', bnote="clôture du 29/10", pose='choc', bulle="Aïe, la claque !"),
     'AMZN': dict(nom="AMAZON", ca=201.9, ca_g=12, bn=20.7, bn_g=-2, cloud="AWS", cloud_g=39, capex=77.3, capex_x=2.2,
                  res='o', res_txt="MITIGÉS", bourse=-6.0, bfeu='r', bnote="après la clôture du 29/10", pose='facepalm', bulle="Les dépenses font peur…"),
+    'INTC': dict(nom="INTEL", ca=16.5, ca_g=21, bn=3.3, bn_g=-18, cloud="DATA CENTER ET IA", cloud_g=78, capex=4.2, capex_x=1.4,
+                 res='o', res_txt="MITIGÉS", bourse=-20.0, bfeu='r', bnote="après la clôture du 29/10", pose='triste', bulle="Les prévisions déçoivent…"),
 }
+LECTURE = {
+    'cover': "Quatre géants de la tech publient leurs comptes de l'été : leurs chiffres face à la réaction de la bourse.",
+    'MSFT': "Tout progresse grâce au cloud. Mais c'était déjà attendu : pas de surprise, donc pas de hausse.",
+    'GOOGL': "Le cloud double, mais l'IA coûte si cher que l'argent dépensé dépasse l'argent encaissé ce trimestre.",
+    'AMZN': "AWS accélère, mais Amazon emprunte pour financer l'IA : sur un an, il dépense plus qu'il n'encaisse.",
+    'INTC': "Bon trimestre grâce aux data centers, mais des prévisions décevantes (une usine arrêtée en Israël).",
+    'match': "La bourse anticipe : elle réagit à l'écart avec ce qui était attendu, et surtout aux prévisions.",
+    'fin': "Un bon trimestre ne fait pas une bonne action : regarde aussi le prix payé et les perspectives.",
+}
+KEYS = ('MSFT', 'GOOGL', 'AMZN', 'INTC'); KCOL = {'MSFT': CY, 'GOOGL': GD, 'AMZN': GR, 'INTC': CY2}
 FEU = {'v': '3FE08A', 'o': 'FFA63D', 'r': 'FF4D5E'}
 
 # ---------- fond : ciel étoilé + globe en points (rendu de la vidéo PEA/CTO), Amériques face à nous, qui tourne d'une diapo à l'autre ----------
-GLOBE = ['0995', '1012', '1030', '1047', '1065', '1082', '1100']; GR_ = 514/600
+GLOBE = ['0978', '0995', '1012', '1030', '1047', '1065', '1082', '1100']; GR_ = 514/600
 @functools.lru_cache(maxsize=1)
 def sky():
     s, c = surface()
@@ -114,8 +126,8 @@ def lampes(k, x, y, etat, r=15, gap=40):
 def feu_panel(titre, etat, valeur, w=410, h=200):
     def dr(k, w, h):
         text(k, titre, w/2, 44, 'xb', 24, ICE, 'c', .85, 3)
-        lampes(k, w/2, 98, etat)
-        text(k, valeur, w/2, 158, 'a', 50, FEU[etat] if etat else WHITE, 'c')
+        lampes(k, w/2, 88, etat)
+        text(k, valeur, w/2, h-46, 'a', 50, FEU[etat] if etat else WHITE, 'c')
     return gp(w, h, dr, FEU[etat] if etat else 'CFE8FF')
 def kpi_panel(rows, w=860, h=600, tint='CFE8FF', vcol={}):
     """tableau de verre : libellé, valeur en euros, évolution sur un an"""
@@ -124,75 +136,95 @@ def kpi_panel(rows, w=860, h=600, tint='CFE8FF', vcol={}):
         for i, (lab, val, sub, dv, dcol) in enumerate(rows):
             y = 20+rh*i+rh/2
             if i: k.move_to(40, 20+rh*i); k.line_to(w-40, 20+rh*i); k.set_line_width(1.5); col(k, WHITE, .12); k.stroke()
-            text(k, lab, 46, y-22, 'xb', 26, ICE, 'l', .8, 2)
-            text(k, val, 46, y+24, 'a', 56, vcol.get(i, WHITE), 'l')
-            if sub: text(k, sub, 46+tw(k, val, 'a', 56)+18, y+30, 'sb', 24, ICE, 'l', .6)
+            text(k, lab, 46, y-19, 'xb', 24, ICE, 'l', .8, 2)
+            text(k, val, 46, y+20, 'a', 48, vcol.get(i, WHITE), 'l')
+            if sub: text(k, sub, 46+tw(k, val, 'a', 48)+18, y+26, 'sb', 22, ICE, 'l', .6)
             if dv:
-                pw = tw(k, dv, 'xb', 34)+44; rr(k, w-46-pw, y-30, pw, 60, 30); col(k, dcol, .16); k.fill_preserve(); k.set_line_width(2.5); col(k, dcol, .9); k.stroke()
-                text(k, dv, w-46-pw/2, y, 'xb', 34, dcol, 'c')
+                pw = tw(k, dv, 'xb', 32)+40; rr(k, w-46-pw, y-28, pw, 56, 28); col(k, dcol, .16); k.fill_preserve(); k.set_line_width(2.5); col(k, dcol, .9); k.stroke()
+                text(k, dv, w-46-pw/2, y, 'xb', 32, dcol, 'c')
     return gp(w, h, dr, tint)
 def sgn(v, unit=' %', d=None):
     d = (1 if abs(v) < 1 else 0) if d is None else d
+    if abs(v-round(v)) < 1e-9: d = 0
     return ("+" if v > 0 else "−")+fmt(abs(v), d)+unit.replace(' ', NB)
-def pagination(c, i, n=7):
+def wrap(c, s_, f, size, maxw):
+    lines, cur = [], ''
+    for w in s_.split(' '):
+        t = (cur+' '+w).strip()
+        if cur and tw(c, t, f, size) > maxw: lines.append(cur); cur = w
+        else: cur = t
+    return lines+[cur]
+def lecture(cv, key, cy, w=880, size=29):
+    """bandeau « la lecture » : une explication courte, ampoule à gauche"""
+    k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); L = wrap(k0, LECTURE[key], 'sb', size, w-150); lh = size*1.32; h = int(len(L)*lh+44)
+    def dr(k, w, h):
+        rr(k, 22, 22, 6, h-44, 3); col(k, GD, .9); k.fill()
+        for i, l in enumerate(L): text(k, l, 112, 22+lh*i+lh/2, 'sb', size, WHITE, 'l', .95)
+    place(cv, gp(w, h, dr, 'FFE9C0'), tilt_quad(540, cy, w, h, rx=.03), 1, 16, .4)
+    put_emoji(cv, '💡', 540-w/2+68, cy, 48)
+    return h
+def pagination(c, i, n=8):
     for k in range(n):
         x = 540+(k-(n-1)/2)*26; c.arc(x, 1470, 6 if k == i else 4.5, 0, 2*math.pi); col(c, WHITE, .95 if k == i else .3); c.fill()
 
 # ---------- diapos ----------
 def s1(cv, c):
-    """couverture : la question qui accroche + les trois copies"""
+    """couverture : la question qui accroche + les quatre copies"""
     text(c, "RÉSULTATS DU 3E TRIMESTRE 2026", 540, 250, 'sb', 28, ICE, 'c', .8, 4)
-    glow_text(cv, "GAFAM", 540, 390, 200, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
-    gpill(c, "RÉSULTATS VS BOURSE", 540, 545, GD, 40)
-    text(c, "De bons chiffres = une action qui monte ?", 540, 640, 'xb', 36, WHITE, 'c')
-    for i, (k, colr) in enumerate((('MSFT', CY), ('GOOGL', GD), ('AMZN', GR))):
-        x = 220+i*320
-        def dr(kk, w, h, k=k, colr=colr):
-            text(kk, DATA[k]['nom'], w/2, 150, 'xb', 26, colr, 'c', 1, 2)
-            lampes(kk, w/2, 210, None, 13, 34)
-        place(cv, gp(270, 260, dr), tilt_quad(x, 870, 270, 260, ry=(.18, 0, -.18)[i], rx=.06), 1, 14, .5)
-        s_, k_ = surface(); logo(cv, k_, k, x, 800, 80); cv.alpha_composite(to_img(s_))
-    coin(cv, 'montre', 330, 1460, 400)
-    bulle(c, "Pas toujours…", 700, 1120, (440, 1140), 34)
-    text(c, "SWIPE", 880, 1330, 'xb', 30, WHITE, 'r', .85, 4); put_emoji(cv, '👉', 930, 1328, 54)
+    glow_text(cv, "LES NEWS", 540, 385, 180, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
+    gpill(c, "RÉSULTATS VS BOURSE", 540, 535, GD, 40)
+    text(c, "De bons chiffres = une action qui monte ?", 540, 625, 'xb', 36, WHITE, 'c')
+    for i, k in enumerate(KEYS):
+        x = 540+(i-1.5)*232
+        def dr(kk, w, h, k=k):
+            text(kk, DATA[k]['nom'], w/2, 140, 'xb', 24, KCOL[k], 'c', 1, 1)
+            lampes(kk, w/2, 195, None, 12, 32)
+        place(cv, gp(212, 240, dr), tilt_quad(x, 830, 212, 240, ry=(.2, .07, -.07, -.2)[i], rx=.06), 1, 14, .5)
+        s_, k_ = surface(); logo(cv, k_, k, x, 770, 70); cv.alpha_composite(to_img(s_))
+    lecture(cv, 'cover', 1035)
+    coin(cv, 'montre', 300, 1470, 300)
+    bulle(c, "Pas toujours…", 640, 1230, (400, 1250), 34)
+    text(c, "SWIPE", 880, 1380, 'xb', 30, WHITE, 'r', .85, 4); put_emoji(cv, '👉', 930, 1378, 54)
 def entreprise(key, idx):
     def s(cv, c):
-        d = DATA[key]; tint = {'MSFT': 'CFE8FF', 'GOOGL': 'FFE9C0', 'AMZN': 'D4FFE6'}[key]
+        d = DATA[key]; tint = {'MSFT': 'CFE8FF', 'GOOGL': 'FFE9C0', 'AMZN': 'D4FFE6', 'INTC': 'CFE8FF'}[key]
         text(c, "RÉSULTATS · JUILLET À SEPTEMBRE 2026", 540, 240, 'sb', 24, ICE, 'c', .7, 3)
-        nw = tw(c, d['nom'], 'a', 112); x0 = 540-(nw+120)/2
-        logo(cv, c, key, x0+48, 340, 96); glow_text(cv, d['nom'], x0+120+nw/2, 340, 112, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.4)
+        nw = tw(c, d['nom'], 'a', 104); x0 = 540-(nw+112)/2
+        logo(cv, c, key, x0+44, 325, 88); glow_text(cv, d['nom'], x0+112+nw/2, 325, 104, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.4)
+        lecture(cv, key, 478)
         b = d['bourse']
-        place(cv, feu_panel("LES RÉSULTATS", d['res'], d['res_txt']), tilt_quad(305, 530, 410, 200, ry=.12, rx=.04), 1, 16, .45)
-        place(cv, feu_panel("LA BOURSE", d['bfeu'], sgn(b, ' %', 1) if b is not None else "?"), tilt_quad(775, 530, 410, 200, ry=-.12, rx=.04), 1, 16, .45)
-        text(c, d['bnote'], 775, 652, 'sb', 22, ICE, 'c', .7)
+        place(cv, feu_panel("LES RÉSULTATS", d['res'], d['res_txt'], h=180), tilt_quad(305, 668, 410, 180, ry=.12, rx=.04), 1, 16, .45)
+        place(cv, feu_panel("LA BOURSE", d['bfeu'], sgn(b, ' %', 1) if b is not None else "?", h=180), tilt_quad(775, 668, 410, 180, ry=-.12, rx=.04), 1, 16, .45)
+        text(c, d['bnote'], 775, 776, 'sb', 22, ICE, 'c', .7)
         rows = [("CHIFFRE D'AFFAIRES", f"{fmt(eur(d['ca']))} Md€" if d['ca'] else "?", None, sgn(d['ca_g']) if d['ca_g'] is not None else None, GR),
                 ("BÉNÉFICE NET", f"{fmt(eur(d['bn']))} Md€" if d['bn'] else "?", None, sgn(d['bn_g']) if d['bn_g'] is not None else None, GR if (d['bn_g'] or 0) > 0 else RD),
-                (f"CROISSANCE DU CLOUD ({d['cloud']})", sgn(d['cloud_g']) if d['cloud_g'] is not None else "?", "sur un an", None, GR),
+                (f"CROISSANCE {'DU CLOUD ('+d['cloud']+')' if key != 'INTC' else d['cloud']}", sgn(d['cloud_g']) if d['cloud_g'] is not None else "?", "sur un an", None, GR),
                 ("INVESTISSEMENTS DU TRIMESTRE", f"{fmt(eur(d['capex']))} Md€" if d['capex'] else "?", None, (f"×{fmt(d['capex_x'])}".replace(',0', '')) if d['capex_x'] else None, GD)]
-        place(cv, kpi_panel(rows, 860, 500, tint, vcol={2: GR}), tilt_quad(540, 905, 860, 500, rx=.05), 1, 18, .5)
-        coin(cv, d['pose'], 260, 1480, 330)
-        bulle(c, d['bulle'], 680, 1300, (350, 1210), 34)
+        place(cv, kpi_panel(rows, 860, 400, tint, vcol={2: GR}), tilt_quad(540, 1000, 860, 400, rx=.05), 1, 18, .5)
+        coin(cv, d['pose'], 250, 1490, 280)
+        bulle(c, d['bulle'], 660, 1330, (340, 1260), 34)
         pagination(c, idx)
     return s
 def s5(cv, c):
     """le cœur du carrousel : résultats vs réaction de la bourse"""
-    text(c, "LE MATCH", 540, 250, 'sb', 28, ICE, 'c', .8, 4)
-    glow_text(cv, "RÉSULTATS VS BOURSE", 540, 350, 92, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.45)
-    keys = ('MSFT', 'GOOGL', 'AMZN')
+    text(c, "LE MATCH", 540, 245, 'sb', 28, ICE, 'c', .8, 4)
+    glow_text(cv, "RÉSULTATS VS BOURSE", 540, 340, 92, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.45)
+    PY, PH, ST = 700, 560, 122
     def dr(k, w, h):
-        text(k, "RÉSULTATS", 470, 50, 'xb', 24, ICE, 'c', .85, 3); text(k, "BOURSE", 730, 50, 'xb', 24, ICE, 'c', .85, 3)
-        for j, kk in enumerate(keys):
-            d = DATA[kk]; y = 150+j*165
-            if j: k.move_to(30, y-82); k.line_to(w-30, y-82); k.set_line_width(1.5); col(k, WHITE, .12); k.stroke()
-            text(k, d['nom'], 150, y, 'xb', 30, (CY, GD, GR)[j], 'l', 1, 1)
-            lampes(k, 470, y-26, d['res'], 13, 34); text(k, d['res_txt'], 470, y+30, 'a', 40, FEU[d['res']] if d['res'] else WHITE, 'c')
-            b = d['bourse']; lampes(k, 730, y-26, d['bfeu'], 13, 34); text(k, sgn(b, ' %', 1) if b is not None else "?", 730, y+30, 'a', 40, FEU[d['bfeu']] if d['bfeu'] else WHITE, 'c')
-    place(cv, gp(880, 560, dr), tilt_quad(540, 760, 880, 560, rx=.05), 1, 18, .5)
-    for j, kk in enumerate(keys):
-        s_, k_ = surface(); logo(cv, k_, kk, 165, 760-280+150+j*165, 64); cv.alpha_composite(to_img(s_))
-    coin(cv, 'question', 300, 1460, 360)
-    bulle(c, "Pas le même verdict !", 710, 1250, (420, 1170), 34)
-    pagination(c, 4)
+        text(k, "RÉSULTATS", 480, 44, 'xb', 22, ICE, 'c', .85, 3); text(k, "BOURSE", 730, 44, 'xb', 22, ICE, 'c', .85, 3)
+        for j, kk in enumerate(KEYS):
+            d = DATA[kk]; y = 132+j*ST
+            if j: k.move_to(30, y-ST/2); k.line_to(w-30, y-ST/2); k.set_line_width(1.5); col(k, WHITE, .12); k.stroke()
+            text(k, d['nom'], 140, y, 'xb', 28, KCOL[kk], 'l', 1, 1)
+            lampes(k, 480, y-24, d['res'], 12, 32); text(k, d['res_txt'], 480, y+24, 'a', 36, FEU[d['res']] if d['res'] else WHITE, 'c')
+            b = d['bourse']; lampes(k, 730, y-24, d['bfeu'], 12, 32); text(k, sgn(b, ' %', 1) if b is not None else "?", 730, y+24, 'a', 36, FEU[d['bfeu']] if d['bfeu'] else WHITE, 'c')
+    place(cv, gp(880, PH, dr), tilt_quad(540, PY, 880, PH, rx=.05), 1, 18, .5)
+    for j, kk in enumerate(KEYS):
+        s_, k_ = surface(); logo(cv, k_, kk, 158, PY-PH/2+132+j*ST, 58); cv.alpha_composite(to_img(s_))
+    lecture(cv, 'match', 1080)
+    coin(cv, 'question', 280, 1490, 280)
+    bulle(c, "Pas le même verdict !", 680, 1330, (380, 1270), 34)
+    pagination(c, 5)
 def s6(cv, c):
     """la leçon : le cloud explose, les dépenses aussi"""
     halos(cv, [(540, 620, 620, RD, .08), (540, 900, 520, GD, .07)])
@@ -202,26 +234,27 @@ def s6(cv, c):
     text(c, "INVESTIS EN UN SEUL TRIMESTRE", 540, 545, 'xb', 36, WHITE, 'c', 1, 3)
     text(c, "surtout des data centers et des puces pour l'IA", 540, 600, 'sb', 30, ICE, 'c', .75)
     def dr(k, w, h):
-        text(k, "Résultat : les trois actions reculent.", w/2, 90, 'xb', 38, WHITE, 'c')
+        text(k, "Résultat : les quatre actions reculent.", w/2, 90, 'xb', 38, WHITE, 'c')
         text(k, "La croissance ne suffit plus :", w/2, 145, 'xb', 38, WHITE, 'c')
         text(k, "la bourse veut savoir ce que l'IA coûte", w/2, 235, 'sb', 34, GD2, 'c')
         text(k, "et quand elle rapportera.", w/2, 285, 'sb', 34, GD2, 'c')
     place(cv, gp(840, 370, dr, 'FFE9C0'), tilt_quad(520, 860, 840, 370, rx=.05), 1, 18, .5)
     coin(cv, 'inquiet', 330, 1460, 400)
     bulle(c, "L'addition est salée…", 700, 1230, (420, 1130), 32)
-    pagination(c, 5)
+    pagination(c, 6)
 def s7(cv, c):
     """question finale (pas de blague), logo"""
     halos(cv, [(540, 600, 640, CY, .10), (540, 900, 500, GD, .08)])
     glow_text(cv, "ET TOI,", 540, 340, 130, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.5)
     glow_text(cv, "LEQUEL", 540, 500, 120, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
     glow_text(cv, "TU GARDES ?", 540, 650, 120, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
-    text(c, "Dis-le en commentaire", 540, 790, 'sb', 34, ICE, 'c', .85); put_emoji(cv, '👇', 540, 860, 60)
-    coin(cv, 'question', 540, 1330, 380)
+    text(c, "Dis-le en commentaire", 540, 770, 'sb', 34, ICE, 'c', .85); put_emoji(cv, '👇', 540, 832, 54)
+    lecture(cv, 'fin', 960)
+    coin(cv, 'question', 540, 1340, 290)
     c.push_group(); logo_symbol(c, 395, 1405, 40); c.pop_group_to_source(); c.paint()
     text(c, "Actions_Benefices", 428, 1405, 'b', 28, WHITE, 'l')
     text(c, "Contenu pédagogique, pas un conseil en investissement.", 540, 1475, 'sb', 20, ICE, 'c', .55)
-SLIDES = [s1, entreprise('MSFT', 1), entreprise('GOOGL', 2), entreprise('AMZN', 3), s5, s6, s7]
+SLIDES = [s1, entreprise('MSFT', 1), entreprise('GOOGL', 2), entreprise('AMZN', 3), entreprise('INTC', 4), s5, s6, s7]
 
 def render(i):
     cv = background(i); s, c = surface()

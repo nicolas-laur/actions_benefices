@@ -1,4 +1,4 @@
-# Sources : carrousel GAFAM, résultats du 3e trimestre 2026 (juillet à septembre)
+# Sources : carrousel « Les News », résultats du 3e trimestre 2026 (juillet à septembre)
 
 Montants en dollars convertis en euros au taux provisoire de 1,12 $ pour 1 € (à remplacer par le taux de référence BCE du 30/10/2026).
 
@@ -15,9 +15,16 @@ Montants en dollars convertis en euros au taux provisoire de 1,12 $ pour 1 € (
 - CA 201,9 Md$ (+12 %), bénéfice net 20,7 Md$ contre 21,2 Md$ (−2 %, l'an dernier gonflé par 9,5 Md$ de plus-values sur Anthropic), AWS 46,0 Md$ (+39 %), investissements 77,3 Md$ contre 35,1 Md$.
 - https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Third-Quarter-Results/default.aspx
 
+## Intel (publié le 29/10/2026 après la clôture)
+- CA 16,5 Md$ (+21 %), bénéfice net 3,3 Md$ contre 4,1 Md$ (−18 %), Data Center et IA 7,3 Md$ (+78 %), investissements 4,2 Md$ contre 3,0 Md$.
+- Prévisions T4 : CA 15 à 16 Md$ (consensus 17,07 Md$), BPA ajusté 0,25 $ (consensus 0,43 $) ; explosion en octobre dans l'usine de Kiryat Gat (Israël), arrêt d'environ deux semaines, environ −300 M$ de CA au T4.
+- https://www.intc.com/news-events/press-releases/detail/1786/intel-reports-third-quarter-2026-financial-results
+- https://www.calcalistech.com/ctechnews/article/7djs538lu
+
 ## Réaction de la bourse
 - 29/10 (lendemain de l'annonce) : Alphabet (GOOGL) −12,6 % (324,89 $ → 283,82 $), Microsoft −0,2 %.
-- Amazon : environ −6 % après la clôture du 29/10 (provisoire, à remplacer par la clôture du 30/10).
+- Amazon : environ −6 % après la clôture du 29/10 ; Intel : environ −20 % après la clôture du 29/10 (provisoires, à remplacer par les clôtures du 30/10).
+- Intel après-bourse : https://www.marketbeat.com/earnings/reports/2026-10-29-intel-co-stock/
 - https://www.stocktitan.net/articles/stock-market-today-live-october-29-2026
 - https://www.fool.com/investing/2026/10/29/aws-jumps-39-as-amazons-cash-flow-sinks-rapid-earn/
 

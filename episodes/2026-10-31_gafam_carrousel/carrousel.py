@@ -53,10 +53,11 @@ def sky():
     for x, y, r, a in zip(rng.uniform(0, W, 260), rng.uniform(0, H, 260), rng.uniform(.6, 1.7, 260), rng.uniform(.08, .35, 260)):
         c.arc(x, y, r, 0, 2*math.pi); c.set_source_rgba(1, 1, 1, a); c.fill()
     return to_img(s)
-def background(i, cx=540, cy=1240, size=1560, al=.55):
+def background(i, cx=540, cy=1240, size=1560, al=.55, tint=None):
+    tint = tint or CY
     cv = sky().copy()
     b = np.asarray(Image.open(f'{D}/globe/b_{GLOBE[i]}.png').convert('RGB'), np.float32); m = np.asarray(Image.open(f'{D}/globe/m_{GLOBE[i]}.png').convert('RGB'), np.float32)[..., :1]/255
-    gl = b*(1-.5*m)+m*np.array(rgb(CY))*255*.75                      # terres en points teintées cyan, discrètes
+    gl = b*(1-.5*m)+m*np.array(rgb(tint))*255*.75                      # terres en points teintées cyan, discrètes
     gl = Image.fromarray(np.clip(gl, 0, 255).astype(np.uint8)).resize((size, size), Image.BICUBIC)
     yy, xx = np.mgrid[0:size, 0:size]; r = np.hypot(xx-size/2+.5, yy-size/2+.5)/(size/2); A = np.clip((GR_-r)*size*.5, 0, 1)[..., None]*al
     arr = np.asarray(cv.convert('RGB'), np.float32); x0, y0 = cx-size//2, cy-size//2
@@ -65,7 +66,7 @@ def background(i, cx=540, cy=1240, size=1560, al=.55):
     sub[:] = sub*(1-AA)+G*AA
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
     s, c = surface(); R1 = size*GR_*.5*1.2; rg = cairo.RadialGradient(cx, cy, 0, cx, cy, R1)           # liseré d'atmosphère
-    rg.add_color_stop_rgba(0, *rgb(CY), 0); rg.add_color_stop_rgba(.8, *rgb(CY), 0); rg.add_color_stop_rgba(.835, *rgb(CY), .30*al); rg.add_color_stop_rgba(1, *rgb(CY), 0)
+    rg.add_color_stop_rgba(0, *rgb(tint), 0); rg.add_color_stop_rgba(.8, *rgb(tint), 0); rg.add_color_stop_rgba(.835, *rgb(tint), .30*al); rg.add_color_stop_rgba(1, *rgb(tint), 0)
     c.set_source(rg); c.arc(cx, cy, R1, 0, 2*math.pi); c.fill(); out.alpha_composite(to_img(s))
     s, c = surface(); g = cairo.LinearGradient(0, 0, 0, H)                                           # voile en haut : les titres restent sur fond calme
     g.add_color_stop_rgba(0, 0, 0, 0, .0); g.add_color_stop_rgba(.3, 0, 0, 0, .0); g.add_color_stop_rgba(1, 0, 0, 0, .25); c.set_source(g); c.paint(); out.alpha_composite(to_img(s))
@@ -252,8 +253,8 @@ def s7(cv, c):
     """question finale (pas de blague), logo"""
     halos(cv, [(540, 600, 640, CY, .10), (540, 900, 500, GD, .08)])
     glow_text(cv, "ET TOI,", 540, 340, 130, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.5)
-    glow_text(cv, "LEQUEL", 540, 500, 120, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
-    glow_text(cv, "TU GARDES ?", 540, 650, 120, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
+    glow_text(cv, "QU'EST-CE QUE TU PENSES", 540, 490, 86, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
+    glow_text(cv, "DE CES RÉSULTATS ?", 540, 620, 100, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
     text(c, "Dis-le en commentaire", 540, 770, 'sb', 34, ICE, 'c', .85); put_emoji(cv, '👇', 540, 832, 54)
     lecture(cv, 'fin', 960)
     coin(cv, 'question', 540, 1340, 290)
@@ -262,8 +263,11 @@ def s7(cv, c):
     text(c, "Contenu pédagogique, pas un conseil en investissement.", 540, 1475, 'sb', 20, ICE, 'c', .55)
 SLIDES = [s1, entreprise('MSFT', 1), entreprise('GOOGL', 2), entreprise('AMZN', 3), entreprise('INTC', 4), s5, s6, s7]
 
+# globe : froid (cyan) quand les résultats sont bons, réchauffé (ambre, rouge orangé) quand ils déçoivent
+WARM = {'v': CY, 'o': 'FF9A3C', 'r': 'FF5A3C'}
+TINTS = [CY]+[WARM[DATA[k]['res']] for k in KEYS]+[CY, 'FF7A3C', CY]
 def render(i):
-    cv = background(i); s, c = surface()
+    cv = background(i, tint=TINTS[i]); s, c = surface()
     # couche texte (cairo) posée après les panneaux : on dessine d'abord les panneaux (PIL) dans la fonction, puis le texte cairo
     SLIDES[i](cv, c); cv.alpha_composite(to_img(s)); return cv.convert('RGB')
 if __name__ == '__main__':

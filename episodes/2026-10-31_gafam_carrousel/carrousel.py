@@ -27,9 +27,9 @@ DATA = {
     'GOOGL': dict(nom="ALPHABET", ca=127.6, ca_g=25, bn=26.5, bn_g=-24, cloud="GOOGLE CLOUD", cloud_g=103, capex=51.4, capex_x=2.1,
                   res='o', res_txt="MITIGÉS", bourse=-12.6, bfeu='r', bnote="clôture du 29/10", pose='choc', bulle="Aïe, la claque !"),
     'AMZN': dict(nom="AMAZON", ca=201.9, ca_g=12, bn=20.7, bn_g=-2, cloud="AWS", cloud_g=39, capex=77.3, capex_x=2.2,
-                 res='o', res_txt="MITIGÉS", bourse=-6.0, bfeu='r', bnote="après la clôture du 29/10", pose='facepalm', bulle="Les dépenses font peur…"),
+                 res='o', res_txt="MITIGÉS", bourse=-1.4, bfeu='o', bnote="clôture du 30/10", pose='facepalm', bulle="Les dépenses font peur…"),
     'INTC': dict(nom="INTEL", ca=16.5, ca_g=21, bn=3.3, bn_g=-18, cloud="DATA CENTER ET IA", cloud_g=78, capex=4.2, capex_x=1.4,
-                 res='o', res_txt="MITIGÉS", bourse=-20.0, bfeu='r', bnote="après la clôture du 29/10", pose='triste', bulle="Les prévisions déçoivent…"),
+                 res='o', res_txt="MITIGÉS", bourse=-29.3, bfeu='r', bnote="clôture du 30/10", pose='triste', bulle="Les prévisions déçoivent…"),
 }
 LECTURE = {
     'cover': "Quatre géants de la tech publient leurs comptes de l'été : leurs chiffres face à la réaction de la bourse.",

@@ -24,7 +24,9 @@ Logos : marques issues des favicons (Amazon) et du jeu d'icônes « logos » d'I
 
 ## Réaction de la bourse
 - 29/10 (lendemain de l'annonce) : Alphabet (GOOGL) −12,6 % (324,89 $ → 283,82 $), Microsoft −0,2 %.
-- Amazon : environ −6 % après la clôture du 29/10 ; Intel : environ −20 % après la clôture du 29/10 (provisoires, à remplacer par les clôtures du 30/10).
+- 30/10 (lendemain de l'annonce) : Intel −29,3 % (92,03 $ → 65,12 $, pire séance depuis 1974) ; Amazon −1,4 % (243,79 $ → 240,35 $), après une baisse d'environ 7 % avant l'ouverture.
+- Intel : https://247wallst.com/cards/intel-closed-down-29-27-the-widest-single-session-move-acr-intc-session-movers-01m6771tzzwamt1rwewhs73hpy
+- Amazon : https://www.investing.com/news/stock-market-news/why-is-amazon-stock-plunging-today-93CH-4986088
 - Intel après-bourse : https://www.marketbeat.com/earnings/reports/2026-10-29-intel-co-stock/
 - https://www.stocktitan.net/articles/stock-market-today-live-october-29-2026
 - https://www.fool.com/investing/2026/10/29/aws-jumps-39-as-amazons-cash-flow-sinks-rapid-earn/

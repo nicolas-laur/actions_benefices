@@ -1,6 +1,7 @@
 # Sources : carrousel « Les News », résultats du 3e trimestre 2026 (juillet à septembre)
 
-Montants en dollars convertis en euros au taux provisoire de 1,12 $ pour 1 € (à remplacer par le taux de référence BCE du 30/10/2026).
+Montants en dollars convertis en euros au taux de référence BCE du 29/10/2026 : 1,1130 $ pour 1 € (https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html).
+Logos : marques issues des favicons (Amazon) et du jeu d'icônes « logos » d'Iconify (Microsoft, Google, Intel), posées sur des tuiles façon icône d'appli.
 
 ## Microsoft (exercice 2027, 1er trimestre, publié le 28/10/2026)
 - CA 92,3 Md$ (+19 %), bénéfice net 36,6 Md$ (+32 %), Azure +48 %, investissements (achats d'immobilisations, en trésorerie) 39,4 Md$ contre 19,4 Md$.

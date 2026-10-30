@@ -18,7 +18,7 @@ def rgb(h): h = h.lstrip('#'); return [int(h[i:i+2], 16)/255 for i in (0, 2, 4)]
 def fmt(v, d=1): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',').replace(' ', NB)
 
 # ---------- données (sources dans sources.md) ----------
-EURUSD = 1.12           # À CONFIRMER : taux de référence BCE du 30/10/2026
+EURUSD = 1.1130         # taux de référence BCE du 29/10/2026
 def eur(usd_md): return usd_md/EURUSD
 # feux : 'v' vert, 'o' orange, 'r' rouge ; res = verdict sur les résultats, bourse = variation du cours le lendemain de l'annonce
 DATA = {
@@ -100,6 +100,12 @@ def coin(cv, pose, cx, feet, h=430, flip=False):
     g = cairo.RadialGradient(0, 0, 0, 0, 0, 1); g.add_color_stop_rgba(0, 0, 0, 0, .65); g.add_color_stop_rgba(1, 0, 0, 0, 0); c.set_source(g); c.arc(0, 0, 1, 0, 2*math.pi); c.fill(); c.restore()
     cv.alpha_composite(to_img(s)); cv.alpha_composite(im, (int(cx-im.width/2), int(feet-h+6)))
     return (cx-im.width/2, feet-h, cx+im.width/2, feet)
+def bulle_pres(c, s_, bb, size=34, k=.3):
+    """bulle collée à Mister Coin : elle part juste à droite de lui, pointe courte vers sa tête"""
+    w = tw(c, s_, 'xb', size)+60; h = size*2.0; x0 = bb[2]+26; y = bb[1]+(bb[3]-bb[1])*k
+    c.move_to(x0+16, y-15); c.line_to(x0-22, y+24); c.line_to(x0+16, y+13); c.close_path(); col(c, WHITE); c.fill()
+    rr(c, x0, y-h/2, w, h, h/2); col(c, WHITE); c.fill()
+    text(c, s_, x0+w/2, y, 'xb', size, INK, 'c')
 def bulle(c, s, x, y, tip, size=34):
     """bulle de BD blanche, pointe vers (tip) = la tête de Mister Coin"""
     w = tw(c, s, 'xb', size)+64; h = size*2.1; x0 = x-w/2; y0 = y-h/2
@@ -159,9 +165,9 @@ def lecture(cv, key, cy, w=880, size=29):
     k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); L = wrap(k0, LECTURE[key], 'sb', size, w-150); lh = size*1.32; h = int(len(L)*lh+44)
     def dr(k, w, h):
         rr(k, 22, 22, 6, h-44, 3); col(k, GD, .9); k.fill()
-        for i, l in enumerate(L): text(k, l, 112, 22+lh*i+lh/2, 'sb', size, WHITE, 'l', .95)
+        for i, l in enumerate(L): text(k, l, 90, 22+lh*i+lh/2, 'sb', size, WHITE, 'l', .95)
     place(cv, gp(w, h, dr, 'FFE9C0'), tilt_quad(540, cy, w, h, rx=.03), 1, 16, .4)
-    put_emoji(cv, '💡', 540-w/2+68, cy, 48)
+    put_emoji(cv, '💡', 540-w/2+60, cy, 30)
     return h
 def pagination(c, i, n=8):
     for k in range(n):
@@ -182,8 +188,8 @@ def s1(cv, c):
         place(cv, gp(212, 240, dr), tilt_quad(x, 830, 212, 240, ry=(.2, .07, -.07, -.2)[i], rx=.06), 1, 14, .5)
         s_, k_ = surface(); logo(cv, k_, k, x, 770, 70); cv.alpha_composite(to_img(s_))
     lecture(cv, 'cover', 1035)
-    coin(cv, 'montre', 300, 1470, 300)
-    bulle(c, "Pas toujours…", 640, 1230, (400, 1250), 34)
+    bb = coin(cv, 'montre', 300, 1470, 300)
+    bulle_pres(c, "Pas toujours…", bb, 34, .38)
     text(c, "SWIPE", 880, 1380, 'xb', 30, WHITE, 'r', .85, 4); put_emoji(cv, '👉', 930, 1378, 54)
 def entreprise(key, idx):
     def s(cv, c):
@@ -201,8 +207,8 @@ def entreprise(key, idx):
                 (f"CROISSANCE {'DU CLOUD ('+d['cloud']+')' if key != 'INTC' else d['cloud']}", sgn(d['cloud_g']) if d['cloud_g'] is not None else "?", "sur un an", None, GR),
                 ("INVESTISSEMENTS DU TRIMESTRE", f"{fmt(eur(d['capex']))} Md€" if d['capex'] else "?", None, (f"×{fmt(d['capex_x'])}".replace(',0', '')) if d['capex_x'] else None, GD)]
         place(cv, kpi_panel(rows, 860, 400, tint, vcol={2: GR}), tilt_quad(540, 1000, 860, 400, rx=.05), 1, 18, .5)
-        coin(cv, d['pose'], 250, 1490, 280)
-        bulle(c, d['bulle'], 660, 1330, (340, 1260), 34)
+        bb = coin(cv, d['pose'], 250, 1490, 280)
+        bulle_pres(c, d['bulle'], bb, 32)
         pagination(c, idx)
     return s
 def s5(cv, c):
@@ -222,8 +228,8 @@ def s5(cv, c):
     for j, kk in enumerate(KEYS):
         s_, k_ = surface(); logo(cv, k_, kk, 158, PY-PH/2+132+j*ST, 58); cv.alpha_composite(to_img(s_))
     lecture(cv, 'match', 1080)
-    coin(cv, 'question', 280, 1490, 280)
-    bulle(c, "Pas le même verdict !", 680, 1330, (380, 1270), 34)
+    bb = coin(cv, 'question', 280, 1490, 280)
+    bulle_pres(c, "Pas le même verdict !", bb, 34)
     pagination(c, 5)
 def s6(cv, c):
     """la leçon : le cloud explose, les dépenses aussi"""
@@ -239,8 +245,8 @@ def s6(cv, c):
         text(k, "la bourse veut savoir ce que l'IA coûte", w/2, 235, 'sb', 34, GD2, 'c')
         text(k, "et quand elle rapportera.", w/2, 285, 'sb', 34, GD2, 'c')
     place(cv, gp(840, 370, dr, 'FFE9C0'), tilt_quad(520, 860, 840, 370, rx=.05), 1, 18, .5)
-    coin(cv, 'inquiet', 330, 1460, 400)
-    bulle(c, "L'addition est salée…", 700, 1230, (420, 1130), 32)
+    bb = coin(cv, 'inquiet', 330, 1460, 400)
+    bulle_pres(c, "L'addition est salée…", bb, 34)
     pagination(c, 6)
 def s7(cv, c):
     """question finale (pas de blague), logo"""

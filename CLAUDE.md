@@ -10,6 +10,7 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Zone sûre des applis (Reels, TikTok, Shorts) : rien d'important sous y = 1500 (pseudo, légende, son), ni au-dessus de y = 200 (en-tête), ni à droite de x = 950 entre y = 1000 et 1700 (icônes). Sous-titres centrés vers y ≈ 1035–1060, largeur de ligne max 760 px ; Mister Coin en dessous, pieds vers y ≈ 1650 (ses pieds peuvent passer sous l'interface, pas sa tête ni ses mains).
 - Musique douce, bruitages discrets. Émojis Noto bienvenus.
 - Script pour la voix : nombres écrits en toutes lettres ; Nicolas génère la voix (ElevenLabs refuse la génération depuis Claude).
+- `voice_full.wav` toujours en 48 kHz mono (`ffmpeg -i voix_src.mp3 -ac 1 -ar 48000 voice_full.wav`) : le mixage lit la voix à 48 kHz ; un fichier en 44,1 kHz rend la voix accélérée et aiguë (erreur du 01/11, corrigée).
 
 ## Mister Coin (voir `mister_coin/README.md`)
 - Présent tout du long, taille constante, pas de gros plan ; il illustre le propos et apporte de l'âme.

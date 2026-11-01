@@ -286,7 +286,8 @@ def space(d):   # souffle d'espace très discret, qui respire
     n = int(d*SR); t = tt(n); return lp(rng.standard_normal(n), 500)*.006*(1+.3*np.sin(2*np.pi*.12*t))
 seg(0, DUR, space(DUR+1), 1.5)
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
-_, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
+sr_v, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
+assert sr_v == SR, f'voice_full.wav doit être en {SR} Hz (trouvé {sr_v} Hz) : sinon la voix est accélérée et plus aiguë'
 if vo.ndim > 1: vo = vo.mean(1)
 v = np.zeros(N); v[:min(N, len(vo))] = vo[:N]; v *= .9/abs(v).max()
 def rms(x): return np.sqrt(np.mean(x[np.abs(x) > 1e-4]**2))

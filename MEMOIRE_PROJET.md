@@ -99,3 +99,9 @@ Le texte complet des 26 prompts Gemini, avec le statut de chaque clip, est dans 
 
 ## Sujets en suspens
 - Ferrari (3D, « une action qui se comporte comme une voiture de collection »), prévue le 01/11 : retirée du calendrier le 01/11, à reprogrammer plus tard. Gardée dans la roadmap (base de données, meta/en_suspens).
+
+## Point d'étape du 01/11 et nouveau plan
+- Phase 1 TikTok : médiane ≈ 760 vues (cible 1 000), meilleure 958, 18 abonnés (cible 30), 15 commentaires (cible atteinte). Deux groupes de vues : ≈ 250 (premier palier raté) ou 700 à 960 (second palier raté). Instagram : 188 abonnés, surtout grâce aux pubs du 26 au 28/10.
+- Décisions de Nicolas : 5 publications par semaine (lundi recherche, mardi histoire soignée, jeudi 15 s, vendredi carrousel Les News, samedi série ou 3D) ; test de l'accroche question contre le chiffre choc sur les 8 premières vidéos de la phase 2.
+- Boussole : % vu en entier (TikTok Studio). Cibles phase 2 : médiane 1 000, 50 % vu en entier, 50 abonnés TikTok, 300 Instagram ; phase 3 : 1 500, 60 %, 150, 500.
+- Sujets retirés gardés dans la roadmap (meta/reserve).

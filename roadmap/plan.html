@@ -1,0 +1,398 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Plan Actions_Bénéfices</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : en-tête objectif + 3 phases, puis calendrier par semaine (une ligne = une vidéo, dépliable pour saisir les stats) */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEE; --fg:#0E1A1C; --muted:#5B6B6E; --line:#D5DEDF;
+  --accent:#0FA39A; --accent-ink:#FFFFFF; --good:#1E9E5A; --warn:#C98A0B; --bad:#D2483D;
+  --f-display:"Anton","Impact","Arial Narrow",sans-serif; --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --c-gagnant:#1E9E5A; --c-chute:#D2483D; --c-paradoxe:#7A5AF0; --c-utile:#0E8FD6; --c-actu:#C98A0B; --c-serie:#D2468E; --c-flagship:#0FA39A; --c-bilan:#5B6B6E; --c-historique:#8A9799; --c-recherche:#2F7FD8; --c-court:#E0652B; --c-carrousel:#9B59D0;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1214; --surface:#111C1F; --sunk:#16252A; --fg:#E8F1F1; --muted:#90A3A6; --line:#22353A;
+  --accent:#35C9BE; --accent-ink:#04201E; --good:#46C985; --warn:#E3AE3A; --bad:#F0736A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1214; --surface:#111C1F; --sunk:#16252A; --fg:#E8F1F1; --muted:#90A3A6; --line:#22353A;
+  --accent:#35C9BE; --accent-ink:#04201E; --good:#46C985; --warn:#E3AE3A; --bad:#F0736A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:28px}
+h1,h2{font-family:var(--f-display);font-weight:400;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:clamp(34px,6vw,52px);line-height:1}
+h2{font-size:26px;line-height:1.1}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lead{color:var(--muted);max-width:68ch;margin:6px 0 0}
+.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono)}
+header{display:grid;gap:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:2px}
+.kpi b{font-family:var(--f-display);font-weight:400;font-size:32px;line-height:1.05}
+.kpi small{color:var(--muted);font-size:12.5px}
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:10px;align-content:start}
+.phase.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.phase h3{margin:0;font-size:17px;font-weight:800}
+.phase .dates{font-size:12.5px;color:var(--muted)}
+.goal{display:grid;gap:4px}
+.goal .row{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.bar{height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.phase ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--muted);display:grid;gap:3px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.box h3{margin:0 0 8px;font-size:15px;font-weight:800}
+.box ol,.box ul{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+.week-tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.week-tbl td{padding:5px 6px;border-top:1px solid var(--line);vertical-align:top}
+.week-tbl td:first-child{white-space:nowrap;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font:600 13px var(--f-body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.status-note{font-size:13px;color:var(--muted)}
+.week{display:grid;gap:6px}
+.week-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;padding:10px 2px 2px}
+.week-h h3{margin:0;font-size:15px;font-weight:800}
+.week-h span{font-size:12.5px;color:var(--muted)}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.item>button.head{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:10px 12px}
+.item>button.head:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.day{font-size:12px;color:var(--muted);line-height:1.2}
+.day b{display:block;font-size:17px;color:var(--fg);font-family:var(--f-mono);font-weight:600}
+.what{min-width:0;display:grid;gap:3px}
+.what .t{font-weight:700;font-size:14.5px;overflow-wrap:anywhere}
+.what .da{font-size:12.5px;color:var(--fg);background:var(--sunk);border-radius:6px;padding:3px 7px;justify-self:start;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.what .da b{color:var(--accent);font-size:11px;letter-spacing:.06em;margin-right:4px}
+.what .da.none{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.what .a{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fmt{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;color:#fff}
+.st{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.st[data-s="publié"]{background:var(--good);border-color:var(--good);color:#fff}
+.st[data-s="montage"],.st[data-s="voix"]{border-color:var(--warn);color:var(--warn)}
+.side{display:grid;justify-items:end;gap:4px;text-align:right}
+.side .m{font-size:12px;color:var(--muted)}
+.pct{font-family:var(--f-mono);font-size:13px;font-weight:600}
+.pct.good{color:var(--good)}.pct.mid{color:var(--warn)}.pct.low{color:var(--bad)}
+.edit{border-top:1px solid var(--line);background:var(--sunk);padding:14px 12px;display:grid;gap:12px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+label{display:grid;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+input,select,textarea{font:500 14px var(--f-body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%}
+textarea{min-height:60px;resize:vertical}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font:700 14px var(--f-body);padding:9px 16px;border-radius:8px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.saved{font-size:13px;color:var(--good)}
+.err{font-size:13px;color:var(--bad)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:22px;color:var(--muted);text-align:center}
+.ach{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.badge{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:44px 1fr;gap:4px 12px;align-items:start}
+.badge .ico{grid-row:span 3;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:var(--sunk);filter:grayscale(1);opacity:.55}
+.badge[data-tier="1"] .ico{background:#C98A5B;filter:none;opacity:1}
+.badge[data-tier="2"] .ico{background:#AFB8BD;filter:none;opacity:1}
+.badge[data-tier="3"] .ico{background:#E3B341;filter:none;opacity:1;box-shadow:0 0 0 3px color-mix(in srgb,#E3B341 35%,transparent)}
+.badge h4{margin:0;font-size:14px;font-weight:800}
+.badge .lv{font-size:12px;color:var(--muted)}
+.badge .tiers{display:flex;gap:5px;flex-wrap:wrap;font-size:11.5px;font-family:var(--f-mono)}
+.badge .tiers span{white-space:nowrap}
+.badge .tiers span{padding:1px 6px;border-radius:5px;border:1px solid var(--line);color:var(--muted)}
+.badge .tiers span.ok{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.badge .next{grid-column:2;display:grid;gap:3px}
+.badge button{justify-self:start;margin-top:2px}
+.ach-sum{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.ach-sum b{font-family:var(--f-mono);color:var(--fg)}
+.ig-box{display:grid;gap:12px}
+.ig-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 4px 0;border-bottom:1px solid var(--line)}
+.ig-chart .col{flex:1;display:grid;justify-items:center;gap:4px;min-width:0}
+.ig-chart .col i{display:block;width:100%;max-width:46px;background:#D2468E;border-radius:4px 4px 0 0}
+.ig-chart .col span{font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.ig-axis{display:flex;gap:6px;padding:0 4px}.ig-axis span{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.ig-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+.ig-tbl th,.ig-tbl td{padding:7px 10px;border-top:1px solid var(--line);text-align:right;white-space:nowrap}
+.ig-tbl th{border-top:0;font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.ig-tbl td:first-child,.ig-tbl th:first-child{text-align:left;white-space:normal}
+.ig{font-size:11px;font-weight:800;padding:1px 6px;border-radius:5px;background:#D2468E;color:#fff}
+.promo{font-size:11px;font-weight:700;padding:1px 6px;border-radius:5px;background:var(--warn);color:#fff}
+@media (max-width:560px){.item>button.head{grid-template-columns:48px 1fr}.side{grid-column:2;justify-items:start;text-align:left;grid-auto-flow:column;justify-content:start;align-items:center;gap:10px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Actions_Bénéfices · TikTok + Instagram · 17 oct. → 13 déc. 2026</div>
+    <h1>Plan sur 8 semaines</h1>
+    <p class="lead">Plan revu au point d'étape du 1er novembre : cinq publications par semaine, deux productions soignées et trois formats légers. Notre boussole est désormais la part des gens qui regardent la vidéo jusqu'au bout (TikTok Studio, relevée à 48 h) : c'est elle qui fait passer les paliers de l'algorithme. Ouvre une ligne pour mettre à jour son statut et ses stats.</p>
+    <div class="kpis" id="kpis"></div>
+  </header>
+
+  <section class="phases" id="phases" aria-label="Phases"></section>
+
+  <section class="ig-box" aria-labelledby="ig-h">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap">
+      <h2 id="ig-h">Instagram</h2>
+      <span class="status-note" id="ig-note"></span>
+    </div>
+    <p class="lead" style="margin:0">Compte @actions_benefices, ouvert le 21 octobre. Stats des reels organiques (Metricool) : la portée payée des publicités n'est pas comptée.</p>
+    <div class="kpis" id="ig-kpis"></div>
+    <div class="box"><h3>Vues du compte par jour (organique + payant)</h3><div class="ig-chart" id="ig-chart"></div><div class="ig-axis" id="ig-axis"></div></div>
+    <div class="tbl-wrap"><table class="ig-tbl"><thead><tr><th>Reel</th><th>Vues</th><th>Portée</th><th>❤</th><th>💬</th><th>Enreg.</th><th>Partages</th><th>Visionnage</th><th>Reste &gt; 3 s</th></tr></thead><tbody id="ig-rows"></tbody></table></div>
+  </section>
+
+  <section style="display:grid;gap:10px" aria-labelledby="ach-h">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap">
+      <h2 id="ach-h">Succès</h2>
+      <div class="ach-sum" id="achsum"></div>
+    </div>
+    <p class="lead" style="margin:0">Trois paliers par succès : bronze, argent, or. Ils se débloquent tout seuls à partir des stats du calendrier. Les succès se calculent sur TikTok. Les vidéos promues (TikTok Promote) ne comptent pas pour la portée ni l'engagement.</p>
+    <div class="ach" id="ach"></div>
+  </section>
+
+  <section class="grid2">
+    <div class="box">
+      <h3>Règles du format (revues le 1er novembre)</h3>
+      <ol>
+        <li>20 à 30 s (15 s pour le format court). Chaque seconde doit servir : on coupe tout ce qui ne fait pas avancer.</li>
+        <li>Accroche question : elle ouvre une question, la réponse arrive ensuite. Dite et écrite dans la première seconde et demie, image en mouvement dès l'image 0. (Test contre le chiffre choc sur les 8 premières vidéos de la phase 2.)</li>
+        <li>Vidéos « recherche » : la question que les gens tapent, dite dans les premières secondes, écrite à l'écran et en début de légende.</li>
+        <li>Fin : une phrase qui donne envie d'envoyer la vidéo (« envoie-la à… ») ou une question qui divise. Premier commentaire épinglé, réponse en vidéo aux meilleurs commentaires.</li>
+        <li>Chaque production est déclinée : TikTok, Reels (puis un reel d'essai avec une autre accroche), Shorts, et en carrousel quand le sujet s'y prête.</li>
+        <li>Voix Thomas, sous-titres mot à mot, mot-clé surligné. Pas de barre de progression en haut.</li>
+        <li>Couvertures : la ligne fil rouge garde la DA historique ; les séries et les carrousels ont leur propre visuel.</li>
+        <li>Sources vérifiées, mention IA cochée, « pas un conseil en investissement ».</li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>Semaine type</h3>
+      <table class="week-tbl" aria-label="Semaine type">
+        <tbody>
+          <tr><td>Lundi</td><td>Recherche : une question que les gens tapent (vidéo légère, 20-30 s)</td></tr>
+          <tr><td>Mardi</td><td>Histoire d'une action, avec Mister Coin (production soignée)</td></tr>
+          <tr><td>Mercredi</td><td>Pas de publication : montage du jeudi et du samedi</td></tr>
+          <tr><td>Jeudi</td><td>Format 15 s : un chiffre, une question (vidéo légère)</td></tr>
+          <tr><td>Vendredi</td><td>Les News : carrousel résultats contre bourse (TikTok et Instagram)</td></tr>
+          <tr><td>Samedi</td><td>Série ou grande vidéo 3D (production soignée)</td></tr>
+          <tr><td>Dimanche</td><td>Pas de publication : relevé des stats et scripts de la semaine</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box">
+      <h3>Routine de production</h3>
+      <ul>
+        <li><b>Avant chaque semaine :</b> tu remplis le champ « DA » des 5 publications, je valide faisabilité et droits.</li>
+        <li><b>Dimanche :</b> je livre les 5 scripts de la semaine suivante, tu génères les voix d'un coup.</li>
+        <li><b>Chaque jour :</b> montage livré la veille, publication à l'heure du test en cours.</li>
+        <li><b>À 48 h :</b> je relève vues et interactions dans Metricool ; tu reportes depuis TikTok Studio le visionnage moyen et le % vu en entier (Metricool ne les remonte plus).</li>
+        <li><b>Fin de phase :</b> point d'étape, on garde ce qui marche et on coupe le reste.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:10px">
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap">
+      <h2>Calendrier</h2>
+      <span class="status-note" id="dbnote">Chargement du calendrier…</span>
+    </div>
+    <div class="toolbar" id="filters" role="group" aria-label="Filtrer par phase"></div>
+    <div id="cal" style="display:grid;gap:10px"><div class="empty">Le calendrier se charge depuis la base de données de la page.</div></div>
+  </section>
+</div>
+
+<script>
+const FMT = {gagnant:"Gagnant",chute:"Chute",paradoxe:"Paradoxe",utile:"Utile",actu:"Actu",serie:"Série",flagship:"3D",bilan:"Point d'étape",historique:"Déjà publié",recherche:"Recherche",court:"15 s",carrousel:"Carrousel"};
+const STATUS = ["idée","script","voix","montage","publié"];
+const PHASES = [
+  {n:0,name:"Déjà publié",dates:"7 → 16 oct.",from:"2026-10-01",to:"2026-10-16"},
+  {n:1,name:"Phase 1 · Sortir du plafond",dates:"17 oct. → 1 nov. · 15 vidéos",from:"2026-10-17",to:"2026-11-01",
+   goals:[{k:"med",label:"Vues médianes (hors promo)",target:1000,unit:""},{k:"max",label:"Meilleure vidéo (hors promo)",target:2000,unit:" vues"},{k:"followers",label:"Abonnés du compte",target:30,unit:""},{k:"csum",label:"Commentaires cumulés",target:15,unit:""}],
+   todo:["Format court 25-35 s sur toutes les vidéos","Une vidéo par jour à 12 h 30","Question qui divise + premier commentaire épinglé, réponse à tous dans l'heure"]},
+  {n:2,name:"Phase 2 · Passer le premier palier",dates:"2 → 22 nov. · 15 publications",from:"2026-11-02",to:"2026-11-22",
+   goals:[{k:"med",label:"Vues médianes TikTok (hors promo)",target:1000,unit:""},{k:"comp",label:"Vue en entier, moyenne (%)",target:50,unit:" %"},{k:"followers",label:"Abonnés TikTok",target:50,unit:""},{k:"igf",label:"Abonnés Instagram",target:300,unit:""}],
+   todo:["5 publications par semaine : 2 soignées, 3 légères (recherche, 15 s, carrousel)","Test d'accroche : question contre chiffre choc, 4 vidéos chacune","Mot-clé de recherche dit, écrit et en début de légende","Reels d'essai Instagram pour tester une 2e accroche"]},
+  {n:3,name:"Phase 3 · Accélérer ce qui marche",dates:"23 nov. → 13 déc. · 15 publications",from:"2026-11-23",to:"2026-12-13",
+   goals:[{k:"med",label:"Vues médianes TikTok (hors promo)",target:1500,unit:""},{k:"comp",label:"Vue en entier, moyenne (%)",target:60,unit:" %"},{k:"followers",label:"Abonnés TikTok",target:150,unit:""},{k:"igf",label:"Abonnés Instagram",target:500,unit:""}],
+   todo:["70 % des publications dans les formats gagnants de la phase 2","Réponses en vidéo aux meilleurs commentaires","Suite en épisodes des sujets qui ont le mieux marché","Bilan 2026 et calendrier de janvier"]}
+];
+let meta = {compte: null, succes: null, instagram: null};
+let rows = [], db = null, canWrite = true, openId = null, filter = "all";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num = v => (v === "" || v == null || isNaN(+v)) ? null : +v;
+const fmtN = v => v == null ? "–" : (v >= 1000 ? (v/1000).toFixed(v >= 10000 ? 0 : 1).replace(".", ",") + " k" : String(Math.round(v)));
+const dfmt = iso => { const d = new Date(iso + "T12:00:00"); return {wd: d.toLocaleDateString("fr-FR",{weekday:"short"}).replace(".",""), dm: d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}).replace(".","")}; };
+function monday(iso){ const d = new Date(iso + "T12:00:00"); const k = (d.getDay()+6)%7; d.setDate(d.getDate()-k); return d.toISOString().slice(0,10); }
+function stats(list){
+  const pub = list.filter(r => r.statut === "publié");
+  const avg = k => { const v = pub.map(r => num(r[k])).filter(x => x != null); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; };
+  const sum = k => pub.map(r => num(r[k]) || 0).reduce((a,b)=>a+b,0);
+  const org = pub.filter(r => !r.promo), vs = org.map(r => num(r.vues)).filter(x => x != null).sort((a,b) => a-b);
+  const med = vs.length ? (vs.length % 2 ? vs[(vs.length-1)/2] : (vs[vs.length/2-1]+vs[vs.length/2])/2) : null;
+  return {n: list.length, pub: pub.length, pct: avg("regarde_pct"), views: avg("vues"), subs: sum("abonnes"), comments: avg("commentaires"), watch: avg("visionnage_s"),
+    med, max: vs.length ? vs[vs.length-1] : null, csum: sum("commentaires"), cavg: avg("commentaires"), followers: num(meta.compte?.abonnes), comp: avg("complete_pct"), igf: num(meta.instagram?.abonnes)};
+}
+function today(){ return new Date().toISOString().slice(0,10); }
+function render(){
+  const plan = rows.filter(r => r.phase > 0), all = stats(plan), hist = stats(rows.filter(r => r.phase === 0));
+  const cur = PHASES.find(p => p.n > 0 && today() >= p.from && today() <= p.to) || PHASES[1];
+  const cs = stats(plan.filter(r => r.phase === cur.n));
+  $("#kpis").innerHTML = [
+    [`${all.pub}<span style="font-size:18px;color:var(--muted)"> / ${plan.filter(r => r.format !== "bilan").length}</span>`, "publications du plan"],
+    [fmtN(cs.med), `vues médianes hors promo · ${cur.name.split(" · ")[0]}`],
+    [fmtN(hist.med), "point de départ (médiane des vidéos déjà publiées)"],
+    [meta.compte?.abonnes == null ? "–" : String(meta.compte.abonnes), `abonnés du compte${meta.compte?.maj ? " · relevé du " + dfmt(meta.compte.maj).dm : ""}`]
+  ].map(([b,s]) => `<div class="kpi"><b class="num">${b}</b><small>${s}</small></div>`).join("");
+  $("#phases").innerHTML = PHASES.filter(p => p.n > 0).map(p => {
+    const st = stats(plan.filter(r => r.phase === p.n));
+    const goals = p.goals.map(g => { const v = st[g.k]; const w = v == null ? 0 : Math.min(100, v / g.target * 100);
+      const vs = v == null ? "–" : (g.k === "pct" || g.k === "cavg" || g.k === "comp" ? v.toFixed(1).replace(".", ",") : fmtN(v));
+      return `<div class="goal"><div class="row"><span>${g.label}</span><span class="num">${vs} / ${fmtN(g.target)}${g.unit}</span></div><div class="bar"><i style="width:${w}%"></i></div></div>`; }).join("");
+    return `<article class="phase ${p.n === cur.n ? "on" : ""}"><div><h3>${p.name}</h3><div class="dates">${p.dates} · ${st.pub} publiée${st.pub > 1 ? "s" : ""}</div></div>${goals}<ul>${p.todo.map(t => `<li>${t}</li>`).join("")}</ul></article>`;
+  }).join("");
+  renderAch();
+  renderIG();
+  const opts = [["all","Tout"],["1","Phase 1"],["2","Phase 2"],["3","Phase 3"],["0","Déjà publié"]];
+  $("#filters").innerHTML = opts.map(([v,l]) => `<button class="chip" data-f="${v}" aria-pressed="${filter === v}">${l}</button>`).join("");
+  const list = rows.filter(r => filter === "all" ? true : String(r.phase) === filter).sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  if (!list.length){ $("#cal").innerHTML = `<div class="empty">${rows.length ? "Aucune vidéo dans ce filtre." : "Le calendrier est vide pour l'instant : les 57 vidéos du plan et l'historique y apparaîtront dès qu'ils sont chargés."}</div>`; return; }
+  const weeks = {}; list.forEach(r => (weeks[r.phase === 0 ? "hist" : monday(r.date)] ??= []).push(r));
+  const keys = Object.keys(weeks).sort((a,b) => a === "hist" ? -1 : b === "hist" ? 1 : a < b ? -1 : 1);
+  $("#cal").innerHTML = keys.map(k => {
+    const ws = weeks[k], s = stats(ws);
+    const title = k === "hist" ? "Vidéos déjà publiées" : `Semaine du ${dfmt(k).dm}`;
+    const sub = s.pub ? `${s.pub}/${ws.length} publiées · ${s.pct == null ? "–" : s.pct.toFixed(1).replace(".", ",") + " % regardé en moyenne"}` : `${ws.length} vidéo${ws.length > 1 ? "s" : ""}`;
+    return `<div class="week"><div class="week-h"><h3>${title}</h3><span>${sub}</span></div>${ws.map(item).join("")}</div>`;
+  }).join("");
+}
+const ACH = [
+  {id:"plafond", ico:"🚪", t:"Briser le plafond", d:"Meilleure vidéo hors promo", tiers:[2000,5000,20000], u:" vues", v:A => A.max},
+  {id:"regulier", ico:"📈", t:"Régulier", d:"Meilleure médiane hebdo (hors promo)", tiers:[1000,1500,3000], u:" vues", v:A => A.weekMed},
+  {id:"debat", ico:"💬", t:"Premier débat", d:"Commentaires sur une même vidéo", tiers:[5,15,50], u:"", v:A => A.cmax},
+  {id:"circule", ico:"🔁", t:"Ça circule", d:"Partages sur une même vidéo", tiers:[3,10,30], u:"", v:A => A.smax},
+  {id:"plait", ico:"❤️", t:"Ça plaît", d:"Taux de like d'une vidéo hors promo", tiers:[3,5,8], u:" %", v:A => A.lrate, dec:1},
+  {id:"fideles", ico:"👥", t:"Les premiers fidèles", d:"Abonnés du compte", tiers:[25,100,500], u:"", v:A => A.followers},
+  {id:"suite", ico:"🍿", t:"On attend la suite", d:"Un commentaire réclame le prochain épisode", tiers:[1], u:"", v:A => A.suite, manual:true},
+  {id:"sansfaute", ico:"🗓️", t:"Sans faute", d:"Semaines d'affilée à 5 publications", tiers:[2,4,6], u:" sem.", v:A => A.wstreak},
+  {id:"serie", ico:"🎬", t:"Série bouclée", d:"Épisodes de Krachs publiés", tiers:[1,2,4], u:"", v:A => A.krachs},
+  {id:"restent", ico:"⏱️", t:"Ils restent", d:"Part regardée moyenne (7 dernières vidéos)", tiers:[25,35,50], u:" %", v:A => A.ret, dec:1}
+];
+function achData(){
+  const pub = rows.filter(r => r.statut === "publié"), org = pub.filter(r => !r.promo);
+  const n = k => r => num(r[k]); const mx = (l, f) => { const v = l.map(f).filter(x => x != null); return v.length ? Math.max(...v) : null; };
+  const weeks = {}; org.forEach(r => { const v = num(r.vues); if (v != null) (weeks[monday(r.date)] ??= []).push(v); });
+  const meds = Object.values(weeks).filter(a => a.length >= 3).map(a => { a.sort((x,y) => x-y); return a.length % 2 ? a[(a.length-1)/2] : (a[a.length/2-1]+a[a.length/2])/2; });
+  const days = [...new Set(pub.map(r => r.date))].sort(); let best = 0, cur = 0, prev = null;
+  days.forEach(d => { const t = new Date(d + "T12:00:00"); cur = prev && (t - prev) / 864e5 === 1 ? cur+1 : 1; best = Math.max(best, cur); prev = t; });
+  const lr = org.map(r => { const v = num(r.vues), l = num(r.likes); return v && l != null ? l/v*100 : null; });
+  const ret = pub.filter(r => num(r.regarde_pct) != null).sort((a,b) => a.date < b.date ? 1 : -1).slice(0, 7).map(r => num(r.regarde_pct));
+  const wk = {}; pub.filter(r => r.date >= "2026-11-02").forEach(r => { const m = monday(r.date); wk[m] = (wk[m] || 0) + 1; });
+  let wbest = 0, wcur = 0, wprev = null; Object.keys(wk).sort().forEach(m => { const t = new Date(m + "T12:00:00"); const ok = wk[m] >= 5; wcur = ok ? (wprev && (t - wprev) / 864e5 === 7 ? wcur+1 : 1) : 0; if (!ok) { wprev = null; return; } wbest = Math.max(wbest, wcur); wprev = t; });
+  return {wstreak: wbest, max: mx(org, n("vues")), weekMed: meds.length ? Math.max(...meds) : null, cmax: mx(pub, n("commentaires")), smax: mx(pub, n("partages")),
+    lrate: mx(lr.map(x => ({x})), o => o.x), followers: num(meta.compte?.abonnes), suite: meta.succes?.suite ? 1 : 0, streak: best,
+    krachs: pub.filter(r => /krachs/i.test(r.sujet || "")).length, ret: ret.length >= 3 ? ret.reduce((a,b) => a+b, 0)/ret.length : null};
+}
+function renderAch(){
+  const A = achData(); let got = 0, total = 0;
+  $("#ach").innerHTML = ACH.map(a => {
+    const v = a.v(A); const tier = v == null ? 0 : a.tiers.filter(t => v >= t).length; total += a.tiers.length; got += tier;
+    const lvl = a.manual ? (tier ? 3 : 0) : tier, next = a.tiers[tier];
+    const fv = x => x == null ? "–" : (a.dec ? x.toFixed(a.dec).replace(".", ",") : fmtN(x));
+    const prog = next == null ? `<span class="lv">Palier maximal atteint</span>` : `<div class="goal"><div class="row"><span class="lv">Prochain palier</span><span class="num lv">${fv(v)} / ${fv(next)}${a.u}</span></div><div class="bar"><i style="width:${v == null ? 0 : Math.min(100, v/next*100)}%"></i></div></div>`;
+    const btn = a.manual && canWrite ? `<button class="chip" type="button" data-suite="${A.suite ? 0 : 1}">${A.suite ? "Annuler" : "Je l'ai reçu"}</button>` : "";
+    return `<article class="badge" data-tier="${lvl}" aria-label="${esc(a.t)} : ${tier} palier${tier > 1 ? "s" : ""} sur ${a.tiers.length}">
+      <span class="ico" aria-hidden="true">${a.ico}</span><h4>${esc(a.t)}</h4><span class="lv">${esc(a.d)}</span>
+      <span class="tiers">${a.manual ? `<span class="${tier ? "ok" : ""}">débloqué</span>` : a.tiers.map((t,i) => `<span class="${i < tier ? "ok" : ""}" title="${["bronze","argent","or"][i]}">${["🥉","🥈","🥇"][i]} ${fmtN(t)}${a.u.trim() === "%" || a.u.trim() === "j" ? a.u : ""}</span>`).join("")}</span>
+      <div class="next">${a.manual ? "" : prog}${btn}</div></article>`;
+  }).join("");
+  $("#achsum").innerHTML = `<span><b>${got}</b> / ${total} paliers débloqués</span><span>Semaines complètes d'affilée : <b>${A.wstreak}</b></span>`;
+}
+function renderIG(){
+  const ig = meta.instagram || {}, serie = ig.serie || [], jours = ig.jours || [];
+  const reels = rows.filter(r => num(r.ig_vues) != null).sort((a,b) => num(b.ig_vues) - num(a.ig_vues));
+  const first = serie[0], last = serie[serie.length-1];
+  const v7 = jours.slice(-7).reduce((a,j) => a + (num(j.vues) || 0), 0);
+  const org = reels.filter(r => !r.ig_promo).map(r => num(r.ig_vues)).sort((a,b) => a-b);
+  const med = org.length ? (org.length % 2 ? org[(org.length-1)/2] : (org[org.length/2-1]+org[org.length/2])/2) : null;
+  const wv = reels.map(r => num(r.ig_visionnage_s)).filter(x => x != null);
+  $("#ig-kpis").innerHTML = [
+    [ig.abonnes == null ? "–" : String(ig.abonnes), `abonnés Instagram${first && last && first !== last ? ` · ${first.a} le ${dfmt(first.d).dm}` : ""}`],
+    [fmtN(v7 || null), "vues du compte sur les 7 derniers jours relevés"],
+    [fmtN(med), `vues médianes par reel (hors pub) · ${reels.length} reels`],
+    [wv.length ? (wv.reduce((a,b) => a+b, 0)/wv.length).toFixed(1).replace(".", ",") + " s" : "–", "visionnage moyen par reel"]
+  ].map(([b,s]) => `<div class="kpi"><b class="num">${b}</b><small>${s}</small></div>`).join("");
+  const mx = Math.max(1, ...jours.map(j => num(j.vues) || 0));
+  $("#ig-chart").innerHTML = jours.length ? jours.map(j => `<div class="col"><span>${fmtN(num(j.vues))}</span><i style="height:${Math.max(2, (num(j.vues) || 0)/mx*80)}px" title="${esc(dfmt(j.d).dm)} : ${num(j.vues)} vues, ${num(j.portee) ?? "–"} personnes touchées"></i></div>`).join("") : `<span class="status-note">Pas encore de relevé.</span>`;
+  $("#ig-axis").innerHTML = jours.map(j => `<span>${dfmt(j.d).dm}</span>`).join("");
+  $("#ig-note").textContent = ig.maj ? `relevé du ${dfmt(ig.maj).dm}` : "";
+  const c = v => v == null ? "–" : fmtN(v);
+  $("#ig-rows").innerHTML = reels.length ? reels.map(r => `<tr><td>${esc(r.sujet)} ${r.ig_promo ? `<span class="promo">pub</span>` : ""}</td><td class="num">${c(num(r.ig_vues))}</td><td class="num">${c(num(r.ig_portee))}</td><td class="num">${c(num(r.ig_likes))}</td><td class="num">${c(num(r.ig_commentaires))}</td><td class="num">${c(num(r.ig_enregistrements))}</td><td class="num">${c(num(r.ig_partages))}</td><td class="num">${num(r.ig_visionnage_s) == null ? "–" : String(num(r.ig_visionnage_s)).replace(".", ",") + " s"}</td><td class="num">${num(r.ig_reste3s_pct) == null ? "–" : String(num(r.ig_reste3s_pct)).replace(".", ",") + " %"}</td></tr>`).join("") : `<tr><td colspan="9" style="text-align:left;color:var(--muted)">Aucun reel relevé pour l'instant.</td></tr>`;
+}
+function pctClass(p){ return p == null ? "" : p >= 15 ? "good" : p >= 10 ? "mid" : "low"; }
+function item(r){
+  const d = dfmt(r.date), p = num(r.regarde_pct), open = openId === r.id;
+  const side = r.statut === "publié"
+    ? `<span class="pct ${pctClass(p)}">${p == null ? (num(r.vues) == null ? "stats à saisir" : fmtN(num(r.vues)) + " vues") : String(p).replace(".", ",") + " % regardé"}</span><span class="m">${r.promo ? `<span class="promo">promue</span> ` : ""}${num(r.likes) == null ? "" : fmtN(num(r.likes)) + " ❤ · "}${num(r.commentaires) == null ? "" : fmtN(num(r.commentaires)) + " 💬"}</span>${num(r.ig_vues) == null ? "" : `<span class="m"><span class="ig">IG</span> ${fmtN(num(r.ig_vues))} vues${r.ig_promo ? " · pub" : ""}</span>`}`
+    : `<span class="m">${esc(r.heure || "")}</span>`;
+  return `<div class="item" id="it-${esc(r.id)}">
+    <button class="head" data-open="${esc(r.id)}" aria-expanded="${open}">
+      <span class="day">${d.wd}<b>${d.dm}</b></span>
+      <span class="what"><span class="tags"><span class="fmt" style="background:var(--c-${esc(r.format)})">${FMT[r.format] || esc(r.format)}</span><span class="st" data-s="${esc(r.statut)}">${esc(r.statut)}</span></span>
+        <span class="t">${esc(r.sujet)}</span><span class="a">${esc(r.angle)}</span>${r.da ? `<span class="da"><b>DA</b> ${esc(r.da)}</span>` : (r.phase > 0 && r.format !== "bilan" ? `<span class="da none">DA à définir</span>` : "")}</span>
+      <span class="side">${side}</span>
+    </button>${open ? editor(r) : ""}</div>`;
+}
+function editor(r){
+  const f = (k, l, t = "number", step = "any") => `<label for="f-${k}-${esc(r.id)}">${l}<input id="f-${k}-${esc(r.id)}" name="${k}" type="${t}" step="${step}" inputmode="decimal" value="${esc(r[k] ?? "")}" ${canWrite ? "" : "disabled"}></label>`;
+  return `<form class="edit" data-id="${esc(r.id)}">
+    <div class="fields">
+      <label for="f-statut-${esc(r.id)}">Statut<select id="f-statut-${esc(r.id)}" name="statut" ${canWrite ? "" : "disabled"}>${STATUS.map(s => `<option ${s === r.statut ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+      ${f("heure","Heure de publication","text")}${f("vues","Vues")}${f("visionnage_s","Visionnage moyen (s)")}${f("regarde_pct","Part regardée (%)")}${f("complete_pct","Vue en entier (%)")}${f("abonnes","Abonnés gagnés")}${f("likes","Likes")}${f("commentaires","Commentaires")}${f("partages","Partages")}
+      <label for="f-promo-${esc(r.id)}" style="align-content:start">Vidéo promue<span style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--fg)"><input id="f-promo-${esc(r.id)}" name="promo" type="checkbox" style="width:auto" ${r.promo ? "checked" : ""} ${canWrite ? "" : "disabled"}> TikTok Promote</span></label>
+    </div>
+    <div class="fields">
+      ${f("ig_vues","Instagram : vues")}${f("ig_portee","Instagram : portée")}${f("ig_likes","Instagram : likes")}${f("ig_commentaires","Instagram : commentaires")}${f("ig_enregistrements","Instagram : enregistrements")}${f("ig_partages","Instagram : partages")}${f("ig_visionnage_s","Instagram : visionnage (s)")}${f("ig_reste3s_pct","Instagram : reste > 3 s (%)")}
+      <label for="f-igpromo-${esc(r.id)}" style="align-content:start">Pub Instagram<span style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--fg)"><input id="f-igpromo-${esc(r.id)}" name="ig_promo" type="checkbox" style="width:auto" ${r.ig_promo ? "checked" : ""} ${canWrite ? "" : "disabled"}> Reel sponsorisé</span></label>
+    </div>
+    <label for="f-sujet-${esc(r.id)}">Sujet<input id="f-sujet-${esc(r.id)}" name="sujet" type="text" value="${esc(r.sujet)}" ${canWrite ? "" : "disabled"}></label>
+    <label for="f-angle-${esc(r.id)}">Accroche / angle<input id="f-angle-${esc(r.id)}" name="angle" type="text" value="${esc(r.angle)}" ${canWrite ? "" : "disabled"}></label>
+    <label for="f-da-${esc(r.id)}">Direction artistique (décor, objet 3D, couleurs, ambiance, références)<textarea id="f-da-${esc(r.id)}" name="da" style="min-height:90px" placeholder="Ex. : décor, objet héros, palette, mouvement de caméra, effet signature…" ${canWrite ? "" : "disabled"}>${esc(r.da || "")}</textarea></label>
+    <label for="f-notes-${esc(r.id)}">Notes<textarea id="f-notes-${esc(r.id)}" name="notes" ${canWrite ? "" : "disabled"}>${esc(r.notes || "")}</textarea></label>
+    <div class="actions">${canWrite ? `<button class="btn" type="submit">Enregistrer</button>` : `<span class="status-note">Lecture seule : tu n'as pas les droits de modification sur cette page.</span>`}<button class="btn ghost" type="button" data-close>Fermer</button><span class="msg" role="status"></span></div>
+  </form>`;
+}
+document.addEventListener("click", e => {
+  const o = e.target.closest("[data-open]"); if (o){ openId = openId === o.dataset.open ? null : o.dataset.open; render(); const el = document.getElementById("it-" + openId); if (el) el.scrollIntoView({block:"nearest"}); return; }
+  if (e.target.closest("[data-close]")){ openId = null; render(); return; }
+  const sb = e.target.closest("[data-suite]"); if (sb && db){ db.doc("meta/succes").set({suite: sb.dataset.suite === "1"}).catch(() => { sb.textContent = "Échec, réessaie"; }); return; }
+  const c = e.target.closest("[data-f]"); if (c){ filter = c.dataset.f; try{ localStorage.setItem("ab_filter", filter); }catch(_){} render(); }
+});
+document.addEventListener("submit", async e => {
+  const form = e.target.closest("form.edit"); if (!form) return; e.preventDefault();
+  const msg = form.querySelector(".msg"), id = form.dataset.id, fd = new FormData(form), patch = {};
+  for (const [k, v] of fd.entries()) if (k !== "promo" && k !== "ig_promo") patch[k] = ["vues","visionnage_s","regarde_pct","complete_pct","abonnes","commentaires","likes","partages","ig_vues","ig_portee","ig_likes","ig_commentaires","ig_enregistrements","ig_partages","ig_visionnage_s","ig_reste3s_pct"].includes(k) ? (v === "" ? null : +String(v).replace(",", ".")) : String(v);
+  patch.promo = fd.has("promo"); patch.ig_promo = fd.has("ig_promo");
+  if (!db){ msg.className = "msg err"; msg.textContent = "La base de données n'est pas disponible ici : rien n'a été enregistré."; return; }
+  msg.className = "msg status-note"; msg.textContent = "Enregistrement…";
+  try { await db.doc("videos/" + id).update(patch); msg.className = "msg saved"; msg.textContent = "Enregistré"; }
+  catch(err){ msg.className = "msg err"; msg.textContent = err && err.code === "invalid_argument" ? "Enregistrement refusé : cette page est en lecture seule pour toi." : "Échec de l'enregistrement, réessaie dans un instant."; if (err && err.code === "invalid_argument") canWrite = false; }
+});
+try { const f = localStorage.getItem("ab_filter"); if (f) filter = f; } catch(_){}
+render();
+(async () => {
+  db = await window.claude?.use?.("db") ?? null;
+  const user = await window.claude?.use?.("user") ?? null;
+  if (user){ try { const c = await user.can("data.write"); if (c === false) canWrite = false; } catch(_){} }
+  if (!db){ $("#dbnote").textContent = "Base de données indisponible dans cette vue : le calendrier ne peut pas se charger."; return; }
+  db.collection("meta").onSnapshot(snap => { snap.docs.forEach(d => { meta[d.id] = d.data(); }); render(); }, () => {});
+  db.collection("videos").onSnapshot(snap => {
+    rows = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    $("#dbnote").textContent = rows.length ? `${rows.length} vidéos · mis à jour en direct` : "Aucune vidéo enregistrée pour l'instant.";
+    render();
+  }, err => { $("#dbnote").textContent = "Connexion à la base perdue. Recharge la page."; });
+})();
+</script>
+
+</body></html>

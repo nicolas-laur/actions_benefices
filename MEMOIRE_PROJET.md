@@ -96,3 +96,6 @@ Le texte complet des 26 prompts Gemini, avec le statut de chaque clip, est dans 
 - Test 15 s : décliner une vidéo longue en 2 ou 3 vidéos de 15 s (un fait par vidéo, chiffre choc à 0 s, chute ou boucle à la fin, 35 à 40 mots), même décor et mêmes clips ; premier candidat le carburant (« l'État prend 50 € sur ton plein », « la TVA sur la taxe »).
 - Carrousel Instagram (validé) : version carrousel du carburant publiée le lendemain de la vidéo, 8 images (118 € le plein, pétrole, transport et station, accise, TVA sur la taxe, total État, paradoxe des 42 %, question + « enregistre-le ») ; à tester aussi en carrousel photo sur TikTok.
 - Prévoir dans les scripts des silences de 4 à 5 s pour placer les réactions de Mister Coin (joie, saut).
+
+## Sujets en suspens
+- Ferrari (3D, « une action qui se comporte comme une voiture de collection »), prévue le 01/11 : retirée du calendrier le 01/11, à reprogrammer plus tard. Gardée dans la roadmap (base de données, meta/en_suspens).

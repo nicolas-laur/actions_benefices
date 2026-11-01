@@ -21,6 +21,7 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Nicolas génère les clips dans Gemini, en 16:9, avec l'image de référence à marges (`mister_coin/veo/*_reference_marges_16x9.jpg`) et le bloc de prompt commun (pieds au sol quand il parle, parle du début à la fin, pose neutre au début et à la fin, grandes marges).
 - Chaque clip déposé dans `mister_coin/veo/` est analysé par `python3 mister_coin/veo_catalogue.py` (taille, position, plages où il parle / se tait) ; `veo_coin.py` les monte : il parle quand la voix parle, se tait dans les silences, change de clip en plein saut entre deux scènes.
 - Éviter la répétition : un clip de parole différent par scène, réactions (joie, déception, choc…) dans les silences, jamais le même geste deux fois de suite.
+- Formats légers (recherche, 15 s ; décidé le 01/11) : Mister Coin présent mais avec 2 ou 3 clips seulement.
 
 ## Exigences retenues (retours du 27/10 sur la vidéo carburant)
 - Niveau d'exigence élevé : vérifier soi-même chaque version avant de l'envoyer (images clés, transitions, son), pas seulement une image par scène.

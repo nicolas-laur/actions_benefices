@@ -13,3 +13,7 @@
 - NHS England : contrat de 330 M£ sur 7 ans pour la Federated Data Platform, novembre 2023 (Wikipédia).
 - ICE : contrat de 30 M$ pour suivre les déplacements de migrants (Wikipédia ; ImmigrationOS, avril 2025, selon la presse).
 - Airbus : client de Foundry (Wikipédia). Bootcamps AIP de 5 jours (Mayhemcode, avril 2026).
+- Résultats T3 2026 (publiés le 2/11 après la clôture) : CA 2,313 Md$ (+96 % sur un an, consensus ≈ 2,18 Md$) ; CA commercial américain 984 M$ (+148 %) qui dépasse pour la première fois le CA gouvernemental américain (953 M$, +96 %) ; BPA ajusté 0,44 $ (consensus ≈ 0,41 $) ; prévision 2026 relevée : CA 8,530 à 8,534 Md$. https://www.tradingkey.com/news/earnings/262264979- et https://247wallst.com/investing/2026/11/02/live-will-palantir-smash-q3-earnings-tonight-after-the-bell/
+- Cours : clôture du 2/11 ≈ 179,27 $ (-2,6 %, à confirmer) ; réaction après la clôture encore floue à 22 h 30 (entre stable et -3 %), donc non citée dans la voix.
+- Valorisation : ≈ 2,5 milliards d'actions × ≈ 180 $ ≈ 450 Md$, soit plus de 50 fois le CA 2026 prévu (8,53 Md$). Estimation, à affiner avec le nombre d'actions exact.
+- 1 000 € au 30/09/2020 : 123,24 actions × 179,27 $ ≈ 22 093 $, soit ≈ 19 850 € à 1,113 $/€ ; « environ vingt mille euros » dans la voix, valeur exacte à l'écran avec la clôture et le taux BCE du 2/11.

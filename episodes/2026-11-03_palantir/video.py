@@ -46,6 +46,17 @@ def eye(t, zoom=1.0):
     v = np.hypot(*np.meshgrid(np.linspace(-1, 1, W), np.linspace(-1, 1, H))); c *= np.clip(1.15-.55*v, 0, 1)[..., None]
     return c[..., ::-1]
 
+# ---------- pulsation sur la musique choisie par Nicolas (« Sorry I Am Late », ajoutée dans Edits) ----------
+# grille des temps relevée sur son export (122,0 BPM, écart moyen 1,5 ms) ; amplitude = énergie de la grosse caisse à ce temps
+import json
+_B = json.load(open(f'{D}/musique_beats.json')); BEATS = np.array(_B['temps']); BAMP = np.clip(np.array(_B['kick_energie'])/0.16, 0, 1)
+BAMP[BAMP < .1] = 0
+DOWN = np.array([(i-11) % 4 == 0 for i in range(len(BEATS))])     # le retour de la grosse caisse (5,88 s) tombe sur un premier temps
+def pulse(t):
+    """enveloppe douce : montée en 30 ms, retombée en ~160 ms ; renvoie (tous les temps, premiers temps seuls)"""
+    d = t-BEATS; env = np.where(d < 0, np.exp(-(d/.03)**2), np.exp(-d/.16))*(d > -.09)*BAMP
+    return float(env.max(initial=0)), float((env*DOWN).max(initial=0))
+
 # ---------- scènes : chacune dessine sur le contexte cairo (fond compris) ----------
 def sc_eye(c, t):
     k = t-S['eye']
@@ -241,15 +252,19 @@ def frame(t):
     s = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H); c = cairo.Context(s)
     if nm == 'eye':
         zoom = 1+3.5*ease((t-(S['thiel']-.4))/.4)**2 if t > S['thiel']-.4 else 1+.02*t
-        base = eye(t, zoom)
+    p, pd = pulse(t); z = 1+.010*p+.018*pd                                # le décor « respire » sur la grosse caisse, Mister Coin et sous-titres non
+    if nm == 'eye': base = eye(t, zoom*z)
     else: base = None
-    fn(c, t)
-    hud(c, t, mode, LAB)
+    c.save(); c.translate(540, 800); c.scale(z, z); c.translate(-540, -800)
+    fn(c, t); c.restore()
+    zh = 1+.006*p+.008*pd; c.save(); c.translate(540, 960); c.scale(zh, zh); c.translate(-540, -960)
+    hud(c, t, mode, LAB); c.restore()
     if nm == 'eye' and t > S['thiel']-.25:
         r = 30+1600*ease((t-(S['thiel']-.25))/.25)**2; c.arc(EPX, EPY, r, 0, 2*math.pi); col(c, RED, 1); c.fill()
     s.flush(); ov = np.asarray(Image.frombuffer('RGBA', (W, H), bytes(s.get_data()), 'raw', 'BGRa', s.get_stride(), 1)).astype(np.float32)
     if base is not None: a = ov[..., 3:]/255; out = base*(1-a)+ov[..., :3]*a
     else: out = ov[..., :3]
+    out = np.clip(out*(1+.05*pd), 0, 255)                                  # léger éclat du décor sur les premiers temps
     for k in KEYS[1:-1]:
         if 0 <= t-S[k] < 1/24: out = out*.65+255*.35                        # coupe franche + éclair d'une image, comme la référence
     # Mister Coin (au-dessus du décor, sous les sous-titres)

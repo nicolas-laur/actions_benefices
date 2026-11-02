@@ -9,13 +9,15 @@ ROOT = os.path.abspath(f'{D}/../..'); sys.path.insert(0, f'{ROOT}/lib')
 from logo import logo_symbol
 
 # ---------- minutage estimé (≈ 27,5 s) ----------
-S = dict(eye=0.0, thiel=4.0, cia=7.2, data=9.6, ia=11.8, money=13.6, multi=18.0, res=22.0, end=24.6, fin=27.6)
+S = dict(eye=0.0, thiel=4.0, cia=7.2, data=9.6, ia=13.8, money=15.6, multi=20.0, res=24.0, end=26.6, fin=29.6)
+CARD_T = (9.6, 11.0, 12.4)
 DUR = S['fin']
 CAPS = [(0.0, "Cette entreprise ne te connaît pas…"), (1.9, "mais elle aide les États à tout savoir de toi."),
         (S['thiel'], "Palantir, cofondée par Peter Thiel,"), (S['cia'], "et financée à ses débuts par la CIA."),
-        (S['data'], "Ses logiciels aident les armées, les polices et les hôpitaux"), (S['ia'], "Et avec l'IA, ses ventes explosent."),
-        (S['money'], "1 000 € placés le jour de son entrée en bourse, en 2020,"), (16.0, "valent aujourd'hui environ 20 000 €."),
-        (S['multi'], "Mais l'action vaut plus de 60 fois son chiffre d'affaires annuel."), (20.4, "Génie ou bulle ?"),
+        (S['data'], "Gotham, pour les armées : l'OTAN, l'armée américaine, l'Ukraine."), (11.0, "Foundry, pour les entreprises et les États,"),
+        (12.4, "et AIP, son intelligence artificielle."), (S['ia'], "Résultat : ses ventes explosent."),
+        (S['money'], "1 000 € placés le jour de son entrée en bourse, en 2020,"), (18.0, "valent aujourd'hui environ 20 000 €."),
+        (S['multi'], "Mais l'action vaut plus de 60 fois son chiffre d'affaires annuel."), (22.4, "Génie ou bulle ?"),
         (S['res'], "[phrase sur les résultats du 2 novembre]"), (S['end'], "Et toi, tu achèterais Palantir à ce prix-là ?")]
 LAB = ("ACTIONS_BÉNÉFICES / DOSSIER PLTR", "REC  03.11.2026", "CONFIDENTIEL · NIVEAU 3", "TC ")
 
@@ -66,18 +68,38 @@ def sc_cia(c, t):
     if k > 1.3:
         sc = lerp(1.35, 1, back((k-1.3)/.35)); c.save(); c.translate(540, 880); c.scale(sc, sc)
         text(c, "LA CIA", 0, 0, 'black', 170, WHITE, ease((k-1.3)/.12)); c.restore()
+CARDS = [("01", "GOTHAM", "pour les armées et le renseignement", ["US ARMY · JUSQU'À 10 MD$ SUR 10 ANS", "OTAN · SYSTÈME D'IA MAVEN (2025)", "UKRAINE · DÉMINAGE, DÉFENSE AÉRIENNE"]),
+         ("02", "FOUNDRY", "pour les entreprises et les États", ["AIRBUS · DONNÉES DE SES AVIONS", "NHS · 330 M£ SUR 7 ANS (2023)", "ICE · SUIVI DES MIGRANTS (ÉTATS-UNIS)"]),
+         ("03", "AIP", "son intelligence artificielle (2023)", ["L'IA BRANCHÉE SUR LES DONNÉES DU CLIENT", "DES « BOOTCAMPS » DE 5 JOURS", "LE MOTEUR DE SA CROISSANCE"])]
+def card(c, i, k, t):
+    """fiche produit en papier qui glisse sur la pile ; les lignes noircies se dévoilent l'une après l'autre"""
+    num, name, sub, lines = CARDS[i]
+    u = ease(k/.35); x = lerp(1500, 540+(i-1)*14, u); y = 650+(i-1)*12; ang = lerp(.25, (-.04, .03, -.015)[i], u)
+    c.save(); c.translate(x, y); c.rotate(ang)
+    for j in range(6): rr_(c, -405+j*.5, -285+8+j, 810, 570, 10); col(c, '000000', .05); c.fill()
+    rr_(c, -405, -285, 810, 570, 10); col(c, PAPER); c.fill()
+    text(c, f"FICHE PRODUIT {num} / 03", -360, -240, 'mono', 22, INK, .7, 'l', .08)
+    text(c, "PALANTIR TECHNOLOGIES", 360, -240, 'mono', 22, INK, .7, 'r', .08)
+    c.move_to(-360, -215); c.line_to(360, -215); c.set_line_width(1.5); col(c, INK, .3); c.stroke()
+    text(c, name, -360, -140, 'black', 120, INK, 1, 'l')
+    text(c, sub, -360, -40, 'serif', 52, RED, ease((k-.25)/.2), 'l')
+    for j, ln in enumerate(lines):
+        yy = 40+j*68; kk = k-.45-j*.28
+        tw_ = tw(c, ln, 'monob', 26, .03)
+        text(c, ln, -360, yy, 'monob', 26, INK, 1 if kk > 0 else 0, 'l', .03)
+        cover = 1-ease(kk/.25) if kk > 0 else 1.0                      # bandeau noir qui se retire de gauche à droite
+        if cover > 0: c.rectangle(-360+tw_*(1-cover), yy-20, tw_*cover+8, 40); col(c, INK); c.fill()
+    if k > .9:                                                         # tampon rouge
+        sc_ = lerp(1.6, 1, back((k-.9)/.25)); c.save(); c.translate(255, 238); c.rotate(-.12); c.scale(sc_*.85, sc_*.85)
+        rr_(c, -130, -42, 260, 84, 8); c.set_line_width(5); col(c, RED, .85*ease((k-.9)/.1)); c.stroke()
+        text(c, "CLASSIFIÉ", 0, 0, 'monob', 34, RED, .85*ease((k-.9)/.1), 'c', .12); c.restore()
+    c.restore()
 def sc_data(c, t):
-    k = t-S['data']; background(c, 'dark', t)
+    background(c, 'dark', t)
     def field(i, j, tt): return .5+.5*math.sin(i*.7+j*.5-tt*3)
-    dot_grid(c, t, ease(k/.9), 'dark', cy=700, rows_=8, field=field, red_k=0)
-    tags = ("ARMÉES", "POLICES", "HÔPITAUX")
-    for i, tg in enumerate(tags):
-        kk = k-.3-i*.35
-        if kk > 0:
-            x = 540+(i-1)*305
-            w = tw(c, tg, 'monob', 34, .08)+40; rr_(c, x-w/2, 290, w, 64, 8); col(c, INK, .85*ease(kk/.15)); c.fill()
-            c.set_line_width(2); rr_(c, x-w/2, 290, w, 64, 8); col(c, RED, ease(kk/.15)); c.stroke()
-            text(c, tg, x, 322, 'monob', 34, WHITE, ease(kk/.15), 'c', .08)
+    dot_grid(c, t, ease((t-S['data'])/.9)*.35, 'dark', cy=700, rows_=8, field=field)
+    for i, t0 in enumerate(CARD_T):
+        if t >= t0: card(c, i, t-t0, t)
 def sc_ia(c, t):
     k = t-S['ia']; background(c, 'dark', t)
     def field(i, j, tt): return .5+.5*math.sin(i*.7+j*.5-tt*3)

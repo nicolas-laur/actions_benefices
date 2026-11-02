@@ -6,3 +6,10 @@
 - Calcul provisoire : 1 000 € × 1,1708 / 9,50 = 123,24 actions ; × 184,11 $ = 22 690 $ ; ÷ 1,1130 (BCE 29/10/2026) ≈ 20 386 € (hors dividendes : Palantir n'en verse pas). À recalculer avec la clôture et le taux BCE du 2/11.
 - Cofondateurs dont Peter Thiel ; In-Q-Tel, le fonds d'investissement de la CIA, parmi les premiers investisseurs ; clients : armées, agences publiques (dont l'ICE), NHS britannique, entreprises.
 - Œil : vidéo générée par Nicolas dans Gemini (IA).
+- Produits : Gotham (2008, défense et renseignement), Foundry (entreprises et administrations), AIP (avril 2023, IA branchée sur les données du client), Apollo (déploiement) (Wikipédia). https://en.wikipedia.org/wiki/Palantir
+- Armée américaine : accord-cadre d'entreprise jusqu'à 10 Md$ sur 10 ans, attribué le 31/07/2025 (Wikipédia ; CNBC, 01/08/2025). https://www.cnbc.com/2025/08/01/palantir-lands-10-billion-army-software-and-data-contract.html
+- OTAN : acquisition du Maven Smart System de Palantir en mars 2025 (Wikipédia).
+- Ukraine : défense aérienne, guerre des mines (déminage), logistique, reconstruction (Wikipédia).
+- NHS England : contrat de 330 M£ sur 7 ans pour la Federated Data Platform, novembre 2023 (Wikipédia).
+- ICE : contrat de 30 M$ pour suivre les déplacements de migrants (Wikipédia ; ImmigrationOS, avril 2025, selon la presse).
+- Airbus : client de Foundry (Wikipédia). Bootcamps AIP de 5 jours (Mayhemcode, avril 2026).

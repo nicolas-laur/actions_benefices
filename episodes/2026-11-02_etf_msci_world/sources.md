@@ -6,3 +6,5 @@
 - Le MSCI World ne couvre que les pays développés : la Chine et l'Inde (pays émergents) n'y sont pas.
 - Poids des 9 premières entreprises (fiche MSCI au 30/09/2026) : Nvidia 5,81 %, Apple 5,41 %, Microsoft 4,00 %, Alphabet 3,99 % (A 2,23 + C 1,76), Amazon 2,67 %, Meta 1,76 %, Broadcom 1,76 %, Micron 1,33 %, Tesla 1,12 % ; total 27,85 % ≈ 28 %.
 - Logos : tuiles tirées des favicons (Amazon) et du jeu « logos » d'Iconify / Simple Icons (autres marques), à la demande de Nicolas.
+- Frais des ETF MSCI World (justETF via XTB, relevé du 14/10/2026 ; meilleurs-etf.net, 12/10/2026) : au PEA 0,20 % (WPEA, DCAM) à 0,38 % (CW8) ; hors PEA dès 0,06 % (UBS Core MSCI World), 0,12 % (Xtrackers, SPDR, Amundi Core). L'indice lui-même n'a pas de frais : ce sont ceux de l'ETF. https://www.xtb.com/fr/formation/etf-monde et https://www.meilleurs-etf.net/etf/mwrd-amundi-core-msci-world/
+- Pluie de logos : 48 autres entreprises de l'indice (pays développés), à titre d'illustration.

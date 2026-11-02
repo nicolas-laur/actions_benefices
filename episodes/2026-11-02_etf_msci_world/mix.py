@@ -242,7 +242,9 @@ def zap2():   # un pays s'allume : blip cristallin dont la note monte à chaque 
     m = 72+[0, 2, 4, 7, 9][ZK[0] % 5]+12*(ZK[0]//5 % 2); ZK[0] += 1
     n = int(.5*SR); t = tt(n); f = mtof(m)
     return (np.sin(2*np.pi*f*t)+.3*np.sin(2*np.pi*2*f*t)*np.exp(-t*12))*np.exp(-t*9)*np.minimum(1, t/.003)*.035
-MAP = dict(zap2=zap2, draw=lambda: whoosh()*1.5, zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
+def drop():   # un logo qui tombe : « plic » feutré, hauteur variable
+    n = int(.12*SR); t = tt(n); f = rng.uniform(900, 1500); return np.sin(2*np.pi*np.cumsum(f*(1-.4*t/.12))/SR)*np.exp(-t*45)*.025
+MAP = dict(drop=drop, zap2=zap2, draw=lambda: whoosh()*1.5, zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
 fx = np.zeros(N); duck = np.ones(N)
 for t0, k in V.events():
     add(fx, MAP[k](), t0-(.35 if k == 'whoosh' else (.12 if k in ('trans', 'swish') else 0)), .45 if k == 'ignite' else (1.8 if k.startswith('fill') else 1.0))

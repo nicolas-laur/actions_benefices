@@ -114,17 +114,6 @@ def bg_base():
 @functools.lru_cache(maxsize=1)
 def stars():
     rng = np.random.default_rng(2); return rng.uniform(0, W, 260), rng.uniform(0, H, 260), rng.uniform(.6, 1.7, 260), rng.uniform(.08, .35, 260), rng.uniform(0, 6.3, 260)
-def background(t):
-    cv = bg_base().copy(); s, c = surface()
-    X, Y, R, A, P = stars()
-    for x, y, r, a_, p in zip(X, Y, R, A, P):                          # poussière d'étoiles qui scintille doucement
-        c.arc(x, y, r, 0, 2*math.pi); c.set_source_rgba(1, 1, 1, a_*(.7+.3*math.sin(t*1.3+p))); c.fill()
-    for k, (cx, cy, rad, colr) in enumerate(((300, 520, 520, GD), (820, 1250, 560, CY), (520, 1780, 480, GD))):      # halos colorés qui dérivent
-        x = cx+60*math.sin(t*.25+k*2); y = cy+40*math.cos(t*.2+k)
-        g = cairo.RadialGradient(x, y, 0, x, y, rad); g.add_color_stop_rgba(0, *rgb(colr), .10); g.add_color_stop_rgba(1, *rgb(colr), 0)
-        c.set_source(g); c.arc(x, y, rad, 0, 2*math.pi); c.fill()
-    cv.alpha_composite(to_img(s)); return cv
-
 # ---------- globe en points : rendu orthographique maison (texture des terres en points de la vidéo PEA/CTO) ----------
 GDIR = f'{D}/globe'
 DOTS = cv2.imread(f'{GDIR}/dots.png', cv2.IMREAD_GRAYSCALE).astype(np.float32)/255
@@ -144,12 +133,12 @@ LON0, LON1, LONUS, LONAS = -25.0, 232.0, 263.0, 457.0     # vers l'est : Europe,
 def view(t):
     """longitude face caméra (déroulée, toujours vers l'est) et inclinaison"""
     a, b = T['achat'], T['logos']-.2
-    if t < a: lon = LON0+2*t
+    if t < a: lon = LON0+2*a-46*(1-ease(t/a))-2*(a-t)*ease(t/a)       # ouverture : le globe arrive en tournant puis ralentit
     elif t < b:
         u = (t-a)/(b-a); s0 = LON0+2*a; lon = s0+2*(t-a)+(LON1-s0-2*(b-a))*inout(u)
-    elif t < 15.30: lon = LON1+(LONUS-LON1)*inout((t-b)/(15.30-b)) if t < T['us'] else LONUS+.6*(t-T['us'])
-    elif t < 16.75: s0 = LONUS+.6*(15.30-T['us']); lon = s0+(LONAS-s0)*inout((t-15.30)/1.45)
-    else: lon = LONAS+.8*(t-16.75)
+    elif t < 15.30: lon = LON1+(LONUS-LON1)*inout((t-b)/(T['us']-b))+6*max(0, t-T['us'])
+    elif t < 16.75: s0 = LONUS+6*(15.30-T['us']); lon = s0+(LONAS-s0)*inout((t-15.30)/1.45)
+    else: lon = LONAS+7*(t-16.75)*ease((t-16.75)/.6)
     if t < T['us']: tilt = 22+14*inout((t-a)/(T['us']-a))
     else: tilt = 36-10*inout((t-15.30)/1.45)
     return lon, tilt
@@ -217,24 +206,112 @@ def gplace(t):
     if t < T['frais']-.45: s = big
     else: u = inout((t-T['frais']+.45)/.8); s = tuple(lerp(a_, b_, u) for a_, b_ in zip(big, low))
     x, y, S, bl, al = s
-    if t < .6: S *= lerp(1.08, 1, ease(t/.6))
+    S *= lerp(1.22, 1, ease(t/1.2))*(1+.018*math.sin(t*1.25))        # arrivée en zoom, puis respiration lente
+    y += 8*math.sin(t*.9)
     return x, y, int(S)//2*2, bl, al
+def gc_points(a, b, n=40):
+    """points d'un arc de grand cercle entre deux (lon, lat), légèrement soulevé au-dessus du globe"""
+    def v(lo, la): lo, la = np.radians(lo), np.radians(la); return np.array([np.cos(la)*np.cos(lo), np.cos(la)*np.sin(lo), np.sin(la)])
+    p, q = v(*a), v(*b); om = math.acos(float(np.clip(p @ q, -1, 1))) or 1e-6; out = []
+    for i in range(n+1):
+        u = i/n; w = (math.sin((1-u)*om)*p+math.sin(u*om)*q)/math.sin(om); lift = 1+.10*math.sin(math.pi*u)*min(1, om/1.2)
+        out.append((math.degrees(math.atan2(w[1], w[0])), math.degrees(math.asin(np.clip(w[2], -1, 1))), lift))
+    return out
+def proj3(lon, lat, lift, t, cx, cy, S):
+    lon0, tl = view(t); l = np.radians(lon-lon0); p = np.radians(lat); tr = np.radians(tl)
+    x = np.cos(p)*np.sin(l)*lift; Y = np.sin(p)*lift; Z = np.cos(p)*np.cos(l)*lift
+    y = Y*np.cos(tr)-Z*np.sin(tr); z = Y*np.sin(tr)+Z*np.cos(tr)
+    vis = z > 0 or (x*x+y*y) > 1.0
+    return cx+x*S/2, cy-y*S/2, vis
+def orbit(c, t, cx, cy, S, al, front):
+    """anneau d'orbite incliné, avec deux satellites lumineux ; la moitié arrière passe derrière le globe"""
+    R_, ry, rot = S*.66, S*.66*.24, -.32
+    for j, (ph, colr) in enumerate(((0.0, CY), (math.pi, GD))):
+        th0 = t*.9+ph
+        for k in range(36):
+            th = th0-k*.035; x, y = R_*math.cos(th), ry*math.sin(th)
+            if (math.sin(th) > 0) != front: continue
+            X = cx+x*math.cos(rot)-y*math.sin(rot); Y = cy+x*math.sin(rot)+y*math.cos(rot)
+            c.arc(X, Y, 5.5*(1-k/36)+.5, 0, 2*math.pi); col(c, colr, al*(1-k/36)*(.9 if k == 0 else .45)); c.fill()
+    c.save(); c.translate(cx, cy); c.rotate(rot); c.scale(R_, ry)
+    c.arc(0, 0, 1, 0 if front else math.pi, math.pi if front else 2*math.pi); c.restore(); c.set_line_width(1.6); col(c, 'A8EEFF', .16*al); c.stroke()
+def links(c, t, cx, cy, S, al):
+    """arcs lumineux d'un pays allumé au suivant, et onde qui s'élargit à chaque allumage"""
+    order = sorted(LIT, key=LIT.get)
+    for i, k in enumerate(order):
+        u = t-LIT[k]
+        if u < 0: break
+        if u < 1.0:
+            x, y, vis = project(*CENT[k], t, cx, cy, S)
+            if vis:
+                r_ = 8+70*ease(u/1.0); c.arc(x, y, r_, 0, 2*math.pi); c.set_line_width(3); col(c, GD if k == 1 else CY, al*(1-u)*.8); c.stroke()
+        if i and u < 1.6:
+            pts = gc_points(CENT[order[i-1]], CENT[k]); m = int(len(pts)*ease(min(1, u/.45)))
+            fade = 1-ease((u-.8)/.8)
+            for a_, b_ in zip(pts[:m], pts[1:m]):
+                x0, y0, v0 = proj3(*a_, t, cx, cy, S); x1, y1, v1 = proj3(*b_, t, cx, cy, S)
+                if v0 and v1:
+                    c.move_to(x0, y0); c.line_to(x1, y1); c.set_line_width(2.6); col(c, 'C8F6FF', al*fade*.85); c.stroke()
+    for kk, t0, colr in ((1, T['us'], GD), (30, 16.35, RD), (31, 16.55, RD)):
+        u = t-t0
+        if 0 < u < 1.4:
+            x, y, vis = project(*CENT[kk], t, cx, cy, S)
+            if vis:
+                for j in range(2):
+                    uu = u-j*.3
+                    if uu > 0: c.arc(x, y, 20+170*ease(uu/1.1), 0, 2*math.pi); c.set_line_width(4); col(c, colr, al*max(0, 1-uu/1.1)*.8); c.stroke()
 def background(t):
     cv = bg_base().copy(); s, c = surface()
     X, Y, R, A, P = stars()
     for x, y, r, a_, p in zip(X, Y, R, A, P):
-        c.arc(x, y, r, 0, 2*math.pi); c.set_source_rgba(1, 1, 1, a_*(.7+.3*math.sin(t*1.3+p))); c.fill()
+        xx = (x-t*6) % W                                              # les étoiles glissent doucement : le globe file dans l'espace
+        c.arc(xx, y, r, 0, 2*math.pi); c.set_source_rgba(1, 1, 1, a_*(.7+.3*math.sin(t*1.3+p))); c.fill()
+    for k, (hx_, hy, rad, colr) in enumerate(((300, 420, 520, GD), (820, 1250, 560, CY), (520, 1780, 480, GD))):      # halos colorés qui dérivent
+        x = hx_+60*math.sin(t*.25+k*2); y = hy+40*math.cos(t*.2+k)
+        g = cairo.RadialGradient(x, y, 0, x, y, rad); g.add_color_stop_rgba(0, *rgb(colr), .08); g.add_color_stop_rgba(1, *rgb(colr), 0)
+        c.set_source(g); c.arc(x, y, rad, 0, 2*math.pi); c.fill()
     cx, cy, S, bl, al = gplace(t)
     tint = np.array(rgb(CY))*(1-ease((t-T['us'])/.5))+np.array(rgb(GD))*ease((t-T['us'])/.5)
-    R1 = S*.5*1.18; g = cairo.RadialGradient(cx, cy, 0, cx, cy, R1)                 # halo d'atmosphère
+    R1 = S*.5*1.18; g = cairo.RadialGradient(cx, cy, 0, cx, cy, R1)
     g.add_color_stop_rgba(0, *tint, 0); g.add_color_stop_rgba(.8, *tint, 0); g.add_color_stop_rgba(.85, *tint, .32*al); g.add_color_stop_rgba(1, *tint, 0)
     c.set_source(g); c.arc(cx, cy, R1, 0, 2*math.pi); c.fill()
+    orbit(c, t, cx, cy, S, al, False)
     cv.alpha_composite(to_img(s))
     gi = Image.fromarray(globe_rgba(t, S), 'RGBA')
     if bl > .5: gi = lowblur(gi, bl, 2)
     if al < .999: gi = with_alpha(gi, al)
     cv.alpha_composite(gi, (int(cx-S/2), int(cy-S/2)))
+    s2, c2 = surface(); orbit(c2, t, cx, cy, S, al, True)
+    if bl < 1: links(c2, t, cx, cy, S, al)
+    cv.alpha_composite(to_img(s2))
     return cv
+
+# ---------- pluie de logos : d'autres entreprises de l'indice, pendant « mille deux cent quarante-neuf entreprises » ----------
+RAIN_FILES = sorted(os.listdir(f'{D}/logos/pluie'))
+def _rain():
+    rng = np.random.default_rng(7); out = []
+    for i, f in enumerate(rng.permutation(RAIN_FILES)):
+        t0 = T['achat']+.35+i*.085+rng.uniform(0, .06)
+        out.append(dict(f=str(f), t0=t0, x=rng.uniform(70, 1010), sz=int(rng.uniform(78, 112)), rot0=rng.uniform(-25, 25), vr=rng.uniform(-90, 90),
+                        dur=rng.uniform(1.5, 2.1), drift=rng.uniform(-60, 60)))
+    return out
+RAIN = _rain()
+@functools.lru_cache(maxsize=128)
+def rain_tile(f, sz):
+    im = Image.open(f'{D}/logos/pluie/{f}').convert('RGBA').resize((sz, sz), Image.LANCZOS)
+    sh = Image.new('RGBA', (sz+30, sz+30), 0); m = Image.new('L', (sz+30, sz+30), 0)
+    ImageDraw.Draw(m).rounded_rectangle((15, 20, 15+sz, 20+sz), radius=sz*.22, fill=140); sh.putalpha(m.filter(ImageFilter.GaussianBlur(7))); sh.alpha_composite(im, (15, 15)); return sh
+def rain(cv, t, a):
+    for r in RAIN:
+        u = (t-r['t0'])/r['dur']
+        if not 0 <= u <= 1: continue
+        y = -80+1180*u*u+120*u; x = r['x']+r['drift']*u
+        al = a*min(1, u/.08)*(1-ease((y-900)/220))
+        band = clamp(1-abs(y-320)/170)                                  # en traversant les compteurs, les logos s'effacent presque
+        al *= 1-.82*band
+        if al <= .01: continue
+        im = rain_tile(r['f'], r['sz']).rotate(r['rot0']+r['vr']*u*r['dur'], resample=Image.BICUBIC, expand=True)
+        cv.alpha_composite(with_alpha(im, al), (int(x-im.width/2), int(y-im.height/2)))
 
 # ---------- logos des premières positions (poids au 30/09/2026, fiche MSCI) ----------
 TOP = [('NVDA', 'Nvidia', '5,8 %'), ('AAPL', 'Apple', '5,4 %'), ('MSFT', 'Microsoft', '4,0 %'), ('GOOGL', 'Alphabet', '4,0 %'), ('AMZN', 'Amazon', '2,7 %'),
@@ -263,6 +340,12 @@ def sHook(cv, c, t, a):
 def counter_txt(v): return fmt(v)
 def sCount(cv, c, t, a):
     k = t-T['achat']
+    rain(cv, t, a)
+    def plate(c):                                                     # voile sombre derrière les compteurs : ils restent lisibles sous la pluie
+        for x in (300, 790):
+            g = cairo.RadialGradient(x, 330, 0, x, 330, 260); g.add_color_stop_rgba(0, 0.02, 0.03, 0.06, .85); g.add_color_stop_rgba(.6, 0.02, 0.03, 0.06, .6); g.add_color_stop_rgba(1, 0.02, 0.03, 0.06, 0)
+            c.save(); c.translate(x, 330); c.scale(1, .55); c.translate(-x, -330); c.set_source(g); c.arc(x, 330, 260, 0, 2*math.pi); c.fill(); c.restore()
+    s_, c_ = surface(); plate(c_); cv.alpha_composite(with_alpha(to_img(s_), a*ease(k/.3)))
     n = int(round(1249*ease(clamp((k-.25)/1.9)))) if k > .25 else 0
     glow_text(cv, fmt(n), 300, 300, 120, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.5, a=a*ease(k/.25), reflect=False)
     grp(c, a*ease(k/.3), lambda c: text(c, "ENTREPRISES", 300, 400, 'xb', 34, ICE, 'c', .95, 4))
@@ -301,11 +384,13 @@ def sFees(cv, c, t, a):
     k2 = t-T['frais2']
     if k2 > 0:
         def d(kk, w, h):
-            text(kk, "PAR AN, POUR 1 000 € PLACÉS", w/2, 70, 'xb', 30, ICE, 'c', .9, 3)
-            text(kk, "selon l'ETF : 0,20 % à 0,38 % par an", w/2, h-60, 'sb', 30, ICE, 'c', .8)
-        place(cv, gp(860, 400, d), tilt_quad(540, 650+30*(1-ease(k2/.4)), 860, 400, rx=.06+.25*(1-ease(k2/.4))), a*ease(k2/.35), 18, .5)
-        glow_text(cv, "2 À 4 €", 540, 650, 150, top='FFFFFF', bottom='B6FFD6', glow='3FE08A', ga=.6, a=a*ease((k2-.2)/.25), scale=lerp(1.3, 1, back((k2-.2)/.4)))
-        put_emoji('💶', 900, 440, 64, k2-.45, a)
+            text(kk, "PAR AN, POUR UN ETF MSCI WORLD AU PEA", w/2, 52, 'xb', 28, ICE, 'c', .9, 2)
+            text(kk, "soit 2 à 4 € pour 1 000 € placés", w/2, 285, 'xb', 38, 'B6FFD6', 'c', 1)
+            kk.move_to(60, 338); kk.line_to(w-60, 338); kk.set_line_width(1.5); col(kk, WHITE, .14); kk.stroke()
+            text(kk, "Hors PEA : dès 0,06 % par an", w/2, 380, 'sb', 30, ICE, 'c', .85)
+        place(cv, gp(860, 440, d), tilt_quad(540, 640+30*(1-ease(k2/.4)), 860, 440, rx=.06+.25*(1-ease(k2/.4))), a*ease(k2/.35), 18, .5)
+        glow_text(cv, "0,20 % À 0,38 %", 540, 598, 104, top='FFFFFF', bottom='B6FFD6', glow='3FE08A', ga=.6, a=a*ease((k2-.2)/.25), scale=lerp(1.3, 1, back((k2-.2)/.4)))
+        put_emoji('💶', 905, 445, 60, k2-.45, a)
 VAL = 1771
 PX, PY, PW, PH_ = 540, 590, 900, 600
 YB, HB = PY-PH_/2+PH_-130, 250
@@ -385,6 +470,8 @@ def events():
           (T['mille']+3.2, 'impact'), (T['mille']+3.25, 'coins'), (T['mille']+3.3, 'paid'), (T['envoie'], 'swish'), (T['envoie']+1.4, 'pop')]
     ev += [(LIT[k], 'zap2') for k in sorted(LIT, key=LIT.get)]
     ev += [(logo_t(i)+.38, 'pop') for i in range(9)]
+    ev += [(r['t0']+.15, 'drop') for r in RAIN[::2]]                    # petits « plic » de la pluie de logos
+    ev += [(T['achat']+.3, 'swish')]
     ev += [(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops)]
     return sorted(ev)
 

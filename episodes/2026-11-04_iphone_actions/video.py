@@ -295,8 +295,9 @@ def dust(c, t, a):
     k = t-(T['tiroir']+.84)
     if not 0 < k < 1.3: return
     for dx, sp, d in DUST:
-        x = DX+dx+d*120*ease(k/1.3); y = DY-6-90*ease(k/1.3)*sp; r = 8+34*ease(k/1.3)
-        c.arc(x, y, r, 0, 2*math.pi); c.set_source_rgba(.85, .8, .72, .20*a*(1-k/1.3)); c.fill()
+        x = DX+dx+d*160*ease(k/1.3); y = DY-6-150*ease(k/1.3)*sp; r = 10+40*ease(k/1.3)
+        al = .08*a*(1-k/1.3); g = cairo.RadialGradient(x, y, 0, x, y, r*2.2); g.add_color_stop_rgba(0, .85, .8, .72, al); g.add_color_stop_rgba(1, .85, .8, .72, 0)
+        c.arc(x, y, r*2.2, 0, 2*math.pi); c.set_source(g); c.fill()
 
 # ---------- la courbe : clôtures annuelles d'Apple, en dollars, ajustées des divisions (hors dividendes) ----------
 YRS = [2007.91, 2008.99, 2009.99, 2010.99, 2011.99, 2012.99, 2013.99, 2014.99, 2015.99, 2016.99, 2017.99, 2018.99, 2019.99, 2020.99, 2021.99, 2022.99, 2023.99, 2024.99, 2025.99, 2026.84]
@@ -433,7 +434,7 @@ def content(t):
         else: glow_text(cv, "399 €", 760, 640, 150, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7, a=a_p, scale=sc_out, reflect=False)
         grp(c, a_p*ease((kp-.7)/.25), lambda c: gpill(c, "8 GO · CHEZ ORANGE", 760, 760, 'E8EEF8', 26), dy=10*(1-ease((kp-.7)/.3)))
     # --- 19 ans plus tard ---
-    a_l = win(t, T['auj'], T['etsi'], .15, .2)
+    a_l = win(t, T['auj'], T['etsi']-.22, .15, .2)
     if a_l > 0:
         k = t-T['auj']
         grp(c, a_l, lambda c: text(c, scramble("19 ANS PLUS TARD", ease(k/.5), 13), 540, 250, 'k', 64, WHITE, 'c', 1, 4))

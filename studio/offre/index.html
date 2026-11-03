@@ -1,0 +1,192 @@
+<title>Studio Actions_Benefices</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Mise en page : une colonne éditoriale, la vidéo 9:16 tient lieu d'ouverture ; le reste se lit comme un devis clair. */
+:root {
+  --bg: #F6F3EC; --surface: #FFFFFF; --fg: #14161C; --muted: #5C6170; --line: #DED8CB;
+  --gold: #B57A0B; --gold-soft: #F2E2BC; --ink: #0B0E14;
+  --display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0A0C11; --surface: #12151D; --fg: #EEF1F6; --muted: #9AA2B4; --line: #232836;
+  --gold: #FFC24A; --gold-soft: #2A2112; --ink: #0B0E14; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0A0C11; --surface: #12151D; --fg: #EEF1F6; --muted: #9AA2B4; --line: #232836;
+  --gold: #FFC24A; --gold-soft: #2A2112; --ink: #0B0E14; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 400 17px/1.6 var(--body); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 48px 72px; display: flex; flex-direction: column; gap: 72px }
+h1, h2 { font-family: var(--display); font-weight: 400; letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; margin: 0; line-height: 1.02 }
+h1 { font-size: clamp(44px, 7.4vw, 84px) }
+h2 { font-size: clamp(30px, 4.2vw, 44px) }
+p { margin: 0 }
+.eyebrow { font: 500 13px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted) }
+.lead { font-size: 20px; color: var(--muted); max-width: 34em }
+.gold { color: var(--gold) }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 48px; align-items: center }
+.hero-text { display: flex; flex-direction: column; gap: 22px; min-width: 0 }
+.phone { background: var(--ink); border-radius: 34px; padding: 10px; box-shadow: 0 30px 60px -30px rgba(0,0,0,.55); max-width: 340px; width: 100% }
+.phone video { display: block; width: 100%; aspect-ratio: 9 / 16; border-radius: 26px; background: #000 }
+.facts { display: flex; flex-wrap: wrap; gap: 10px }
+.fact { font: 500 13px/1 var(--mono); letter-spacing: .06em; padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--fg) }
+
+.section { display: flex; flex-direction: column; gap: 28px }
+.section-head { display: flex; flex-direction: column; gap: 10px; max-width: 40em }
+
+.formats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px }
+.format { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0 }
+.format h3 { margin: 0; font: 700 18px/1.25 var(--body) }
+.format .dur { font: 500 12px/1 var(--mono); letter-spacing: .1em; color: var(--gold); text-transform: uppercase }
+.format p { color: var(--muted); font-size: 15px }
+.format .price { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); font: 400 30px/1 var(--display); letter-spacing: .02em }
+.format .price small { font: 500 12px/1 var(--mono); color: var(--muted); letter-spacing: .06em; margin-left: 4px }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--fg) }
+.steps li { padding: 20px 20px 0 0; display: flex; flex-direction: column; gap: 8px; min-width: 0 }
+.steps .n { font: 400 44px/1 var(--display); color: var(--gold) }
+.steps h3 { margin: 0; font: 700 18px/1.25 var(--body) }
+.steps p { color: var(--muted); font-size: 15px }
+
+.proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px }
+.case { border-left: 3px solid var(--gold); padding: 4px 0 4px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+.case h3 { margin: 0; font: 700 17px/1.3 var(--body) }
+.case p { color: var(--muted); font-size: 15px }
+.case .num { font: 500 13px/1.3 var(--mono); color: var(--fg) }
+
+.incl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; margin: 0; padding: 0; list-style: none }
+.incl li { padding: 14px 0; border-bottom: 1px solid var(--line); display: flex; gap: 14px; align-items: baseline; min-width: 0 }
+.incl li::before { content: "+"; font: 500 15px/1 var(--mono); color: var(--gold) }
+
+.contact { background: var(--ink); color: #EEF1F6; border-radius: 24px; padding: 40px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center }
+.contact h2 { color: #FFFFFF }
+.contact p { color: #B7BECC; margin-top: 12px; max-width: 30em }
+.contact .who { display: flex; flex-direction: column; gap: 6px; font: 500 15px/1.4 var(--mono); color: #EEF1F6; min-width: 0 }
+.contact .who strong { font: 400 28px/1 var(--display); letter-spacing: .02em; color: #FFC24A; font-weight: 400 }
+.note { font-size: 13px; color: var(--muted); max-width: 52em }
+
+@media (max-width: 880px) {
+  .hero { grid-template-columns: minmax(0, 1fr) }
+  .phone { margin: 0 auto }
+  .formats, .steps { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .steps { row-gap: 24px }
+  .proof { grid-template-columns: minmax(0, 1fr) }
+}
+@media (max-width: 520px) {
+  .formats, .steps, .incl { grid-template-columns: minmax(0, 1fr) }
+  .contact { grid-template-columns: minmax(0, 1fr); padding: 28px }
+  .wrap { gap: 56px; padding-block: 32px 56px }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto } }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="hero-text">
+      <span class="eyebrow">Studio vidéo · finance et données</span>
+      <h1>Des vidéos courtes qui font <span class="gold">comprendre les chiffres</span></h1>
+      <p class="lead">Je transforme un sujet financier, des résultats trimestriels ou vos propres données en vidéos verticales de 15 à 30 secondes : chiffres vérifiés, motion design sur mesure, prêtes pour TikTok, Reels et Shorts.</p>
+      <div class="facts">
+        <span class="fact">Format natif 1080 × 1920</span>
+        <span class="fact">Chiffres sourcés</span>
+        <span class="fact">Montants convertis au taux BCE</span>
+      </div>
+    </div>
+    <div class="phone">
+      <video src="showreel.mp4" poster="poster.jpg" controls playsinline muted loop preload="metadata" aria-label="Showreel de 30 secondes"></video>
+    </div>
+  </header>
+
+  <section class="section" aria-labelledby="formats">
+    <div class="section-head">
+      <span class="eyebrow">Formats</span>
+      <h2 id="formats">Quatre formats, un même niveau d'exigence</h2>
+    </div>
+    <div class="formats">
+      <article class="format">
+        <span class="dur">15 secondes</span>
+        <h3>Vidéo flash</h3>
+        <p>Une idée, un chiffre fort, une question pour faire commenter. Idéal pour une actualité ou un fait marquant.</p>
+        <div class="price">350 €<small>HT, à partir de</small></div>
+      </article>
+      <article class="format">
+        <span class="dur">25 à 30 secondes</span>
+        <h3>Vidéo soignée</h3>
+        <p>Une histoire complète : accroche, contexte, données, chute. Direction artistique dédiée et caméra en mouvement.</p>
+        <div class="price">750 €<small>HT, à partir de</small></div>
+      </article>
+      <article class="format">
+        <span class="dur">6 à 8 visuels</span>
+        <h3>Carrousel</h3>
+        <p>Résultats, comparatifs, palmarès. Livré en 9:16 et en 4:5 pour TikTok et Instagram.</p>
+        <div class="price">250 €<small>HT, à partir de</small></div>
+      </article>
+      <article class="format">
+        <span class="dur">Abonnement mensuel</span>
+        <h3>Rendez-vous hebdo</h3>
+        <p>Une vidéo ou un carrousel par semaine sur votre actualité ou votre marché, au même gabarit visuel.</p>
+        <div class="price">2 400 €<small>HT / mois</small></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="methode">
+    <div class="section-head">
+      <span class="eyebrow">Méthode</span>
+      <h2 id="methode">De la donnée brute à la vidéo publiée</h2>
+    </div>
+    <ol class="steps">
+      <li><span class="n">1</span><h3>Recherche et sources</h3><p>Chaque chiffre est vérifié à la source : communiqués, cours de clôture, taux BCE. La liste des sources est livrée avec la vidéo.</p></li>
+      <li><span class="n">2</span><h3>Script et voix</h3><p>Un texte court, écrit pour l'oral, validé avec vous avant toute production. Voix de synthèse ou la vôtre.</p></li>
+      <li><span class="n">3</span><h3>Motion design</h3><p>Animations calées sur la voix, décors, graphiques et mascotte. Sous-titres mot à mot, toujours lisibles dans les zones sûres des applis.</p></li>
+      <li><span class="n">4</span><h3>Vérification et livraison</h3><p>Contrôle image par image et du son, puis livraison de la vidéo, de la couverture et des textes de publication.</p></li>
+    </ol>
+  </section>
+
+  <section class="section" aria-labelledby="exemples">
+    <div class="section-head">
+      <span class="eyebrow">Exemples récents</span>
+      <h2 id="exemples">Ce que ça donne</h2>
+    </div>
+    <div class="proof">
+      <div class="case"><h3>Palantir</h3><p>Ambiance dossier classifié, œil en ouverture, résultats publiés la veille au soir intégrés le lendemain.</p><span class="num">CA +96 % sur un an · 42 s</span></div>
+      <div class="case"><h3>Ton iPhone ou des actions ?</h3><p>Téléphone en perspective, tiroir qui claque, caméra embarquée sur la vraie courbe de l'action.</p><span class="num">399 € → ≈ 27 100 € · 15 s</span></div>
+      <div class="case"><h3>ETF MSCI World</h3><p>Globe en points qui s'allume pays par pays, pluie de logos, frais expliqués en pourcentage.</p><span class="num">1 249 entreprises · 23 pays · 30 s</span></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="inclus">
+    <div class="section-head">
+      <span class="eyebrow">Inclus dans chaque vidéo</span>
+      <h2 id="inclus">Prête à publier</h2>
+    </div>
+    <ul class="incl">
+      <li>Vidéo 1080 × 1920, avec et sans musique</li>
+      <li>Couverture assortie</li>
+      <li>Textes de publication pour chaque réseau</li>
+      <li>Sources prêtes à coller en commentaire</li>
+      <li>Deux allers-retours de corrections</li>
+      <li>Mentions obligatoires intégrées (pédagogie, publicité, contenu IA)</li>
+    </ul>
+  </section>
+
+  <section class="contact" aria-labelledby="contact">
+    <div>
+      <h2 id="contact">Un sujet, des données, une échéance ?</h2>
+      <p>Décrivez-moi ce que vous voulez faire comprendre et à qui. Je vous réponds avec une proposition de script et un délai.</p>
+    </div>
+    <div class="who">
+      <strong>Nicolas Laur</strong>
+      <span>@actions_bnfices</span>
+      <span>TikTok · YouTube · Instagram</span>
+    </div>
+  </section>
+
+  <p class="note">Tarifs indicatifs hors taxes, ajustés selon la complexité du sujet et le volume. Les vidéos d'exemple sont des contenus pédagogiques de la chaîne Actions_Benefices, pas des conseils en investissement ; les marques citées appartiennent à leurs propriétaires.</p>
+</div>

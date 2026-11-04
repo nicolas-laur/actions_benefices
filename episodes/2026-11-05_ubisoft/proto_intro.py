@@ -28,14 +28,14 @@ def bg_frames():
         F.append(cv2.resize(f, (W, H), interpolation=cv2.INTER_CUBIC)[..., ::-1])
     return F
 def bg(t):
-    F = bg_frames(); x = t*24; i = int(x); u = x-i; i = min(i, len(F)-1); j = min(i+1, len(F)-1)
+    F = bg_frames(); x = t*BG_RATE*24; i = int(x); u = x-i; i = min(i, len(F)-1); j = min(i+1, len(F)-1)
     return F[i].astype(np.float32)*(1-u)+F[j].astype(np.float32)*u
 # ---------- suivi de la planche : bout de planche et échelle, lissés ----------
 TR = np.array(json.load(open(f'{D}/decors/clocher_track.json')))
 TRs = np.stack([savgol_filter(TR[:, k], 31, 3) for k in range(3)], 1)
 TIP0 = np.array([536.0, 1438.0])
 def track(t):
-    x = t*24; i = int(x); u = x-i; i = min(i, len(TRs)-1); j = min(i+1, len(TRs)-1)
+    x = t*BG_RATE*24; i = int(x); u = x-i; i = min(i, len(TRs)-1); j = min(i+1, len(TRs)-1)
     return TRs[i]*(1-u)+TRs[j]*u
 def plank_point(t, y0):
     """point de l'axe de la planche (exprimé sur l'image 0) suivi à l'instant t"""
@@ -54,16 +54,19 @@ def clip_frames(name, crop):
 # deux clips de dos : la marche (sur place) et le plongeon (inspiration, bras en croix, petit saut, chute)
 CLIPS = {'marche': dict(crop=((300, 1080), (100, 620)), feet=1034-300, cx=360-100, diam=360.0),
          'plongeon': dict(crop=((300, 1280), (0, 720)), feet=978-300, cx=358, diam=360.0/1.18)}   # même taille à l'écran : 1,18 = rapport des hauteurs
-WALK_END = 4.2                     # arrivée au bout de la planche
-B_START, B_SPEED = 4.4, 1.5        # bascule sur le plongeon (pose neutre identique), joué ×1,5
-def b_time(t): return .9+(t-B_START)*B_SPEED if t < B_START+(4.75-.9)/B_SPEED else 4.75+(t-(B_START+(4.75-.9)/B_SPEED))
-T_JUMP = B_START+(4.75-.9)/B_SPEED  # quitte la planche (≈ 6,97 s)
+# minutage calé sur la musique de Nicolas (≈ 125 BPM, un temps toutes les 0,479 s) ; temps de scène = temps global − 3,92 s
+WALK_END = 6.8                     # arrivée au bout de la planche ; marche à 0,88 × la vitesse du clip : un pas par temps
+B_FROM, B_SPEED = 1.6, 1.0         # plongeon joué à vitesse normale à partir de l'inspiration
+T_JUMP = 11.43                     # quitte la planche sur le temps fort de 15,35 s (global)
+B_START = T_JUMP-(4.75-B_FROM)/B_SPEED
+def b_time(t): return B_FROM+(t-B_START)*B_SPEED if t < T_JUMP else 4.75+(t-T_JUMP)
+BG_RATE = .7                       # la vidéo du clocher (10 s) est ralentie pour couvrir la scène
 def coin_state(t):
     u = clamp(t/WALK_END); u = u*.85+ease(u)*.15
     y0 = lerp(1905, 1470, u); x, y, s = plank_point(t, y0)
     diam = lerp(255, 205, u)
     if t < WALK_END: return x, y, diam, 'marche', 1.0+t*(6.0/WALK_END)
-    if t < B_START: return x, y, diam, 'marche', 7.0+(t-WALK_END)
+    if t < B_START: return x, y, diam, 'marche', min(9.9, 7.0+(t-WALK_END))
     return x, y, diam, 'plongeon', min(9.9, b_time(t))                                      # le clip tombe tout droit : on le laisse jouer
 def coin_layer(t):
     x, y, diam, clip, ct = coin_state(t); C = CLIPS[clip]; F = clip_frames(clip, C['crop']); rgb, m = F[min(len(F)-1, int(ct*24))]

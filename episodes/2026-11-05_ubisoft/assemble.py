@@ -10,15 +10,15 @@ import proto_intro as I, proto_breche as B
 W, H, FPS = I.W, I.H, 60
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
 def inout(x): x = clamp(x); return x*x*(3-2*x)
-DARK = 1.4                                  # obscurité et lueur avant que la scène s'ouvre
-S_END = I.T_JUMP+.05+I.LOGO_DRAW+.7         # fin de la scène du clocher : spirale tracée et allumée
+DARK = 3.92                                 # obscurité et lueur : deux mesures de musique avant que la scène s'ouvre
+S_END = 13.9                                # fin de la scène du clocher (global 17,8 s) : spirale tracée, « Ubisoft » prononcé
 FADE = .7                                   # fondu au noir : on descend
-B_SKIP = 1.0                                # on entre dans la brèche un peu après son début
-T_B = DARK+S_END+FADE+.25                   # début de la brèche sur la timeline
+B_SKIP = 1.17                               # l'explosion (3,08 s dans la vidéo Gemini) tombe sur le temps fort de 21,09 s
+T_B = 19.18                                 # début de la brèche, sur un premier temps
 DUR = T_B+(B.DUR-B_SKIP)
 def iris(img, t):
     """l'obscurité s'ouvre depuis une lueur au centre de l'horizon"""
-    a = np.asarray(img).astype(np.float32); u = inout(t/(DARK+.9))
+    a = np.asarray(img).astype(np.float32); u = inout((t-DARK+1.2)/2.1)
     yy, xx = np.mgrid[0:H, 0:W]; d = np.hypot((xx-540)/1.0, (yy-760)/1.15)
     r = 60+1500*u**1.6; m = np.clip(1-(d-r*.55)/(r*.45+1), 0, 1)**1.5
     glow = np.exp(-(d/150)**2)*.22*(1-u)**2                                                  # lueur chaude au cœur

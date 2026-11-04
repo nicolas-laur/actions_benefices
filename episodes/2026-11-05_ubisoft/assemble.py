@@ -27,27 +27,56 @@ def beat_pulse(t):
     if n < 0: return 0.0
     amp = 1.0 if n % 4 == 0 else .55
     return amp*math.exp(-d/.16)*min(1, d/.02)
+UBI_BLUE = np.array([30, 110, 255.]); UBI_DEEP = np.array([12, 40, 140.]); UBI_ICE = np.array([190, 225, 255.])
+# présages : fragments de l'histoire qui apparaissent autour de l'orbe, au rythme de la musique (temps d'apparition = numéro de temps)
+OMENS = [("-95 %", 0, 540, 520, 96, 0.0), ("2018", 2, 250, 640, 44, .6), ("107,90 €", 3, 820, 600, 40, .3), ("6 JEUX ARRÊTÉS", 5, 280, 1050, 30, .5),
+         ("-40 % EN UN JOUR", 6, 790, 1100, 30, .2), ("1,24 MD€ DE PERTES", 7, 540, 1180, 30, .7), ("TENCENT", 4, 840, 900, 32, .4), ("GAME OVER ?", 7.5, 540, 1300, 40, .9)]
+GLY = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%"
+def scramble(s, u, seed):
+    k = int(u*len(s)*1.0001); rng = np.random.default_rng(seed+int(u*40))
+    return ''.join(ch if (i < k or ch in ' ,.€%-?') else GLY[rng.integers(len(GLY))] for i, ch in enumerate(s))
+def _rel(t, b0):
+    return t-(BEAT0+b0*BEAT)
+def omens(c, t):
+    """chaque fragment surgit en se décodant, scintille sur les temps, puis s'estompe ; le −95 % est là dès l'image 0 (test chiffre choc)"""
+    for s, b0, x, y, size, ph in OMENS:
+        k = _rel(t, b0)
+        if s == "-95 %": a = .95; txt = s
+        else:
+            if k < 0: continue
+            a = min(1, k/.12)*(1-clamp((k-1.6)/.5))*(.75+.25*beat_pulse(t))
+            if a <= 0: continue
+            txt = scramble(s, clamp(k/.45), 3+int(ph*10))
+        dy = -18*k if s != "-95 %" else 0
+        fam = 'k' if s == "-95 %" else 'xb'
+        I.text(c, txt, x, y+dy, fam, size, 'D6E6FF' if s != "-95 %" else 'FFFFFF', 'c', a*(1-.5*clamp((t-(DARK-.6))/.6)), 3)
 def orb(t, cx=540, cy=820):
-    """orbe d'énergie dans le noir : cœur blanc doré, halo cyan, anneaux et particules ; elle pulse sur la musique et grossit avant d'éclater"""
+    """orbe d'énergie aux couleurs d'Ubisoft (bleu électrique, cœur blanc) : elle pulse sur la musique, ses anneaux vibrent, ses particules battent"""
     xx, yy = _grid(); d = np.hypot(xx-cx, yy-cy)
     p = beat_pulse(t); grow = inout((t-(DARK-1.0))/1.0)
-    R = 42*(1+.18*p)*(1+1.4*grow)+6*math.sin(t*5)
-    core = np.exp(-(d/R)**2)                                                   # cœur
-    halo = np.exp(-(d/(R*3.2))**2)*(.55+.45*p)                                 # halo
-    far = np.exp(-(d/(R*9))**2)*.18*(1+p)                                      # lueur diffuse
-    ring = np.exp(-((d-R*(1.8+1.6*((t*.9) % 1)))/6)**2)*(1-((t*.9) % 1))*.5    # anneau qui s'échappe
-    img = np.zeros((H, W, 3), np.float32)
-    img += core[..., None]*np.array([255, 246, 225])
-    img += halo[..., None]*np.array([120, 200, 255])*.7
-    img += far[..., None]*np.array([60, 120, 200])
-    img += ring[..., None]*np.array([160, 225, 255])
-    for a0, r0, sp, sz in _P:                                                  # particules
-        ang = a0*6.283+t*(.6+sp)*(1 if sp > .5 else -1); r = R*(1.6+r0*4.5)*(1+.1*p)
-        x, y = cx+r*math.cos(ang), cy+r*math.sin(ang)*.85
-        if 0 <= x < W and 0 <= y < H:
-            s = 1.5+sz*2.5; x0, y0 = int(x), int(y); r_ = int(s*3)+1
-            ys, xs = slice(max(0, y0-r_), min(H, y0+r_)), slice(max(0, x0-r_), min(W, x0+r_))
-            dd = np.hypot(xx[ys, xs]-x, yy[ys, xs]-y); img[ys, xs] += (np.exp(-(dd/s)**2)*(.5+.5*p))[..., None]*np.array([200, 235, 255])
+    R = 44*(1+.2*p)*(1+1.4*grow)+5*math.sin(t*5)
+    core = np.exp(-(d/R)**2); halo = np.exp(-(d/(R*3.0))**2)*(.6+.5*p); far = np.exp(-(d/(R*9))**2)*.22*(1+p)
+    img = core[..., None]*np.array([255, 255, 255.])+halo[..., None]*UBI_BLUE*.85+far[..., None]*UBI_DEEP
+    # anneaux, particules et présages dessinés au vecteur, puis lissés en halo
+    s, c = I.surface()
+    for n in range(3):                                                              # anneaux qui vibrent (ondulation + tremblement sur les temps)
+        ph = (t*.8+n/3) % 1; rr = R*(1.7+3.2*ph); al = (1-ph)*.75
+        c.new_path()
+        for k in range(181):
+            a_ = k/180*2*math.pi
+            wob = 1+.035*math.sin(6*a_+t*9+n)+.05*p*math.sin(11*a_-t*23)
+            x, y = cx+rr*wob*math.cos(a_), cy+rr*wob*math.sin(a_)*.92
+            (c.move_to if k == 0 else c.line_to)(x, y)
+        c.close_path(); c.set_line_width(3+3*p); c.set_source_rgba(.65, .82, 1, al); c.stroke()
+    for a0, r0, sp, sz in _P:                                                       # particules qui battent avec la musique
+        ang = a0*6.283+t*(.6+sp)*(1 if sp > .5 else -1); r = R*(1.6+r0*4.5)*(1+.12*p)
+        x, y = cx+r*math.cos(ang), cy+r*math.sin(ang)*.85; rad = (1.4+sz*2.6)*(1+1.3*p*(.5+sz))
+        c.arc(x, y, rad, 0, 2*math.pi); c.set_source_rgba(.78, .9, 1, .35+.6*p*sz+.25); c.fill()
+    omens(c, t)
+    lay = np.asarray(I.to_img(s)).astype(np.float32)
+    rgbL, aL = lay[..., :3], lay[..., 3:]/255
+    glow = cv2.GaussianBlur(rgbL*aL, (0, 0), 9)*1.3
+    img = img+glow*np.array([.55, .75, 1.0])+rgbL*aL
     return np.clip(img, 0, 255)
 def frame(t):
     if t < T_B:

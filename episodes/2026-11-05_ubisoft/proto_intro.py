@@ -11,7 +11,8 @@ from nty import text, surface, to_img, rr, col, tw, W, H, finish
 from bglass import glow_text, with_alpha
 import veo_coin as VC
 FPS = 60; DUR = 7.0
-AMB = os.environ.get('AMB', '1') == '1'                                              # ambiance (vent, nappe, coups sourds) ; AMB=0 : pas seuls
+AMB = os.environ.get('AMB', '1') == '1'
+TXT = os.environ.get('TXT', '1') == '1'                                              # TXT=0 : image seule, sans chiffre ni sous-titre                                              # ambiance (vent, nappe, coups sourds) ; AMB=0 : pas seuls
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
 def ease(x): x = clamp(x); return 1-(1-x)**3
 def inout(x): x = clamp(x); return x*x*(3-2*x)
@@ -107,7 +108,7 @@ def frame(t):
     base *= (1-sh[..., None])
     base = paste(base, rgb, m, ox, oy)
     cv = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8)).convert('RGBA')
-    overlay(cv, t)
+    if TXT: overlay(cv, t)
     return finish(cv, t, 2.5)
 STEPS = [1.21, 1.58, 2.04, 2.46, 2.83, 3.17, 3.54, 3.79, 4.04, 4.5, 5.0, 5.25, 5.71, 5.96, 6.42]
 def sound():

@@ -7,14 +7,17 @@ import numpy as np, cv2, functools
 from PIL import Image
 D = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, D)
 import proto_intro as I, proto_breche as B
+_SKY = I.sky_logo; I.sky_logo = lambda cv, t: None        # la spirale est dessinée ici, pour pouvoir la garder sur fond noir
 W, H, FPS = I.W, I.H, 60
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
 def inout(x): x = clamp(x); return x*x*(3-2*x)
 DARK = 3.92                                 # obscurité et lueur : deux mesures de musique avant que la scène s'ouvre
 S_END = 13.9                                # fin de la scène du clocher (global 17,8 s) : spirale tracée, « Ubisoft » prononcé
+T_TXT = 19.18                               # la spirale, seule sur fond noir, puis le texte (premier temps)
+T_OUT = 22.6                                # spirale et texte s'effacent (la musique finit sur un fondu)
 FADE = .7                                   # fondu au noir : on descend
-B_SKIP = 1.17                               # l'explosion (3,08 s dans la vidéo Gemini) tombe sur le temps fort de 21,09 s
-T_B = 19.18                                 # début de la brèche, sur un premier temps
+B_SKIP = 1.16                               # l'explosion (3,08 s dans la vidéo Gemini) tombe sur le temps fort de 24,92 s
+T_B = 23.0                                  # début de la brèche, sur un premier temps
 DUR = T_B+(B.DUR-B_SKIP)
 BEAT0, BEAT = .09, .4787                    # grille de la musique de Nicolas
 @functools.lru_cache(maxsize=1)
@@ -37,19 +40,39 @@ def scramble(s, u, seed):
     return ''.join(ch if (i < k or ch in ' ,.€%-?') else GLY[rng.integers(len(GLY))] for i, ch in enumerate(s))
 def _rel(t, b0):
     return t-(BEAT0+b0*BEAT)
-def omens(c, t):
-    """chaque fragment surgit en se décodant, scintille sur les temps, puis s'estompe ; le −95 % est là dès l'image 0 (test chiffre choc)"""
+DISS = .65                                   # durée de la dissolution d'un présage
+def omen_end(s, b0):
+    return (DARK-1.05) if s == "-95 %" else min(BEAT0+b0*BEAT+1.45, DARK-.8)            # tout est aspiré avant que l'orbe éclate
+@functools.lru_cache(maxsize=16)
+def text_points(s, size, fam):
+    """points tirés des pixels du texte (centré sur 0,0), pour le faire partir en poussière"""
+    import cairo
+    w, h = int(size*len(s)*.8)+40, int(size*1.8)
+    surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h); c = cairo.Context(surf); I.text(c, s, w/2, h/2, fam, size, 'FFFFFF', 'c', 1, 3); surf.flush()
+    al = np.frombuffer(surf.get_data(), np.uint8).reshape(h, surf.get_stride()//4, 4)[:, :w, 3]
+    ys, xs = np.where(al > 128); rng = np.random.default_rng(len(s)); idx = rng.choice(len(xs), min(len(xs), 260), replace=False)
+    return np.stack([xs[idx]-w/2, ys[idx]-h/2], 1).astype(np.float32), rng.uniform(0, .25, len(idx)).astype(np.float32)
+def omens(c, t, cx=540, cy=820):
+    """chaque fragment surgit en se décodant, scintille sur les temps, puis se dissout en particules aspirées par l'orbe ;
+    le −95 % est là dès l'image 0 (test chiffre choc)"""
     for s, b0, x, y, size, ph in OMENS:
-        k = _rel(t, b0)
-        if s == "-95 %": a = .95; txt = s
-        else:
-            if k < 0: continue
-            a = min(1, k/.12)*(1-clamp((k-1.6)/.5))*(.75+.25*beat_pulse(t))
-            if a <= 0: continue
-            txt = scramble(s, clamp(k/.45), 3+int(ph*10))
+        k = _rel(t, b0); te = omen_end(s, b0); fam = 'k' if s == "-95 %" else 'xb'
         dy = -18*k if s != "-95 %" else 0
-        fam = 'k' if s == "-95 %" else 'xb'
-        I.text(c, txt, x, y+dy, fam, size, 'D6E6FF' if s != "-95 %" else 'FFFFFF', 'c', a*(1-.5*clamp((t-(DARK-.6))/.6)), 3)
+        if t < te:
+            if s == "-95 %": a = .95; txt = s
+            else:
+                if k < 0: continue
+                a = min(1, k/.12)*(.75+.25*beat_pulse(t)); txt = scramble(s, clamp(k/.45), 3+int(ph*10))
+            I.text(c, txt, x, y+dy, fam, size, 'D6E6FF' if s != "-95 %" else 'FFFFFF', 'c', a, 3)
+        else:
+            kd = (t-te)/DISS
+            if kd >= 1: continue
+            P, dl = text_points(s, size, fam); y0 = y+(-18*(te-(BEAT0+b0*BEAT)) if s != "-95 %" else 0)
+            if kd < .25: I.text(c, s, x, y0, fam, size, 'D6E6FF', 'c', 1-kd/.25, 3)
+            for (px, py), d in zip(P, dl):
+                u = clamp((kd-d)/(1-d)); e = u*u*u                                   # accélère en approchant du cœur
+                sx, sy = x+px, y0+py; X, Y = sx+(cx-sx)*e, sy+(cy-sy)*e
+                X += 14*math.sin(u*9+px)*(1-u); c.arc(X, Y, 1.8*(1-.6*u), 0, 2*math.pi); c.set_source_rgba(.8, .9, 1, .9*(1-u**4)); c.fill()
 def orb(t, cx=540, cy=820):
     """orbe d'énergie aux couleurs d'Ubisoft (bleu électrique, cœur blanc) : elle pulse sur la musique, ses anneaux vibrent, ses particules battent"""
     xx, yy = _grid(); d = np.hypot(xx-cx, yy-cy)
@@ -78,6 +101,30 @@ def orb(t, cx=540, cy=820):
     glow = cv2.GaussianBlur(rgbL*aL, (0, 0), 9)*1.3
     img = img+glow*np.array([.55, .75, 1.0])+rgbL*aL
     return np.clip(img, 0, 255)
+LINE1, LINE2 = "Laisse-moi te conter", "l'histoire de cette action"
+def logo_layer(t):
+    """la spirale (tracée au saut), qui descend au centre de l'écran noir, scintille sur la musique ; puis le texte se décode dessous"""
+    s = t-DARK; cv = Image.new('RGBA', (W, H), 0)
+    if s <= I.T_JUMP+.05: return cv
+    _SKY(cv, s)
+    k = t-(DARK+S_END); u = inout(k/1.2) if k > 0 else 0.0
+    arr = np.asarray(cv).astype(np.float32)
+    if u > 0: M = np.float32([[1, 0, 0], [0, 1, 330*u]]); arr = cv2.warpAffine(arr, M, (W, H))
+    if k > 0:                                                                       # scintillement : reflet qui balaie la spirale + battement
+        p = beat_pulse(t); band = ((t-T_TXT) % 1.915)/1.915
+        xx, yy = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32))
+        sweep = np.exp(-(((xx-yy*.6)-(-200+1600*band))/60)**2)
+        al = arr[..., 3:]/255; arr[..., :3] = np.clip(arr[..., :3]*(1+.25*p)+255*sweep[..., None]*al*.8, 0, 255)
+        arr[..., 3] = np.clip(arr[..., 3]*(1+.15*p), 0, 255)
+    cv = Image.fromarray(arr.astype(np.uint8), 'RGBA')
+    kt = t-T_TXT
+    if kt > 0:
+        ss, c = I.surface(); a = min(1, kt/.2)
+        I.text(c, scramble(LINE1, clamp(kt/1.0), 21), 540, 1130, 'xb', 50, 'E8F0FF', 'c', a, 4)
+        I.text(c, scramble(LINE2, clamp((kt-.4)/1.1), 22), 540, 1205, 'xb', 50, 'E8F0FF', 'c', a*clamp((kt-.4)/.2), 4)
+        cv.alpha_composite(I.to_img(ss))
+    if t > T_OUT: cv = I.with_alpha(cv, 1-inout((t-T_OUT)/.4))
+    return cv
 def frame(t):
     if t < T_B:
         s = max(0.0, t-DARK)                                                              # la scène reste figée dans le noir, puis démarre
@@ -87,10 +134,10 @@ def frame(t):
             u = (t-DARK)/.6; a_ = np.asarray(im).astype(np.float32); fl = (1-inout(u))**1.5
             a_ = a_*(1-fl)+np.array([255, 250, 238])*fl; im = Image.fromarray(np.clip(a_, 0, 255).astype(np.uint8))
         kf = t-(DARK+S_END)
-        if kf > 0:                                                                        # fondu au noir en glissant vers le bas : on descend
-            u = inout(kf/FADE); a = np.asarray(im).astype(np.float32)
-            M = np.float32([[1, 0, 0], [0, 1, 140*u]]); a = cv2.warpAffine(a, M, (W, H), borderMode=cv2.BORDER_REPLICATE)
-            a *= (1-u); im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+        if kf > 0:                                                                        # la scène s'éteint, la spirale reste
+            u = inout(kf/FADE); a = np.asarray(im).astype(np.float32)*(1-u); im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+        if t > DARK:
+            im = im.convert('RGBA'); im.alpha_composite(logo_layer(t)); im = im.convert('RGB')
         return im
     bt = B_SKIP+(t-T_B); im = B.frame(bt).convert('RGB')
     k = t-T_B

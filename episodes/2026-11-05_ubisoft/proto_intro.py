@@ -10,7 +10,7 @@ sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin'); sy
 from nty import text, surface, to_img, rr, col, tw, W, H, finish
 from bglass import glow_text, with_alpha
 import veo_coin as VC
-FPS = 60; DUR = 7.0
+FPS = 60; DUR = 8.4
 AMB = os.environ.get('AMB', '1') == '1'
 TXT = os.environ.get('TXT', '1') == '1'                                              # TXT=0 : image seule, sans chiffre ni sous-titre                                              # ambiance (vent, nappe, coups sourds) ; AMB=0 : pas seuls
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
@@ -42,31 +42,50 @@ def plank_point(t, y0):
     tx, ty, s = track(t); return tx+s*(TIP0[0]-TIP0[0]), ty+s*(y0-TIP0[1]), s
 
 # ---------- Mister Coin de dos ----------
-@functools.lru_cache(maxsize=1)
-def coin_frames():
-    cap = cv2.VideoCapture(f'{ROOT}/mister_coin/veo/classique_dos_marche.mp4'); F = []
+@functools.lru_cache(maxsize=2)
+def clip_frames(name, crop):
+    cap = cv2.VideoCapture(f'{ROOT}/mister_coin/veo/classique_dos_{name}.mp4'); F = []
     while True:
         ok, f = cap.read()
         if not ok: break
-        a, m = VC._key(np.asarray(f[..., ::-1]))
-        crop = (slice(300, 1080), slice(100, 620))                                   # zone utile du clip (marges comprises)
-        F.append((np.clip(a[crop], 0, 255).astype(np.uint8), (m[crop]*255).astype(np.uint8)))
+        a, m = VC._key(np.asarray(f[..., ::-1])); cy, cx = slice(*crop[0]), slice(*crop[1])
+        F.append((np.clip(a[cy, cx], 0, 255).astype(np.uint8), (m[cy, cx]*255).astype(np.uint8)))
     return F
-CLIP_FEET_Y, CLIP_CX, CLIP_DIAM = 1034-300, 360-100, 360.0
-WALK_END = 5.8
+# deux clips de dos : la marche (sur place) et le plongeon (inspiration, bras en croix, petit saut, chute)
+CLIPS = {'marche': dict(crop=((300, 1080), (100, 620)), feet=1034-300, cx=360-100, diam=360.0),
+         'plongeon': dict(crop=((300, 1280), (0, 720)), feet=978-300, cx=358, diam=360.0/1.18)}   # même taille à l'écran : 1,18 = rapport des hauteurs
+WALK_END = 4.2                     # arrivée au bout de la planche
+B_START, B_SPEED = 4.4, 1.5        # bascule sur le plongeon (pose neutre identique), joué ×1,5
+def b_time(t): return .9+(t-B_START)*B_SPEED if t < B_START+(4.75-.9)/B_SPEED else 4.75+(t-(B_START+(4.75-.9)/B_SPEED))
+T_JUMP = B_START+(4.75-.9)/B_SPEED  # quitte la planche (≈ 6,97 s)
 def coin_state(t):
-    u = clamp(t/WALK_END); u = u*.85+ease(u)*.15                                       # pas régulier, arrivée en douceur
-    y0 = lerp(1905, 1470, u)                                                            # du bas du cadre jusqu'au bout de la planche
-    x, y, s = plank_point(t, y0)
-    diam = lerp(255, 205, u)                                                            # il s'éloigne un peu plus vite que la caméra n'avance : il rapetisse doucement
-    ct = 1.0+t if t < WALK_END+.2 else min(9.9, 7.0+(t-WALK_END-.2))                     # marche du clip, puis pose neutre
-    return x, y, diam, ct
+    u = clamp(t/WALK_END); u = u*.85+ease(u)*.15
+    y0 = lerp(1905, 1470, u); x, y, s = plank_point(t, y0)
+    diam = lerp(255, 205, u)
+    if t < WALK_END: return x, y, diam, 'marche', 1.0+t*(6.0/WALK_END)
+    if t < B_START: return x, y, diam, 'marche', 7.0+(t-WALK_END)
+    return x, y, diam, 'plongeon', min(4.75, b_time(t))                                    # figé bras en croix pendant la chute (le clip, lui, tombe tout droit)
 def coin_layer(t):
-    x, y, diam, ct = coin_state(t); F = coin_frames(); rgb, m = F[min(len(F)-1, int(ct*24))]
-    k = diam/CLIP_DIAM; w, h = int(rgb.shape[1]*k), int(rgb.shape[0]*k)
+    x, y, diam, clip, ct = coin_state(t); C = CLIPS[clip]; F = clip_frames(clip, C['crop']); rgb, m = F[min(len(F)-1, int(ct*24))]
+    k = diam/C['diam']
+    kf = t-T_JUMP; sq = 1.0
+    if kf > 0:                                                                          # la chute : il file vers le vide en rapetissant, le haut bascule en avant
+        k *= 1-.72*ease(kf/1.2); sq = 1-.30*ease(kf/.45)
+    w, h = max(2, int(rgb.shape[1]*k)), max(2, int(rgb.shape[0]*k*sq))
     rgb = cv2.resize(rgb, (w, h), interpolation=cv2.INTER_AREA); m = cv2.resize(m, (w, h), interpolation=cv2.INTER_AREA)
-    ox, oy = int(x-CLIP_CX*k), int(y-CLIP_FEET_Y*k)
+    ox, oy = int(x-C['cx']*k), int(y-C['feet']*k*sq)
+    if kf > 0:
+        x1, y1, _, _, _ = coin_state(T_JUMP); ox = int(x1-C['cx']*k)
+        lift = -110*math.sin(math.pi*clamp(kf/.5)) if kf < .5 else 0                     # élan vers l'avant (vers le fond), puis il descend sur la ville
+        oy = int(y1-C['feet']*k*sq+lift+90*ease((kf-.35)/.9))
     return rgb, m, ox, oy, k
+def occluder(t):
+    """planche et rebord du clocher (plus proches que le vide) : ils passent devant lui une fois qu'il a sauté"""
+    tx, ty, s = track(t); mk = np.zeros((H, W), np.float32)
+    def P(x, y): return [int(tx+s*(x-TIP0[0])), int(ty+s*(y-TIP0[1]))]
+    cv2.fillPoly(mk, [np.array([P(432, 1438), P(640, 1438), P(676, 1712), P(398, 1712)])], 1.0)
+    cv2.fillPoly(mk, [np.array([P(-400, 1712), P(1480, 1712), P(1480, 2600), P(-400, 2600)])], 1.0)
+    return cv2.GaussianBlur(mk, (0, 0), 1.5)
 def paste(base, rgb, m, ox, oy):
     h, w = m.shape; x0, y0 = max(0, ox), max(0, oy); x1, y1 = min(W, ox+w), min(H, oy+h)
     if x1 <= x0 or y1 <= y0: return base
@@ -100,13 +119,28 @@ def overlay(cv, t):
     text(c, cap1, 540, 880, 'b', 42, 'FFFFFF', 'c', 1); text(c, cap2, 540, 940, 'b', 42, 'FFFFFF', 'c', 1)
     text(c, "(sous-titre provisoire, en attendant la voix)", 540, 1010, 'sb', 20, 'FFFFFF', 'c', .6)
     cv.alpha_composite(to_img(s))
+def plunge(t):
+    """caméra qui plonge dans le vide après le saut : on descend et on avance"""
+    return ease((t-(T_JUMP+.05))/1.1)
 def frame(t):
     base = bg(t)
     rgb, m, ox, oy, k = coin_layer(t)
-    x, y, diam, ct = coin_state(t)                                                     # ombre douce sous les pieds, sur les lattes
-    sh = np.zeros((H, W), np.float32); cv2.ellipse(sh, (int(x), int(y)), (int(diam*.55), int(diam*.09)), 0, 0, 360, .45, -1); sh = cv2.GaussianBlur(sh, (0, 0), 6+diam*.03)
-    base *= (1-sh[..., None])
+    x, y, diam, clip, ct = coin_state(t)
+    if t < T_JUMP+.05:                                                                   # ombre douce sous les pieds, sur les lattes
+        sh = np.zeros((H, W), np.float32); cv2.ellipse(sh, (int(x), int(y)), (int(diam*.55), int(diam*.09)), 0, 0, 360, .45, -1); sh = cv2.GaussianBlur(sh, (0, 0), 6+diam*.03)
+        base *= (1-sh[..., None])
+    pk = plunge(t); M = None
+    if pk > 0:                                                                          # la caméra plonge : la planche file vers le bas du cadre
+        M = cv2.getRotationMatrix2D((540, 1150), 0, 1+.9*pk)
+        base = cv2.warpAffine(base, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+        bl = 5*math.sin(math.pi*clamp(pk))
+        if bl > .5: base = cv2.GaussianBlur(base, (0, 0), bl)
+    behind = base.copy()
     base = paste(base, rgb, m, ox, oy)
+    if t > T_JUMP:                                                                      # la planche, plus proche que lui, passe devant
+        oc = occluder(t)
+        if M is not None: oc = cv2.warpAffine(oc, M, (W, H))
+        base = base*(1-oc[..., None])+behind*oc[..., None]
     cv = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8)).convert('RGBA')
     if TXT: overlay(cv, t)
     return finish(cv, t, 2.5)
@@ -119,7 +153,7 @@ def sound():
     wind = lp(rng.standard_normal(n), 600)*(.05+.03*np.sin(2*np.pi*.18*tt))+bp(rng.standard_normal(n), 1500, 3000)*.006*(1+np.sin(2*np.pi*.11*tt))
     if AMB: out += wind
     for st in STEPS:                                                                     # pas sur le bois : choc sourd + craquement
-        t0 = st-1.0
+        t0 = (st-1.0)*WALK_END/6.0
         if not 0 <= t0 < WALK_END+.1: continue
         m = int(.18*SR); u = np.arange(m)/SR; i = int(t0*SR)
         thump = np.sin(2*np.pi*95*u)*np.exp(-u*38)*.35+bp(rng.standard_normal(m), 300, 1400)*np.exp(-u*45)*.18

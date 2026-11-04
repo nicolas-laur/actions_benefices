@@ -90,10 +90,10 @@ def s_jeux(cv, c, u, a):
             text(kk, yr, 60, 52, 'xb', 22, ICE, 'l', .7, 3)
             text(kk, nm, w/2, 130, 'k', 46, 'FFFFFF', 'c', 1, 1)
             rr(kk, 50, 190, w-100, 66, 33); col(kk, colr, .95); kk.fill(); text(kk, info, w/2, 223, 'xb', 26, INK, 'c', 1, 1)
-        y = 430+j*300
+        y = 398+j*352
         tp(cv, 860, 270, d, 540+60*(1-ease(k/.4))*(1 if j else -1), y, a*ease(k/.3), 'vert' if j else 'rouge', rx=.05, ry=(1 if j else -1)*(.05+.2*(1-ease(k/.45))))
     kt = u-27.42
-    if kt > 0: grp(c, a*ease(kt/.25), lambda c: gpill(c, "LA TENDANCE NE S'INVERSE PAS", 540, 960, RD, 28, fg='FFFFFF'), dy=12*(1-ease(kt/.3)))
+    if kt > 0: grp(c, a*ease(kt/.25), lambda c: gpill(c, "LA TENDANCE NE S'INVERSE PAS", 540, 975, RD, 28, fg='FFFFFF'), dy=12*(1-ease(kt/.3)))
 def s_ingame(cv, c, u, a):
     k0 = u-29.43
     prog = ease(clamp((k0-6.2)/1.6))                                             # la jauge monte quand « grimpe » est prononcé
@@ -108,12 +108,12 @@ def s_ingame(cv, c, u, a):
         text(k, fmt(share, 1)+" %", cx, cy-14, 'k', 76, 'FFFFFF', 'c', ease(k0/.4))
         text(k, "des ventes d'Ubisoft", cx, cy+50, 'xb', 22, ICE, 'c', .8*ease(k0/.4))
         text(k, "2024-25 : 43,7 %   →   2025-26 : 60,6 %", w/2, h-40, 'xb', 22, ICE, 'c', .75*ease((k0-7.4)/.4), 1)
-    tp(cv, 860, 640, d, 540, 568, a, 'vert', rx=.06+.25*(1-ease(k0/.4)), ry=.06)
+    tp(cv, 860, 600, d, 540, 580, a, 'vert', rx=.06+.25*(1-ease(k0/.4)), ry=.06)
     kb = u-35.2
     if kb > 0:
         grp(c, a*ease(kb/.2), lambda c: gpill(c, "924,7 M€ EN 2025-26 · +14,7 %", 540, 960, GD, 28), dy=12*(1-ease(kb/.3)))
     ks = u-37.4
-    if ks > 0: glow_text(cv, "6 € SUR 10", 540, 225, 84, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7, a=a*ease(ks/.2), scale=lerp(1.4, 1, back(ks/.35)), reflect=False)
+    if ks > 0: glow_text(cv, "6 € SUR 10", 540, 212, 84, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7, a=a*ease(ks/.2), scale=lerp(1.4, 1, back(ks/.35)), reflect=False)
 POL = [("JEUX EN RETARD", 40.24), ("JEUX ANNULÉS", 41.9), ("POLÉMIQUES À RÉPÉTITION", 43.2)]
 def s_polem(cv, c, u, a):
     for j, (s, t0) in enumerate(POL):

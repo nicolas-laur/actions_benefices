@@ -11,6 +11,7 @@ from nty import text, surface, to_img, rr, col, tw, W, H, finish
 from bglass import glow_text, with_alpha
 import veo_coin as VC
 FPS = 60; DUR = 7.0
+AMB = os.environ.get('AMB', '1') == '1'                                              # ambiance (vent, nappe, coups sourds) ; AMB=0 : pas seuls
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
 def ease(x): x = clamp(x); return 1-(1-x)**3
 def inout(x): x = clamp(x); return x*x*(3-2*x)
@@ -115,7 +116,7 @@ def sound():
     def bp(x, a, b): return sosfilt(butter(2, [a, b], 'bandpass', fs=SR, output='sos'), x)
     def lp(x, f): return sosfilt(butter(2, f, 'lowpass', fs=SR, output='sos'), x)
     wind = lp(rng.standard_normal(n), 600)*(.05+.03*np.sin(2*np.pi*.18*tt))+bp(rng.standard_normal(n), 1500, 3000)*.006*(1+np.sin(2*np.pi*.11*tt))
-    out += wind
+    if AMB: out += wind
     for st in STEPS:                                                                     # pas sur le bois : choc sourd + craquement
         t0 = st-1.0
         if not 0 <= t0 < WALK_END+.1: continue
@@ -123,10 +124,10 @@ def sound():
         thump = np.sin(2*np.pi*95*u)*np.exp(-u*38)*.35+bp(rng.standard_normal(m), 300, 1400)*np.exp(-u*45)*.18
         creak = np.sin(2*np.pi*np.cumsum(420+90*np.sin(2*np.pi*7*u))/SR)*np.exp(-((u-.06)/.03)**2)*.03
         out[i:i+m] += (thump+creak)[:max(0, n-i)]
-    for k, f0 in enumerate((55, 41.2, 49, 36.7)):                                         # nappe grave épique qui monte, grosse caisse à la fin
+    for k, f0 in enumerate((55, 41.2, 49, 36.7) if AMB else ()):                                         # nappe grave épique qui monte, grosse caisse à la fin
         a, b = k*1.6, k*1.6+2.0; i, j = int(a*SR), min(n, int(b*SR)); u = np.arange(j-i)/SR
         out[i:j] += (np.sin(2*np.pi*f0*u)+.5*np.sin(2*np.pi*2*f0*u)+.25*np.sin(2*np.pi*3*f0*u))*np.sin(np.pi*u/2.0)*.08*(1+k*.25)
-    for t0 in (0.0, 5.8):
+    for t0 in ((0.0, 5.8) if AMB else ()):
         m = int(.6*SR); u = np.arange(m)/SR; i = int(t0*SR)
         out[i:i+m] += (np.sin(2*np.pi*np.cumsum(70*np.exp(-u*5)+38)/SR)*np.exp(-u*5.5)*.6)[:max(0, n-i)]
     out = np.tanh(out*1.2); out *= .85/abs(out).max(); return SR, out

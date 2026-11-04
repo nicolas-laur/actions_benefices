@@ -25,13 +25,14 @@ def breach_frames():
     while True:
         ok, f = cap.read()
         if not ok: break
-        f = cv2.resize(f, (W, H), interpolation=cv2.INTER_CUBIC)[..., ::-1]
+        f = f[..., ::-1]                                                          # gardé en 720×1280 (taille native) : agrandi à l'usage, moins de mémoire
         a, m = VC._key(np.asarray(f))
         m = cv2.GaussianBlur(m.astype(np.float32), (0, 0), 1.2)
         F.append((np.clip(a, 0, 255).astype(np.uint8), (np.clip(m, 0, 1)*255).astype(np.uint8)))
     return F
 def breach(t):
-    F = breach_frames(); x = t*24; i = min(int(x), len(F)-1); return F[i]
+    F = breach_frames(); x = t*24; i = min(int(x), len(F)-1); a, m = F[i]
+    return cv2.resize(a, (W, H), interpolation=cv2.INTER_CUBIC), cv2.resize(m, (W, H), interpolation=cv2.INTER_LINEAR)
 
 # ---------- la salle derrière le mur : sombre, froide, une lumière rasante, poussière ----------
 @functools.lru_cache(maxsize=1)

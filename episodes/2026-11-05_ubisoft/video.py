@@ -113,8 +113,8 @@ def coin(cv, t):
     X, Y = CX_COIN, FEET+MC.hop_dy(t)+jump
     rgb_, al = MC.layer(t, X, Y)
     a = np.asarray(cv.convert('RGB')).astype(np.float32)
-    fx = MC.feet_x(al, Y) if Y > FEET-30 else X
-    if fx is not None and k > .5:
+    fx = (MC.feet_x(al, Y) if Y > FEET-30 else X) if (k > .5 and Y < H-30) else None
+    if fx is not None:
         kk = 1/(1+max(0, FEET-Y)/150); m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), FEET-3), (int(100*kk)+1, int(15*kk)+1), 0, 0, 360, .55*kk, -1)
         a *= (1-cv2.GaussianBlur(m, (0, 0), 9)[..., None])
     a = a*(1-al[..., None])+rgb_*al[..., None]

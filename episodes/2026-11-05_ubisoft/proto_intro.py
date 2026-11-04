@@ -10,7 +10,7 @@ sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin'); sy
 from nty import text, surface, to_img, rr, col, tw, W, H, finish
 from bglass import glow_text, with_alpha
 import veo_coin as VC
-FPS = 60; DUR = 8.4
+FPS = 60; DUR = 9.0
 AMB = os.environ.get('AMB', '1') == '1'
 TXT = os.environ.get('TXT', '1') == '1'                                              # TXT=0 : image seule, sans chiffre ni sous-titre                                              # ambiance (vent, nappe, coups sourds) ; AMB=0 : pas seuls
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
@@ -64,20 +64,16 @@ def coin_state(t):
     diam = lerp(255, 205, u)
     if t < WALK_END: return x, y, diam, 'marche', 1.0+t*(6.0/WALK_END)
     if t < B_START: return x, y, diam, 'marche', 7.0+(t-WALK_END)
-    return x, y, diam, 'plongeon', min(4.75, b_time(t))                                    # figé bras en croix pendant la chute (le clip, lui, tombe tout droit)
+    return x, y, diam, 'plongeon', min(9.9, b_time(t))                                      # le clip tombe tout droit : on le laisse jouer
 def coin_layer(t):
     x, y, diam, clip, ct = coin_state(t); C = CLIPS[clip]; F = clip_frames(clip, C['crop']); rgb, m = F[min(len(F)-1, int(ct*24))]
     k = diam/C['diam']
-    kf = t-T_JUMP; sq = 1.0
-    if kf > 0:                                                                          # la chute : il file vers le vide en rapetissant, le haut bascule en avant
-        k *= 1-.72*ease(kf/1.2); sq = 1-.30*ease(kf/.45)
-    w, h = max(2, int(rgb.shape[1]*k)), max(2, int(rgb.shape[0]*k*sq))
+    kf = t-T_JUMP
+    w, h = max(2, int(rgb.shape[1]*k)), max(2, int(rgb.shape[0]*k))
     rgb = cv2.resize(rgb, (w, h), interpolation=cv2.INTER_AREA); m = cv2.resize(m, (w, h), interpolation=cv2.INTER_AREA)
-    ox, oy = int(x-C['cx']*k), int(y-C['feet']*k*sq)
-    if kf > 0:
-        x1, y1, _, _, _ = coin_state(T_JUMP); ox = int(x1-C['cx']*k)
-        lift = -110*math.sin(math.pi*clamp(kf/.5)) if kf < .5 else 0                     # élan vers l'avant (vers le fond), puis il descend sur la ville
-        oy = int(y1-C['feet']*k*sq+lift+90*ease((kf-.35)/.9))
+    ox, oy = int(x-C['cx']*k), int(y-C['feet']*k)
+    if kf > 0:                                                                          # chute à pic : la chute du clip + la gravité
+        x1, y1, _, _, _ = coin_state(T_JUMP); ox = int(x1-C['cx']*k); oy = int(y1-C['feet']*k+1400*kf*kf)
     return rgb, m, ox, oy, k
 def occluder(t):
     """planche et rebord du clocher (plus proches que le vide) : ils passent devant lui une fois qu'il a sauté"""
@@ -119,6 +115,25 @@ def overlay(cv, t):
     text(c, cap1, 540, 880, 'b', 42, 'FFFFFF', 'c', 1); text(c, cap2, 540, 940, 'b', 42, 'FFFFFF', 'c', 1)
     text(c, "(sous-titre provisoire, en attendant la voix)", 540, 1010, 'sb', 20, 'FFFFFF', 'c', .6)
     cv.alpha_composite(to_img(s))
+@functools.lru_cache(maxsize=1)
+def spiral():
+    return Image.open(f'{D}/logos/UBI_spirale_blanche.png').convert('RGBA')
+@functools.lru_cache(maxsize=1)
+def spiral_glow():
+    from PIL import ImageFilter
+    im = spiral(); g = Image.new('RGBA', (im.width+240, im.height+240), 0); g.alpha_composite(im, (120, 120))
+    a = g.getchannel('A').filter(ImageFilter.GaussianBlur(40)); out = Image.new('RGBA', g.size, (255, 236, 200, 0)); out.putalpha(a.point(lambda v: int(v*.9))); return out
+T_LOGO = None
+def sky_logo(cv, t):
+    """au moment du saut, la spirale Ubisoft apparaît dans le ciel, avec un halo, et tourne lentement"""
+    k = t-(T_JUMP+.05)
+    if k <= 0: return
+    a = ease(k/.35); sc = lerp(.6, 1.0, 1-(1-clamp(k/.6))**3)*(1+.03*math.sin(k*2)); size = int(380*sc)
+    rot = -12*k
+    for img, extra in ((spiral_glow(), 1.4), (spiral(), 1.0)):
+        im = img.resize((int(size*extra*img.width/600/ (1.4 if extra > 1 else 1)), int(size*extra*img.height/600/(1.4 if extra > 1 else 1))), Image.LANCZOS) if extra == 1.0 else img.resize((int(size*img.width/600), int(size*img.height/600)), Image.LANCZOS)
+        im = im.rotate(rot, resample=Image.BICUBIC, expand=True)
+        cv.alpha_composite(with_alpha(im, a*(.85 if extra > 1 else .95)), (int(540-im.width/2), int(470-im.height/2)))
 def plunge(t):
     """caméra qui plonge dans le vide après le saut : on descend et on avance"""
     return ease((t-(T_JUMP+.05))/1.1)
@@ -129,12 +144,7 @@ def frame(t):
     if t < T_JUMP+.05:                                                                   # ombre douce sous les pieds, sur les lattes
         sh = np.zeros((H, W), np.float32); cv2.ellipse(sh, (int(x), int(y)), (int(diam*.55), int(diam*.09)), 0, 0, 360, .45, -1); sh = cv2.GaussianBlur(sh, (0, 0), 6+diam*.03)
         base *= (1-sh[..., None])
-    pk = plunge(t); M = None
-    if pk > 0:                                                                          # la caméra plonge : la planche file vers le bas du cadre
-        M = cv2.getRotationMatrix2D((540, 1150), 0, 1+.9*pk)
-        base = cv2.warpAffine(base, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-        bl = 5*math.sin(math.pi*clamp(pk))
-        if bl > .5: base = cv2.GaussianBlur(base, (0, 0), bl)
+    M = None
     behind = base.copy()
     base = paste(base, rgb, m, ox, oy)
     if t > T_JUMP:                                                                      # la planche, plus proche que lui, passe devant
@@ -142,6 +152,7 @@ def frame(t):
         if M is not None: oc = cv2.warpAffine(oc, M, (W, H))
         base = base*(1-oc[..., None])+behind*oc[..., None]
     cv = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8)).convert('RGBA')
+    sky_logo(cv, t)
     if TXT: overlay(cv, t)
     return finish(cv, t, 2.5)
 STEPS = [1.21, 1.58, 2.04, 2.46, 2.83, 3.17, 3.54, 3.79, 4.04, 4.5, 5.0, 5.25, 5.71, 5.96, 6.42]

@@ -101,7 +101,54 @@ def orb(t, cx=540, cy=820):
     glow = cv2.GaussianBlur(rgbL*aL, (0, 0), 9)*1.3
     img = img+glow*np.array([.55, .75, 1.0])+rgbL*aL
     return np.clip(img, 0, 255)
-LINE1, LINE2 = "Laisse-moi te conter", "l'histoire de cette action"
+import mty
+mty.FAM['cyb'] = ('Orbitron', 1); mty.FAM['raj'] = ('Rajdhani', 1)
+CYAN, MAG = (0, 240, 255), (255, 46, 136)
+TITLE = ("ACTIONS BÉNÉFICES PRÉSENTE", "L'ACTION UBISOFT", "UBI | EURONEXT PARIS")
+GLY2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%/<>[]_=+"
+def scramble2(s, u, seed):
+    k = int(u*len(s)*1.0001); rng = np.random.default_rng(seed+int(u*50))
+    return ''.join(ch if (i < k or ch in " |'") else GLY2[rng.integers(len(GLY2))] for i, ch in enumerate(s))
+GL_BURSTS = [(0.0, .50, 1.0), (1.35, .14, .55), (2.2, .10, .4), (2.85, .16, .6)]      # (début après T_TXT, durée, force)
+def glitch_level(t):
+    k = t-T_TXT; g = 0.0
+    for s0, d, f in GL_BURSTS:
+        if s0 <= k < s0+d: g = max(g, f*(1-.6*(k-s0)/d))
+    if t >= T_OUT: g = max(g, .5+.5*clamp((t-T_OUT)/.35))
+    return g
+def glitch(img, t, g):
+    """effet glitch cyberpunk : décalage RVB, tranches déplacées, blocs corrompus, lignes de balayage"""
+    a = img.astype(np.float32); fr = int(t*30)                                     # le motif change toutes les 2 images
+    rng = np.random.default_rng(1000+fr)
+    dx = int(2+26*g)
+    out = a.copy(); out[..., 0] = np.roll(a[..., 0], dx, 1); out[..., 2] = np.roll(a[..., 2], -dx, 1)
+    if g > .05:
+        for _ in range(int(4+18*g)):                                                # tranches horizontales décalées
+            y0 = rng.integers(0, H-60); hh = rng.integers(4, 46); sh = int(rng.normal(0, 90*g))
+            out[y0:y0+hh] = np.roll(out[y0:y0+hh], sh, 1)
+        for _ in range(int(2+6*g)):                                                 # blocs corrompus teintés cyan / magenta
+            y0 = rng.integers(500, 1450); x0 = rng.integers(60, 900); hh = rng.integers(10, 60); ww = rng.integers(60, 320)
+            tint = np.array(CYAN if rng.random() < .5 else MAG, np.float32)
+            blk = out[y0:y0+hh, x0:x0+ww]; out[y0:y0+hh, x0:x0+ww] = np.maximum(blk*.6, tint*(.25+.5*rng.random())*(blk.mean(2, keepdims=True) > 30))
+        noise = (rng.random((H, W)) < .004*g)[..., None]*255; out = np.maximum(out, noise)
+    out[::3] *= .82                                                                 # lignes de balayage (toujours là, discrètes)
+    return np.clip(out, 0, 255)
+def title_layer(t):
+    """titre cyberpunk sous la spirale : texte qui se décode, ticker dans un cadre aux coins coupés"""
+    kt = t-T_TXT; ss, c = I.surface()
+    if kt <= 0: return ss, c
+    u1 = clamp(kt/.7); u2 = clamp((kt-.25)/.8); u3 = clamp((kt-.7)/.7)
+    I.text(c, scramble2(TITLE[0], u1, 31), 540, 1135, 'raj', 40, 'BFF6FF', 'c', min(1, kt/.1), 9)
+    for off, colr, al in (((-3, 0), 'FF2E88', .7), ((3, 0), '00F0FF', .7), ((0, 0), 'FFFFFF', 1)):     # titre en relief chromatique
+        if u2 > 0: I.text(c, scramble2(TITLE[1], u2, 32), 540+off[0], 1225+off[1], 'cyb', 66, colr, 'c', al*min(1, (kt-.25)/.1), 3)
+    if u3 > 0:
+        s3 = scramble2(TITLE[2], u3, 33); w = I.tw(c, TITLE[2], 'cyb', 30, 4)+70; x0, y0, hh, cut = 540-w/2, 1290, 66, 16
+        c.new_path(); c.move_to(x0+cut, y0); c.line_to(x0+w, y0); c.line_to(x0+w, y0+hh-cut); c.line_to(x0+w-cut, y0+hh); c.line_to(x0, y0+hh); c.line_to(x0, y0+cut); c.close_path()
+        c.set_source_rgba(0, .94, 1, .12*ease_(u3)); c.fill_preserve(); c.set_line_width(2.5); c.set_source_rgba(0, .94, 1, .95*ease_(u3)); c.stroke()
+        c.rectangle(x0+w-8, y0+6, 4, 18); c.set_source_rgba(1, .18, .53, .9*ease_(u3)); c.fill()
+        I.text(c, s3, 540, y0+hh/2, 'cyb', 30, 'E8FDFF', 'c', ease_(u3), 4)
+    return ss, c
+def ease_(x): x = clamp(x); return 1-(1-x)**3
 def logo_layer(t):
     """la spirale (tracée au saut), qui descend au centre de l'écran noir, scintille sur la musique ; puis le texte se décode dessous"""
     s = t-DARK; cv = Image.new('RGBA', (W, H), 0)
@@ -117,13 +164,7 @@ def logo_layer(t):
         al = arr[..., 3:]/255; arr[..., :3] = np.clip(arr[..., :3]*(1+.25*p)+255*sweep[..., None]*al*.8, 0, 255)
         arr[..., 3] = np.clip(arr[..., 3]*(1+.15*p), 0, 255)
     cv = Image.fromarray(arr.astype(np.uint8), 'RGBA')
-    kt = t-T_TXT
-    if kt > 0:
-        ss, c = I.surface(); a = min(1, kt/.2)
-        I.text(c, scramble(LINE1, clamp(kt/1.0), 21), 540, 1190, 'xb', 50, 'E8F0FF', 'c', a, 4)
-        I.text(c, scramble(LINE2, clamp((kt-.4)/1.1), 22), 540, 1265, 'xb', 50, 'E8F0FF', 'c', a*clamp((kt-.4)/.2), 4)
-        cv.alpha_composite(I.to_img(ss))
-    if t > T_OUT: cv = I.with_alpha(cv, 1-inout((t-T_OUT)/.4))
+    ss, _ = title_layer(t); cv.alpha_composite(I.to_img(ss))
     return cv
 def frame(t):
     if t < T_B:
@@ -138,6 +179,13 @@ def frame(t):
             u = inout(kf/FADE); a = np.asarray(im).astype(np.float32)*(1-u); im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
         if t > DARK:
             im = im.convert('RGBA'); im.alpha_composite(logo_layer(t)); im = im.convert('RGB')
+        if t >= T_TXT-.02:
+            arr = glitch(np.asarray(im), t, glitch_level(t))
+            if t > T_OUT+.18:                                                            # extinction façon vieil écran : l'image s'écrase en une ligne
+                u = clamp((t-(T_OUT+.18))/.2); sy = max(.004, (1-u)**3); sx = 1 if u < .7 else max(.002, 1-(u-.7)/.3)
+                M = np.float32([[sx, 0, 540*(1-sx)], [0, sy, 960*(1-sy)]]); arr = cv2.warpAffine(arr, M, (W, H))
+                arr = arr*(1+2.5*u*(u < .95))
+            im = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
         return im
     bt = B_SKIP+(t-T_B); im = B.frame(bt).convert('RGB')
     k = t-T_B

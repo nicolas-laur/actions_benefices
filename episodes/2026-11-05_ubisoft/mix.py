@@ -244,7 +244,29 @@ def zap2():   # un pays s'allume : blip cristallin dont la note monte à chaque 
     return (np.sin(2*np.pi*f*t)+.3*np.sin(2*np.pi*2*f*t)*np.exp(-t*12))*np.exp(-t*9)*np.minimum(1, t/.003)*.035
 def drop():   # un logo qui tombe : « plic » feutré, hauteur variable
     n = int(.12*SR); t = tt(n); f = rng.uniform(900, 1500); return np.sin(2*np.pi*np.cumsum(f*(1-.4*t/.12))/SR)*np.exp(-t*45)*.025
-MAP = dict(drop=drop, zap2=zap2, draw=lambda: whoosh()*1.5, zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
+def _crush(x, step):   # échantillonnage bloqué + quantification : son numérique abîmé
+    idx = (np.arange(len(x))//step)*step; return np.round(x[idx]*6)/6
+def glitch(dur=.16, g=.05):   # glitch cyberpunk : bruit numérique haché + bips carrés qui sautent de note
+    n = int(dur*SR); t = tt(n); x = _crush(rng.standard_normal(n)*.5, int(rng.integers(6, 18)))
+    gate = (np.sin(2*np.pi*rng.uniform(24, 40)*t) > -.2).astype(float); x = bp(x, 900, 9000)*gate
+    sq = np.zeros(n); k = 0
+    while k < n:
+        m = int(rng.uniform(.012, .03)*SR); f = rng.choice([620, 930, 1240, 1860, 2480, 3100]); u = tt(min(m, n-k))
+        sq[k:k+len(u)] = np.sign(np.sin(2*np.pi*f*u))*(rng.random() < .7); k += m
+    env = np.minimum(1, t/.003)*np.clip(1-t/dur, 0, 1)**.5
+    return (x*.6+sq*.35)*env*g
+def glitchbig():   # entrée du titre : glitch long + bourdonnement numérique grave + balayage de données
+    n = int(.62*SR); t = tt(n); g = glitch(.62, .055)
+    buzz = _crush(np.sign(np.sin(2*np.pi*55*t))*.6+np.sin(2*np.pi*110*t)*.4, 40); buzz = lp(buzz, 1800)*np.exp(-t*4)*.05
+    sw = np.sin(2*np.pi*np.cumsum(3800*np.exp(-t*7)+180)/SR)*np.exp(-t*5)*.02
+    sub = np.sin(2*np.pi*48*t)*np.exp(-t*9)*.06
+    return g+buzz+sw+sub
+def glitchoff():   # extinction : grésillement puis note qui chute (écran qui s'éteint) et petit choc
+    n = int(.55*SR); t = tt(n); x = np.zeros(n); g = glitch(.25, .05); x[:len(g)] += g
+    f = 2200*np.exp(-t*11)+40; x += np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-((t-.25)/.18)**2)*.045
+    i = int(.36*SR); m = n-i; u = tt(m); x[i:] += np.sin(2*np.pi*60*u)*np.exp(-u*14)*.07+lp(rng.standard_normal(m), 3000)*np.exp(-u*20)*.02
+    return x
+MAP = dict(glitch=glitch, glitchbig=glitchbig, glitchoff=glitchoff, drop=drop, zap2=zap2, draw=lambda: whoosh()*1.5, zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
 fx = np.zeros(N); duck = np.ones(N)
 for t0, k in V.events():
     add(fx, MAP[k](), t0-(.35 if k == 'whoosh' else (.12 if k in ('trans', 'swish') else 0)), .45 if k == 'ignite' else (1.8 if k.startswith('fill') else 1.0))

@@ -7,6 +7,8 @@ D = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.j
 sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/archives/msft'); sys.path.insert(0, f'{ROOT}/archives/btc')
 from nty import text, surface, to_img, rr, col, tw, W, H
 from bglass import gpanel, place, glow_text, tilt_quad, with_alpha
+from verre_epais import tplace
+import cv2
 V5 = 26.4
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
 def ease(x): x = clamp(x); return 1-(1-x)**3
@@ -22,6 +24,24 @@ def grp(c, a, fn, dy=0):
 def gpill(c, s, x, y, colr, size=30, a=1, fg=INK):
     w = tw(c, s, 'xb', size, 2)+56; rr(c, x-w/2, y-size*.95, w, size*1.9, size*.95); col(c, colr, a); c.fill(); text(c, s, x, y, 'xb', size, fg, 'c', a, 2)
 def gp(w, h, draw, tint='CFE8FF'): return gpanel(w, h, draw, tint=tint, ta=.08, edge=.75)
+@functools.lru_cache(maxsize=1)
+def room_img():
+    """décor du souterrain + fumée lente (statique : le verre est calculé dessus et mis en cache)"""
+    import proto_breche as B
+    base = np.asarray(B.room_base().convert('RGB')).astype(np.float32)/255
+    rng = np.random.default_rng(7); acc = np.zeros((H, W), np.float32)
+    for sc, wg in ((5, 1), (10, .55), (20, .3)):
+        n = rng.random((int(H/(W/sc))+2, sc+2)).astype(np.float32); acc += wg*cv2.resize(n, (W, H), interpolation=cv2.INTER_CUBIC)
+    acc = cv2.GaussianBlur(acc, (0, 0), 28); acc = (acc-acc.min())/(acc.max()-acc.min())
+    yy = np.linspace(0, 1, H, dtype=np.float32)[:, None]
+    smoke = (acc**2.4)*(1-.5*yy)
+    base = np.clip(base+smoke[..., None]*np.array([.16, .17, .2], np.float32), 0, 1)
+    return base, Image.fromarray((base*255).astype(np.uint8)).convert('RGBA')
+def tp(cv, w, h, d, cx, cy, a, mood, rx=0.0, ry=0.0):
+    """panneau de verre épais (contenu d inchangé : le biseau s'ajoute autour)"""
+    bev = 36 if min(w, h) > 200 else 24; P = bev-10; W2, H2 = w+2*P, h+2*P
+    def dd(k, ww, hh): k.translate(P, P); d(k, w, h)
+    tplace(cv, room_img()[0], W2, H2, dd, tilt_quad(cx, cy, W2, H2, ry=ry, rx=rx), a, mood, bevel=bev, r=46 if min(w, h) > 200 else 34)
 def win(u, a, b, fi=.35, fo=.3): return min(ease((u-a)/fi), 1-ease((u-b)/fo))
 
 # ---------- sections (début, fin) en temps du fichier 5, tirées des pauses de la voix ----------
@@ -32,8 +52,8 @@ def s_fondation(cv, c, u, a):
     def d(k, w, h):
         text(k, "UNE HISTOIRE BRETONNE", w/2, 56, 'xb', 26, ICE, 'c', .85, 6)
         text(k, "les 5 frères Guillemot", w/2, h-58, 'xb', 34, 'D6E6FF', 'c', ease((u-3.2)/.4), 1)
-    place(cv, gp(820, 400, d), tilt_quad(540, 560, 820, 400, rx=.06+.2*(1-ease((u+1.5)/1))), a, 18, .5)
-    glow_text(cv, "1986", 540, 545, 170, top='FFFFFF', bottom='CFE0FF', glow=BL, ga=.7, a=a*ease((u-2.4)/.25), scale=lerp(1.5, 1, back((u-2.4)/.4)), reflect=False)
+    tp(cv, 820, 400, d, 540, 560, a, 'or', rx=.06+.2*(1-ease((u+1.5)/1)), ry=.07)
+    glow_text(cv, "1986", 540, 545, 170, top='FFFFFF', bottom='FFE6B0', glow='F5A623', ga=.7, a=a*ease((u-2.4)/.25), scale=lerp(1.5, 1, back((u-2.4)/.4)), reflect=False)
     for i, (nm, t0) in enumerate(FRANCH):
         k = u-t0
         if k > 0:
@@ -55,7 +75,7 @@ def s_ventes(cv, c, u, a):
             if g > .05: text(k, fmt(v*g)+" M€", cx, base-hb-28, 'xb', 28, 'FFFFFF', 'c', ease((k0-t0)/.3))
             if tag and g > .9: text(k, tag, cx, base-hb-66, 'xb', 18, GD, 'c', .9, 3)
         text(k, "Net bookings (chiffre d'affaires publié par Ubisoft)", w/2, h-30, 'sb', 18, ICE, 'c', .55)
-    place(cv, gp(860, 560, d), tilt_quad(540, 600, 860, 560, rx=.05+.25*(1-ease(k0/.4))), a, 18, .5)
+    tp(cv, 860, 560, d, 540, 600, a, 'rouge', rx=.06+.25*(1-ease(k0/.4)), ry=-.06)
     ks = u-18.97
     if ks > 0:
         sc = lerp(1.8, 1, back(ks/.3, 2)); s_, cc = surface(); cc.translate(760, 430); cc.rotate(-.12); cc.scale(sc, sc)
@@ -71,7 +91,7 @@ def s_jeux(cv, c, u, a):
             text(kk, nm, w/2, 130, 'k', 46, 'FFFFFF', 'c', 1, 1)
             rr(kk, 50, 190, w-100, 66, 33); col(kk, colr, .95); kk.fill(); text(kk, info, w/2, 223, 'xb', 26, INK, 'c', 1, 1)
         y = 430+j*300
-        place(cv, gp(860, 270, d), tilt_quad(540+60*(1-ease(k/.4))*(1 if j else -1), y, 860, 270, ry=(.2 if j else -.2)*(1-ease(k/.45))), a*ease(k/.3), 18, .5)
+        tp(cv, 860, 270, d, 540+60*(1-ease(k/.4))*(1 if j else -1), y, a*ease(k/.3), 'vert' if j else 'rouge', rx=.05, ry=(1 if j else -1)*(.05+.2*(1-ease(k/.45))))
     kt = u-27.42
     if kt > 0: grp(c, a*ease(kt/.25), lambda c: gpill(c, "LA TENDANCE NE S'INVERSE PAS", 540, 960, RD, 28, fg='FFFFFF'), dy=12*(1-ease(kt/.3)))
 def s_ingame(cv, c, u, a):
@@ -88,7 +108,7 @@ def s_ingame(cv, c, u, a):
         text(k, fmt(share, 1)+" %", cx, cy-14, 'k', 76, 'FFFFFF', 'c', ease(k0/.4))
         text(k, "des ventes d'Ubisoft", cx, cy+50, 'xb', 22, ICE, 'c', .8*ease(k0/.4))
         text(k, "2024-25 : 43,7 %   →   2025-26 : 60,6 %", w/2, h-40, 'xb', 22, ICE, 'c', .75*ease((k0-7.4)/.4), 1)
-    place(cv, gp(860, 640, d, 'FFE9C0'), tilt_quad(540, 590, 860, 640, rx=.05+.25*(1-ease(k0/.4))), a, 18, .5)
+    tp(cv, 860, 640, d, 540, 568, a, 'vert', rx=.06+.25*(1-ease(k0/.4)), ry=.06)
     kb = u-35.2
     if kb > 0:
         grp(c, a*ease(kb/.2), lambda c: gpill(c, "924,7 M€ EN 2025-26 · +14,7 %", 540, 960, GD, 28), dy=12*(1-ease(kb/.3)))
@@ -102,7 +122,7 @@ def s_polem(cv, c, u, a):
         def d(kk, w, h, s=s):
             kk.arc(70, h/2, 22, 0, 2*math.pi); col(kk, RD); kk.fill(); text(kk, "!", 70, h/2, 'k', 30, 'FFFFFF', 'c', 1)
             text(kk, s, 120, h/2, 'k', 40, 'FFFFFF', 'l', 1, 1)
-        place(cv, gp(820, 130, d), tilt_quad(540+(1-ease(k/.35))*500, 400+j*170, 820, 130, ry=-.3*(1-ease(k/.4))), a*ease(k/.25), 16, .5)
+        tp(cv, 820, 130, d, 540+(1-ease(k/.35))*500, 400+j*170, a*ease(k/.25), 'orange', rx=.05, ry=-.05-.3*(1-ease(k/.4)))
     kh = u-44.5
     if kh > 0: grp(c, a*ease(kh/.25), lambda c: gpill(c, "LE HÉROS D'AC SHADOWS FAIT DÉBAT", 540, 930, 'E8EEF8', 26), dy=12*(1-ease(kh/.3)))
 def s_janvier(cv, c, u, a):
@@ -111,7 +131,7 @@ def s_janvier(cv, c, u, a):
         text(k, "22 JANVIER 2026", w/2, 54, 'xb', 26, ICE, 'c', .85, 5)
         text(k, "6 JEUX ARRÊTÉS", w/2, 150, 'k', 64, 'FFFFFF', 'c', ease((k0-1.2)/.3), 1)
         text(k, "dont le remake de Prince of Persia", w/2, 210, 'sb', 24, ICE, 'c', .7*ease((k0-1.6)/.4))
-    place(cv, gp(820, 270, d), tilt_quad(540, 400, 820, 270, rx=.05+.25*(1-ease(k0/.4))), a, 18, .5)
+    tp(cv, 820, 270, d, 540, 400, a, 'rouge', rx=.06+.25*(1-ease(k0/.4)), ry=.06)
     kc = u-49.2
     if kc > 0:
         glow_text(cv, "-39,8 %", 540, 640, 150, top='FFFFFF', bottom='FFC2C9', glow=RD, ga=.8, a=a*ease(kc/.12), scale=lerp(1.7, 1, back(kc/.3, 2)), reflect=False)
@@ -121,7 +141,7 @@ def s_janvier(cv, c, u, a):
         def d2(k, w, h):
             text(k, "PERTE NETTE 2025-26", w/2, 46, 'xb', 22, ICE, 'c', .85, 4)
             text(k, "-1,24 MD€", w/2, 112, 'k', 60, 'FF8090', 'c', ease((kp-.3)/.2), 1)
-        place(cv, gp(560, 160, d2, 'FFC9CF'), tilt_quad(540, 885, 560, 160, rx=.3*(1-ease(kp/.4))), a*ease(kp/.3), 16, .5)
+        tp(cv, 560, 160, d2, 540, 885, a*ease(kp/.3), 'rouge', rx=.05+.3*(1-ease(kp/.4)), ry=-.06)
 def s_mille(cv, c, u, a):
     k0 = u-55.6
     v = 1000-(1000-40)*inout(clamp((k0-1.0)/2.6)) if k0 > 1.0 else 1000.0
@@ -129,7 +149,7 @@ def s_mille(cv, c, u, a):
     def d(k, w, h):
         text(k, "1 000 € PLACÉS AU SOMMET, LE 18/07/2018", w/2, 56, 'xb', 24, ICE, 'c', .85, 2)
         text(k, "AUJOURD'HUI", w/2, h-56, 'xb', 24, ICE, 'c', .8*ease((k0-1.0)/.3), 4)
-    place(cv, gp(860, 420, d), tilt_quad(540, 560, 860, 420, rx=.05+.25*(1-ease(k0/.4))), a, 18, .5)
+    tp(cv, 860, 420, d, 540, 560, a, 'rouge', rx=.06+.25*(1-ease(k0/.4)), ry=-.06)
     if not done: glow_text(cv, fmt(v)+" €", 540, 560, 150, top='FFFFFF', bottom='CFE0FF' if v > 500 else 'FFC2C9', glow=BL if v > 500 else RD, ga=.65, a=a, reflect=False)
     else: glow_text(cv, "MOINS DE 50 €", 540, 560, 118, top='FFFFFF', bottom='FFC2C9', glow=RD, ga=.85, a=a, scale=lerp(1.3, 1, back((k0-3.7)/.3)), reflect=False)
     if k0 > 4.0: grp(c, a*ease((k0-4.0)/.3), lambda c: gpill(c, "-95 % · HORS DIVIDENDES", 540, 860, RD, 28, fg='FFFFFF'))
@@ -138,8 +158,8 @@ def s_tencent(cv, c, u, a):
     def d(k, w, h):
         text(k, "TENCENT INVESTIT DANS VANTAGE STUDIOS", w/2, 54, 'xb', 22, ICE, 'c', .85, 2)
         text(k, "26,32 % de la filiale", w/2, h-56, 'xb', 28, 'D6E6FF', 'c', ease((k0-1.6)/.4), 1)
-    place(cv, gp(860, 400, d, 'CFE8FF'), tilt_quad(540, 520, 860, 400, rx=.05+.25*(1-ease(k0/.4))), a, 18, .5)
-    glow_text(cv, "1,16 MD€", 540, 505, 150, top='FFFFFF', bottom='CFF4FF', glow=CY, ga=.7, a=a*ease((k0-.9)/.2), scale=lerp(1.5, 1, back((k0-.9)/.35)), reflect=False)
+    tp(cv, 860, 400, d, 540, 520, a, 'vert', rx=.06+.25*(1-ease(k0/.4)), ry=.06)
+    glow_text(cv, "1,16 MD€", 540, 505, 150, top='FFFFFF', bottom='D4FFE2', glow=GR, ga=.7, a=a*ease((k0-.9)/.2), scale=lerp(1.5, 1, back((k0-.9)/.35)), reflect=False)
     for i, (nm, t0) in enumerate((("ASSASSIN'S CREED", 63.0), ("FAR CRY", 64.1), ("RAINBOW SIX", 64.8))):
         k = u-t0
         if k > 0: grp(c, a*ease(k/.2), lambda c, nm=nm, i=i: gpill(c, nm, 540+(i-1)*(300 if i != 1 else 0)+(0 if i != 1 else 0), 820+(70 if i == 1 else 0), 'E8EEF8', 24), dy=12*(1-ease(k/.3)))

@@ -13,7 +13,7 @@ from nty import text, surface, to_img, rr, col, tw, W, H, finish
 from veo_coin import VeoCoin
 FPS = int(os.environ.get('FPS', 60)); NB = ' '
 VOICE = f'{D}/voice_full.wav'
-OFF = {1: 4.35, 2: 10.9, 3: 15.25, 4: 18.45, 5: G.V5}
+OFF = {1: 0.30, 2: 5.2, 3: 9.6, 4: 15.35, 5: G.V5}        # la voix démarre sur l'orbe ; « Ubisoft » tombe quand la spirale se dessine dans le ciel
 A5 = G.V5
 DUR = A5+69.49+2.0
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
@@ -24,7 +24,7 @@ def inout(x): x = clamp(x); return x*x*(3-2*x)
 B = A.B
 def room_arg(bt):
     t = bt-A.B_SKIP+A.T_B
-    cv = B.room_base().copy(); s, c = surface(); rng = np.random.default_rng(4)
+    cv = G.room_img()[1].copy(); s, c = surface(); rng = np.random.default_rng(4)
     for k in range(70):                                                      # poussière qui retombe
         x = (rng.uniform(0, W)+12*math.sin(t*.5+k)) % W; y = (rng.uniform(0, H)+t*25) % H; r = rng.uniform(.8, 2.4)
         c.arc(x, y, r, 0, 2*math.pi); c.set_source_rgba(.85, .9, 1, rng.uniform(.05, .2)); c.fill()
@@ -98,7 +98,7 @@ def cap_layer(cv, t):
     st0, s_, hl = CAPS[k]; a = ease((t-st0)/.12)
     nxt = CAPS[k+1][0] if k+1 < len(CAPS) else DUR
     if k+1 >= len(CAPS) or not CAPS[k+1][1]: a *= 1-ease((t-(nxt-.15))/.15)
-    s, c = surface(); caption(c, parse(s_), hl, a=a); cv.alpha_composite(to_img(s))
+    s, c = surface(); caption(c, parse(s_), hl, y=1420 if t < A.DARK else 1060, a=a); cv.alpha_composite(to_img(s))   # sous l'orbe et ses présages au début
 
 # ---------- Mister Coin revient dans le souterrain (classique, de face), en bondissant depuis le bas ----------
 EXP, INQ, CONF, TRI, ENT, QUES = 'classique_parle_explique', 'classique_parle_inquiet', 'classique_parle_confidence', 'classique_parle_triste', 'classique_parle_enthousiaste', 'classique_parle_question'
@@ -126,7 +126,7 @@ def frame(t):
     cap_layer(cv, t)
     return finish(cv, t, 2.0) if t > A.T_B else cv
 def events():
-    ev = [(A.DARK, 'impact'), (A.DARK+.02, 'glint'), (A.DARK+I_T, 'whoosh'), (A.DARK+I_T+1.1, 'glint'), (A.T_TXT, 'key'), (A.T_TXT+.4, 'key')]
+    ev = [(A.DARK, 'impact'), (A.DARK+.02, 'glint'), (A.DARK+I_T, 'whoosh'), (A.DARK+I_T+1.1, 'glint'), (A.T_TXT, 'glitchbig')]+[(A.T_TXT+s0, 'glitch') for s0, _, _ in A.GL_BURSTS[1:]]+[(A.T_OUT, 'glitchoff')]
     ev += G.events(A5)
     ev += [(T_MC+.1, 'hop')] + [(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops) if h > T_MC+1]
     return sorted(ev)

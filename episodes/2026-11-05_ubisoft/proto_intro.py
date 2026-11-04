@@ -124,16 +124,30 @@ def spiral_glow():
     im = spiral(); g = Image.new('RGBA', (im.width+240, im.height+240), 0); g.alpha_composite(im, (120, 120))
     a = g.getchannel('A').filter(ImageFilter.GaussianBlur(40)); out = Image.new('RGBA', g.size, (255, 236, 200, 0)); out.putalpha(a.point(lambda v: int(v*.9))); return out
 T_LOGO = None
+LOGO_DRAW = 1.1                      # durée du tracé de la spirale
+@functools.lru_cache(maxsize=1)
+def _ang():
+    n = 600; yy, xx = np.mgrid[0:n, 0:n]; return (np.degrees(np.arctan2(xx-n/2, -(yy-n/2))) % 360).astype(np.float32)
 def sky_logo(cv, t):
-    """au moment du saut, la spirale Ubisoft apparaît dans le ciel, avec un halo, et tourne lentement"""
+    """au moment du saut, la spirale Ubisoft se dessine dans le ciel (balayage circulaire, comme un trait), puis son halo s'allume"""
     k = t-(T_JUMP+.05)
     if k <= 0: return
-    a = ease(k/.35); sc = lerp(.6, 1.0, 1-(1-clamp(k/.6))**3)*(1+.03*math.sin(k*2)); size = int(380*sc)
-    rot = -12*k
-    for img, extra in ((spiral_glow(), 1.4), (spiral(), 1.0)):
-        im = img.resize((int(size*extra*img.width/600/ (1.4 if extra > 1 else 1)), int(size*extra*img.height/600/(1.4 if extra > 1 else 1))), Image.LANCZOS) if extra == 1.0 else img.resize((int(size*img.width/600), int(size*img.height/600)), Image.LANCZOS)
-        im = im.rotate(rot, resample=Image.BICUBIC, expand=True)
-        cv.alpha_composite(with_alpha(im, a*(.85 if extra > 1 else .95)), (int(540-im.width/2), int(470-im.height/2)))
+    th = 360*inout(k/LOGO_DRAW)
+    sp = np.asarray(spiral()).copy(); A = _ang()
+    edge = np.ones_like(A) if th >= 359.5 else np.clip((th-A)/14, 0, 1)               # bord du tracé adouci
+    sp[..., 3] = (sp[..., 3]*edge).astype(np.uint8)
+    im = Image.fromarray(sp, 'RGBA')
+    size = int(380*(1+.025*math.sin(k*1.6)))
+    g = spiral_glow(); ga = ease((k-LOGO_DRAW+.2)/.5)
+    if ga > 0:
+        gi = g.resize((int(size*g.width/600), int(size*g.height/600)), Image.LANCZOS)
+        cv.alpha_composite(with_alpha(gi, .8*ga), (int(540-gi.width/2), int(470-gi.height/2)))
+    im = im.resize((size, size), Image.LANCZOS)
+    cv.alpha_composite(with_alpha(im, .95), (int(540-size/2), int(470-size/2)))
+    if th < 359:                                                                      # étincelle au bout du trait
+        s_, c = surface(); r = size/2*.92; ang = math.radians(th); px, py = 540+r*math.sin(ang), 470-r*math.cos(ang)
+        rg = cairo.RadialGradient(px, py, 0, px, py, 34); rg.add_color_stop_rgba(0, 1, .97, .88, .95); rg.add_color_stop_rgba(1, 1, .9, .7, 0)
+        c.set_source(rg); c.arc(px, py, 34, 0, 2*math.pi); c.fill(); cv.alpha_composite(to_img(s_))
 def plunge(t):
     """caméra qui plonge dans le vide après le saut : on descend et on avance"""
     return ease((t-(T_JUMP+.05))/1.1)

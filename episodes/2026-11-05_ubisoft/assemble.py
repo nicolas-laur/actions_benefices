@@ -120,8 +120,8 @@ def logo_layer(t):
     kt = t-T_TXT
     if kt > 0:
         ss, c = I.surface(); a = min(1, kt/.2)
-        I.text(c, scramble(LINE1, clamp(kt/1.0), 21), 540, 1130, 'xb', 50, 'E8F0FF', 'c', a, 4)
-        I.text(c, scramble(LINE2, clamp((kt-.4)/1.1), 22), 540, 1205, 'xb', 50, 'E8F0FF', 'c', a*clamp((kt-.4)/.2), 4)
+        I.text(c, scramble(LINE1, clamp(kt/1.0), 21), 540, 1190, 'xb', 50, 'E8F0FF', 'c', a, 4)
+        I.text(c, scramble(LINE2, clamp((kt-.4)/1.1), 22), 540, 1265, 'xb', 50, 'E8F0FF', 'c', a*clamp((kt-.4)/.2), 4)
         cv.alpha_composite(I.to_img(ss))
     if t > T_OUT: cv = I.with_alpha(cv, 1-inout((t-T_OUT)/.4))
     return cv

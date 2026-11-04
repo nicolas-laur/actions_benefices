@@ -1,0 +1,9 @@
+# Sources : Ubisoft (5/11/2026)
+- Plus haut historique : 107,90 € le 18/07/2018 (TradingView). https://fr.tradingview.com/symbols/EURONEXT-UBI/ (Café de la Bourse donne 108,26 € en séance, juillet 2018.)
+- Cours récents : 4,26 € (clôture 26/10, Zonebourse), 4,37 € (27/10, Boursorama) ; à figer sur la clôture du 4/11. « Plus de 95 % » vrai tant que le cours < 5,39 € ; « moins de 50 € » pour 1 000 € placés au sommet, idem.
+- 22/01/2026 : « réinitialisation » ; arrêt de six jeux (dont le remake de Prince of Persia: Les Sables du Temps), sept autres décalés ; −39,83 % sur la séance, plus forte chute de son histoire (Tradingsat ; GinjFo). https://www.tradingsat.com/ubisoft-entertain-FR0000054470/actualites/ubisoft-entertain-avec-un-enieme-et-consequent-avertissement-sur-resultats-ubisoft-s-est-effondre-de-398-en-bourse-la-plus-forte-chute-de-son-histoire-1154769.html
+- Exercice 2025-26 (clos fin mars 2026) : résultat net part du groupe non-IFRS −1,24 Md€ ; net bookings 1,53 Md€ (ABC Bourse, 20/05/2026). https://www.abcbourse.com/marches/ubisoft-s-attend-a-une-nouvelle-annee-difficile-pour-son-exercice-2026-2027_697143
+- Tencent : 1,16 Md€ en numéraire pour 26,32 % de Vantage Studios (Assassin's Creed, Far Cry, Rainbow Six), opérationnelle depuis le 1/10/2025, finalisation annoncée en novembre 2025 (GamesMarket). https://www.gamesmarket.global/tencent-completes-strategic-investment-in-ubisofts-vantage-studios/
+- Prochains résultats : semestriels le 19/11/2026 (Boursorama).
+- Polémiques : critiques de joueurs sur les achats intégrés ; débat autour du héros d'Assassin's Creed Shadows. Présentées comme des polémiques, sans lien de cause affirmé avec la baisse du cours.
+- Visuels : clocher, mur et Mister Coin générés par Nicolas avec Gemini (IA) ; spirale Ubisoft (Simple Icons), marque de son propriétaire.

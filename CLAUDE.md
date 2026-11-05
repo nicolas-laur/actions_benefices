@@ -36,4 +36,5 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 - Livrables de chaque vidéo : la vidéo, la couverture, la description TikTok, un titre YouTube Shorts, une légende Instagram et les sources pour le premier commentaire.
 
 ## Avant chaque rendu
+Toujours envoyer des maquettes (images clés de chaque scène) à Nicolas et attendre sa validation avant de lancer le rendu complet d'une vidéo (demandé le 05/11).
 Générer des aperçus (`python3 video.py png …`), vérifier une image par scène (texte lisible, mains dans le cadre, bulles accrochées), puis `python3 render.py episodes/<dossier>`.

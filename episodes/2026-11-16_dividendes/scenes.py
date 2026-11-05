@@ -47,10 +47,22 @@ def stage():
 @functools.lru_cache(maxsize=1)
 def _drops():
     rng = np.random.default_rng(5); out = []
-    for k in range(260):
-        out.append(dict(t0=rng.uniform(-6, DUR), x=rng.uniform(60, W-60), v=rng.uniform(260, 420), kind=rng.choice(['c', 'c', 'c', 'b', 'b', 's']),
-                        rot=rng.uniform(0, 6.28), spin=rng.uniform(-2.5, 2.5), sz=rng.uniform(.7, 1.15)))
+    for k in range(520):
+        kind = rng.choice(['c', 'c', 'c', 'b', 's'], p=[.32, .32, .24, .07, .05])
+        out.append(dict(t0=rng.uniform(-16, DUR), x=rng.uniform(60, W-60), kind=kind, rot=rng.uniform(0, 6.28), spin=rng.uniform(-2.5, 2.5), sz=rng.uniform(.7, 1.15),
+                        vt=rng.uniform(80, 125) if kind == 'b' else rng.uniform(850, 1050),       # vitesse limite : le billet plane, la pièce file
+                        amp=rng.uniform(55, 110), w=rng.uniform(2.4, 3.4)))
     return out
+def fall(p, dt):
+    """chute réaliste. Pièces et sacs : accélération g puis vitesse limite. Billets : feuille morte, ils planent en balançant
+    de gauche à droite, s'inclinent dans le sens du glissé et ralentissent au bout de chaque balancement."""
+    if p['kind'] != 'b':
+        g = 2600.0; tau = p['vt']/g; y = -80+p['vt']*(dt-tau*(1-math.exp(-dt/tau)))
+        return p['x'], y, 0.0
+    ph = p['w']*dt+p['rot']; x = p['x']+p['amp']*math.sin(ph)
+    y = -80+p['vt']*dt-.22*p['amp']*math.cos(2*ph)          # remonte un peu aux extrémités du balancement
+    ang = -32*math.cos(ph)                                   # inclinaison suivant la vitesse latérale
+    return x, y, ang
 def heap_h(x, t):
     g = .22+.78*clamp(t/DUR)                                                    # le tas monte au fil de la vidéo
     return 60+g*210*(.55+.45*math.cos((x-540)/W*2.4))
@@ -86,11 +98,13 @@ def money(cv, t):
     for p in _drops():
         dt = t-p['t0']
         if dt < 0: continue
-        y = -80+p['v']*dt
+        x, y, ang = fall(p, dt)
         if y > top+hp.height*.25: continue
         size = {'c': 80, 'b': 150, 's': 110}[p['kind']]*p['sz']
-        im = sprite(p['kind'], int((dt*20+p['rot']*6)*(1 if p['spin'] > 0 else -1)), int(size))
-        x = p['x']+18*math.sin(dt*1.3+p['rot']) if p['kind'] == 'b' else p['x']
+        if p['kind'] == 'b': fr = int(9+4*math.sin(p['w']*dt+p['rot']))            # le billet ondule au rythme du balancement
+        else: fr = int((dt*20+p['rot']*6)*(1 if p['spin'] > 0 else -1))
+        im = sprite(p['kind'], fr, int(size))
+        if ang: im = im.rotate(ang, resample=Image.BICUBIC, expand=True)
         lay.alpha_composite(im, (int(x-im.width/2), int(y-im.height/2)))
     arr = cv2.GaussianBlur(np.asarray(lay), (0, 0), 2.6).astype(np.float32); arr[..., :3] *= .78     # profondeur de champ
     cv.alpha_composite(Image.fromarray(arr.astype(np.uint8), 'RGBA'))

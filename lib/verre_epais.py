@@ -18,7 +18,7 @@ def _hsv(hue):
     return np.stack([r, g, b], -1)
 
 def glass_local(reg, w, h, m, r=52, bevel=44, depth=(14, 24), light=(-.55, -.75), tint=(1.0, .86, .62),
-                warm=(1.0, .78, .45), frost=16, refr=8, disp=.35, irid=.16, glow=.55, back=.0):
+                warm=(1.0, .78, .45), frost=16, refr=8, disp=.35, irid=.16, glow=.55, back=.0, dim=.80):
     """calcule le verre sur reg (float 0..1, (h+2m)×(w+2m)×3, panneau posé à (m, m)) ; renvoie l'image modifiée"""
     H_, W_ = reg.shape[:2]; reg = reg.copy()
     d = _sdf(w, h, r, m)                                                   # face avant
@@ -50,7 +50,7 @@ def glass_local(reg, w, h, m, r=52, bevel=44, depth=(14, 24), light=(-.55, -.75)
         ref[..., c] = cv2.remap(np.ascontiguousarray(src[..., c]), mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
     WARM = np.array(warm, np.float32); TINT = np.array(tint, np.float32)
     plateau = t >= .999
-    body = ref*TINT*np.where(plateau, .80, .62)[..., None]+.02               # plateau : transparent, juste un peu assombri
+    body = ref*TINT*np.where(plateau, dim, .62)[..., None]+.02               # plateau : transparent, juste un peu assombri
     # ---------- biseau : lignes concentriques façon verre épais ----------
     Lx, Ly = light; Ln = math.hypot(Lx, Ly); Lx, Ly = Lx/Ln, Ly/Ln
     k = ux*Lx+uy*Ly                                                         # 1 : face tournée vers la lumière ; -1 : à l'opposé
@@ -115,7 +115,7 @@ def _content(w, h, m, draw):
     s = cairo.ImageSurface(cairo.FORMAT_ARGB32, w+2*m, h+2*m); c = cairo.Context(s); c.translate(m, m); draw(c, w, h); s.flush()
     b = np.frombuffer(s.get_data(), np.uint8).reshape(h+2*m, s.get_stride()//4, 4)[:, :w+2*m].astype(np.float32)/255
     return b[..., [2, 1, 0]], b[..., 3:]                                      # couleurs prémultipliées, alpha
-def tplace(cv, base, w, h, draw, quad, a=1.0, mood='or', **kw):
+def tplace(cv, base, w, h, draw, quad, a=1.0, mood='or', cache=True, **kw):
     """panneau de verre épais en perspective. base : décor statique (array float 0..1, H×W×3) sur lequel le verre est calculé
     (mis en cache tant que le panneau ne bouge pas) ; on ajoute à cv la différence verre − décor, plus le contenu (draw)."""
     if a <= .01: return
@@ -123,12 +123,13 @@ def tplace(cv, base, w, h, draw, quad, a=1.0, mood='or', **kw):
     src = np.float32([[m, m], [m+w, m], [m+w, m+h], [m, m+h]]); dst = np.float32(quad)
     Hm = cv2.getPerspectiveTransform(src, dst)
     key = (id(base), w, h, mood, tuple(np.round(dst, 1).ravel()), tuple(sorted(kw.items())))
+    if not cache: _CACHE.pop(key, None)          # base éphémère : son id() peut être réutilisé, ne jamais s'y fier
     if key not in _CACHE:
         L = cv2.warpPerspective(base, Hm, (W_, H_), flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_REPLICATE)
         p = dict(MOODS[mood]); p.update(kw); G = glass_local(L, w, h, m, back=.22, **p)
         if len(_CACHE) > 24: _CACHE.clear()
         _CACHE[key] = (G-L, L)
-    delta, L = _CACHE[key]
+    delta, L = _CACHE[key] if cache else _CACHE.pop(key)
     cr, ca = _content(w, h, m, draw)
     G = L+delta; delta = G*(1-ca)+cr-L                                         # le contenu se pose sur le verre
     # boîte englobante à l'écran

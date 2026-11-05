@@ -24,7 +24,7 @@ def textures():
     Wb, Hb = 1400, 720; b = Image.new('RGB', (Wb, Hb)); px = b.load()
     for y in range(Hb):
         for x in range(0, Wb):
-            t = x/Wb; px[x, y] = (int(70+60*t), int(120+50*t), int(80+30*t))
+            t = x/Wb; px[x, y] = (int(28+40*t), int(92+38*t), int(52+20*t))
     d = ImageDraw.Draw(b)
     for (cx, cy, R) in ((330, 360, 250), (1080, 360, 200)):
         for k in range(90):
@@ -32,7 +32,7 @@ def textures():
             for j in range(0, 361, 6):
                 th = math.radians(j); r = R*(.55+.45*math.cos(5*th+a))
                 pts.append((cx+r*math.cos(th+a*.1), cy+r*math.sin(th+a*.1)))
-            d.line(pts, fill=(200, 230, 190), width=1)
+            d.line(pts, fill=(150, 205, 150), width=2)
     for y in range(40, Hb-40, 9): d.line([(40, y), (Wb-40, y)], fill=(95, 150, 105), width=1)
     d.rectangle((24, 24, Wb-24, Hb-24), outline=(225, 240, 210), width=10); d.rectangle((46, 46, Wb-46, Hb-46), outline=(160, 200, 150), width=3)
     f = ImageFont.truetype(F, 210); d.text((60, 40), '100', font=f, fill=(235, 245, 225)); d.text((Wb-430, Hb-260), '100', font=f, fill=(235, 245, 225))
@@ -52,7 +52,7 @@ def scene(rx, ry):
     try: sc.cycles.denoiser = 'OPENIMAGEDENOISE'
     except Exception: pass
     sc.render.film_transparent = True; sc.render.resolution_x, sc.render.resolution_y = rx, ry; sc.render.image_settings.file_format = 'PNG'; sc.render.image_settings.color_mode = 'RGBA'
-    sc.view_settings.view_transform = 'Filmic' if 'Filmic' in [i.identifier for i in sc.view_settings.bl_rna.properties['view_transform'].enum_items] else 'AgX'
+    sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
     w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True; bg = w.node_tree.nodes['Background']; bg.inputs[0].default_value = (0.05, 0.035, 0.02, 1); bg.inputs[1].default_value = 1.0
     def area(loc, rot, size, energy, colr):
         L = bpy.data.lights.new('l', 'AREA'); L.size = size; L.energy = energy; L.color = colr
@@ -108,7 +108,8 @@ def r_bill():
     try: b.inputs['Sheen Weight'].default_value = .3
     except Exception: pass
     o.data.materials.append(m)
-    wave = o.modifiers.new('w', 'WAVE'); wave.height = .07; wave.width = .9; wave.speed = .04; wave.use_normal = False
+    sd = o.modifiers.new('b', 'SIMPLE_DEFORM'); sd.deform_method = 'BEND'; sd.deform_axis = 'Y'; sd.angle = math.radians(50)
+    tw_ = o.modifiers.new('t', 'SIMPLE_DEFORM'); tw_.deform_method = 'TWIST'; tw_.deform_axis = 'X'; tw_.angle = math.radians(25)
     cam(sc, (0, -2.6, 1.4), (0, 0, 0), lens=55)
     N = 36; sc.frame_start, sc.frame_end = 1, N
     for f in range(1, N+1):
@@ -116,23 +117,29 @@ def r_bill():
     sc.render.filepath = f'{A}/bill_'; bpy.ops.render.render(animation=True); print('bill ok')
 def r_bag():
     import bpy
-    sc = scene(260, 300); bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=32, radius=.5); o = bpy.context.active_object; o.scale = (1, .9, 1.1)
+    sc = scene(280, 320)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=48, radius=.5); o = bpy.context.active_object
     for v in o.data.vertices:
-        z = v.co.z
-        if z > .25: k = 1-(z-.25)/.3*.75; v.co.x *= max(k, .25); v.co.y *= max(k, .25)
-    bpy.ops.object.shade_smooth(); bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=.12, radius2=.28, depth=.28, location=(0, 0, .72)); top = bpy.context.active_object
-    bpy.ops.mesh.primitive_torus_add(major_radius=.15, minor_radius=.035, location=(0, 0, .6)); tie = bpy.context.active_object
+        z = v.co.z; k = 1.0
+        if z < -.3: k = 1-(-.3-z)*1.2                     # fond aplati
+        if z > .18: k = max(.18, 1-((z-.18)/.32)**1.4*.85)   # col resserré
+        if z > .42: k = .18+(z-.42)*3.2                     # collerette qui s'ouvre
+        v.co.x *= k*1.05; v.co.y *= k
+        if z < -.42: v.co.z = -.42+(z+.42)*.3
+    tex = bpy.data.textures.new('n', 'CLOUDS'); tex.noise_scale = .18; d = o.modifiers.new('d', 'DISPLACE'); d.texture = tex; d.strength = .035
+    sub = o.modifiers.new('s', 'SUBSURF'); sub.levels = 1; bpy.ops.object.shade_smooth()
+    bpy.ops.mesh.primitive_torus_add(major_radius=.11, minor_radius=.03, location=(0, 0, .43)); tie = bpy.context.active_object; bpy.ops.object.shade_smooth()
     m = bpy.data.materials.new('jute'); m.use_nodes = True; nt = m.node_tree; b = nt.nodes['Principled BSDF']; im = nt.nodes.new('ShaderNodeTexImage'); im.image = bpy.data.images.load(f'{A}/tex_bag.png')
-    nt.links.new(im.outputs['Color'], b.inputs['Base Color']); b.inputs['Roughness'].default_value = .85
-    for x in (o, top): x.data.materials.append(m)
-    tie.data.materials.append(gold('g2', False))
-    cam(sc, (0, -3.2, .9), (0, 0, .15), lens=50); sc.render.filepath = f'{A}/bag.png'; bpy.ops.render.render(write_still=True); print('bag ok')
+    nt.links.new(im.outputs['Color'], b.inputs['Base Color']); b.inputs['Roughness'].default_value = .9
+    o.data.materials.append(m); o.rotation_euler = (0, 0, math.radians(-90))
+    rope = bpy.data.materials.new('rope'); rope.use_nodes = True; rope.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (.55, .08, .06, 1); tie.data.materials.append(rope)
+    cam(sc, (0, -3.0, .55), (0, 0, .02), lens=52); sc.render.filepath = f'{A}/bag.png'; bpy.ops.render.render(write_still=True); print('bag ok')
 def r_stack():
     import bpy
     sc = scene(360, 1400); g = gold(); random.seed(3); t = .075
     for i in range(95):
         o = coin_obj(f'c{i}', g); o.location = (random.uniform(-.012, .012), random.uniform(-.012, .012), i*t*1.02); o.rotation_euler = (0, 0, random.uniform(0, 6.3))
-    H = 95*t*1.02; cam(sc, (0, -14, H/2+2.2), (0, 0, H/2), lens=85)
+    H = 95*t*1.02; cam(sc, (0, -13, H+2.6), (0, 0, H*.55), lens=85)
     sc.render.filepath = f'{A}/stack.png'; bpy.ops.render.render(write_still=True); print('stack ok')
 def r_heap():
     import bpy

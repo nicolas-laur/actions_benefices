@@ -69,22 +69,48 @@ def _piece(c, kind, x, y, rot, sz, a=1):
         c.rectangle(-14, -30, 28, 5); c.set_source_rgba(.9, .7, .3, a); c.fill()
         c.select_font_face('Inter Display', 0, 1); c.set_font_size(30); c.set_source_rgba(.95, .8, .4, a); c.move_to(-9, 18); c.show_text('€')
     c.restore()
+ASSETS = f'{D}/assets'
+@functools.lru_cache(maxsize=None)
+def sprite(kind, i, size):
+    """images Blender (pièce et billet : 36 vues qui tournent ; sac : une vue), redimensionnées et mises en cache"""
+    p = {'c': f'{ASSETS}/coin_{i % 36+1:04d}.png', 'b': f'{ASSETS}/bill_{i % 36+1:04d}.png', 's': f'{ASSETS}/bag.png'}[kind]
+    im = Image.open(p).convert('RGBA'); bb = im.getbbox() or (0, 0, 1, 1); im = im.crop(bb)
+    k = size/max(im.size); return im.resize((max(1, int(im.width*k)), max(1, int(im.height*k))), Image.LANCZOS)
+@functools.lru_cache(maxsize=1)
+def heap_img():
+    im = Image.open(f'{ASSETS}/heap.png').convert('RGBA'); return im.crop(im.getbbox())
 def money(cv, t):
-    s, c = surface()
-    # parterre : pièces, billets et sacs entassés (positions fixes, on ne garde que ceux sous la hauteur du tas)
-    rng = np.random.default_rng(9)
-    for k in range(900):
-        x = rng.uniform(-20, W+20); d = rng.uniform(0, 1); kind = rng.choice(['c', 'c', 'c', 'b', 's'], p=[.3, .3, .2, .15, .05]); rot = rng.uniform(0, 6.28); sz = rng.uniform(.7, 1.1)
-        hh = heap_h(x, t); y = H-d*hh
-        if d*hh < hh-2: _piece(c, kind, x, y, rot, sz, .95)
+    lay = Image.new('RGBA', (W, H), 0)
+    hp = heap_img(); g = .35+.65*clamp(t/DUR)                                      # le parterre monte au fil de la vidéo
+    top = int(H-hp.height*g+25)
     for p in _drops():
         dt = t-p['t0']
         if dt < 0: continue
-        y = -60+p['v']*dt; yl = H-heap_h(p['x'], t)
-        if y > yl+10: continue
-        _piece(c, p['kind'], p['x'], y, p['rot']+p['spin']*dt, p['sz'], .9)
-    arr = cv2.GaussianBlur(np.asarray(to_img(s)), (0, 0), 3.2)                 # profondeur de champ : le fond est flou
-    lay = Image.fromarray(arr, 'RGBA'); a = np.asarray(lay).astype(np.float32); a[..., :3] *= .62; cv.alpha_composite(Image.fromarray(a.astype(np.uint8), 'RGBA'))
+        y = -80+p['v']*dt
+        if y > top+hp.height*.25: continue
+        size = {'c': 80, 'b': 150, 's': 110}[p['kind']]*p['sz']
+        im = sprite(p['kind'], int((dt*20+p['rot']*6)*(1 if p['spin'] > 0 else -1)), int(size))
+        x = p['x']+18*math.sin(dt*1.3+p['rot']) if p['kind'] == 'b' else p['x']
+        lay.alpha_composite(im, (int(x-im.width/2), int(y-im.height/2)))
+    arr = cv2.GaussianBlur(np.asarray(lay), (0, 0), 2.6).astype(np.float32); arr[..., :3] *= .78     # profondeur de champ
+    cv.alpha_composite(Image.fromarray(arr.astype(np.uint8), 'RGBA'))
+    h2 = np.asarray(hp).astype(np.float32); h2[..., :3] *= .82; cv.alpha_composite(Image.fromarray(h2.astype(np.uint8), 'RGBA'), (int((W-hp.width)/2), top))
+@functools.lru_cache(maxsize=1)
+def stack_img():
+    im = Image.open(f'{ASSETS}/stack.png').convert('RGBA'); return im.crop(im.getbbox())
+def pile_img(cv, cx, base, h, w=170, tint=None, crack=0.0):
+    """pile de pièces Blender : on garde le haut de la pile (avec la pièce du dessus) sur la hauteur voulue"""
+    st = stack_img(); k = w/st.width; full = st.resize((w, int(st.height*k)), Image.LANCZOS)
+    face = int(w*.34); hh = int(min(full.height, h+face)); im = full.crop((0, 0, w, hh))
+    if tint is not None:
+        a = np.asarray(im).astype(np.float32); a[..., :3] *= np.array(tint, np.float32); im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
+    s, c = surface(); c.save(); c.translate(cx, base); c.scale(w*.7, 18); g = cairo.RadialGradient(0, 0, 0, 0, 0, 1); g.add_color_stop_rgba(0, 0, 0, 0, .7); g.add_color_stop_rgba(1, 0, 0, 0, 0); c.set_source(g); c.arc(0, 0, 1, 0, 2*math.pi); c.fill(); c.restore()
+    cv.alpha_composite(to_img(s)); cv.alpha_composite(im, (int(cx-w/2), int(base-hh)))
+    if crack > 0:
+        s, c = surface(); y = base-hh+face*.5; c.move_to(cx+6, y); pts = [(cx-14, y+50), (cx+18, y+110), (cx-8, y+180), (cx+14, y+260)]
+        for (x2, y2) in pts[:max(1, int(len(pts)*crack))]: c.line_to(x2, min(y2, base-12))
+        c.set_line_width(5); c.set_source_rgba(.06, .02, 0, .95); c.stroke_preserve(); c.set_line_width(1.5); c.set_source_rgba(1, .8, .4, .5); c.stroke(); cv.alpha_composite(to_img(s))
+    return base-hh
 def spotlight(cv, cx, feet=1650):
     """poursuite de théâtre : cône de lumière venu d'en haut qui suit Mister Coin, tache au sol, le reste plonge dans l'ombre"""
     arr = np.asarray(cv).astype(np.float32); ys, xs = np.mgrid[0:H, 0:W].astype(np.float32)
@@ -248,15 +274,14 @@ def s_rendement(cv, c, u):
     mister(cv, 'danse_parle_billets', 60)
 def s_piles(cv, c, u):
     text(c, "POUR 2 000 € NETS PAR MOIS", 540, 240, 'sb', 30, GD2, 'c', .85, 4)
-    s2, k = surface(); base = 900; Hmax = 470
-    cols = [(220, 1.5, "ETF MONDE", "1,97 M€", ('FFE08A', 'C98A1E', '7A4E0A'), WHITE),
-            (540, 3, "ETF DIVIDENDES", "983 000 €", ('FFE08A', 'C98A1E', '7A4E0A'), GD),
-            (860, 5, "ACTIONS À GROS DIVIDENDES", "590 000 €", ('FFC08A', 'D0662A', '7A300A'), OR)]
-    for x, r_, lab, val, cc, vc in cols:
-        h = Hmax*CAP[r_]/CAP[1.5]; top = pile(k, x, base, h, 170, cc, crack=1.0 if r_ == 5 else 0)
-        text(k, val, x, top-70, 'a', 54 if r_ != 1.5 else 60, vc, 'c'); text(k, f"{str(r_).replace('.', ',')} %", x, top-130, 'xb', 32, ICE, 'c', .9)
-        text(k, lab, x, base+60, 'xb', 22 if r_ != 5 else 19, ICE, 'c', .85, 1)
-    cv.alpha_composite(to_img(s2))
+    base = 930; Hmax = 400
+    cols = [(220, 1.5, "ETF MONDE", "1,97 M€", None, WHITE),
+            (540, 3, "ETF DIVIDENDES", "983 000 €", None, GD),
+            (860, 5, "ACTIONS À GROS DIVIDENDES", "590 000 €", (1.0, .78, .6), OR)]
+    for x, r_, lab, val, tint, vc in cols:
+        h = Hmax*CAP[r_]/CAP[1.5]; top = pile_img(cv, x, base, h, 170, tint, crack=1.0 if r_ == 5 else 0)
+        text(c, val, x, top-60, 'a', 54 if r_ != 1.5 else 60, vc, 'c'); text(c, f"{str(r_).replace('.', ',')} %", x, top-120, 'xb', 32, ICE, 'c', .9)
+        text(c, lab, x, base+50, 'xb', 22 if r_ != 5 else 19, ICE, 'c', .85, 1)
     caption(c, "Un ETF monde ne verse que [1,5 %] : il te faudrait près de [2 millions].")
     mister(cv, 'danse_parle_billets', 150)
 def s_actions(cv, c, u):

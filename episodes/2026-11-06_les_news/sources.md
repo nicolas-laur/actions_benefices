@@ -53,7 +53,7 @@ Logos : jeu « logos » d'Iconify (Apple, AMD, Anthropic) et Simple Icons (Palan
 ## Snap (publié le 4/11 après la clôture)
 - CA 1 722 M$ (+14 %), bénéfice net 56,5 M$ contre une perte de 103,5 M$, utilisateurs quotidiens 495 M (+4 %, sous les attentes), EBITDA ajusté 382,6 M$ (+110 %).
 - https://www.stocktitan.net/news/SNAP/snap-inc-announces-third-quarter-2026-financial-sae28zrzcylk.html
-- Bourse : −8,61 % après la clôture du 4/11 (cappnotes) ; À METTRE À JOUR avec la clôture du 5/11.
+- Bourse 5/11 : 5,92 $ → 5,19 $ (−12,33 %) : https://news.jkn.co.kr/editions/english/post/1073103 (−8,61 % après la clôture du 4/11, cappnotes).
 
 ## Anthropic (non cotée, prospectus d'introduction en bourse modifié, fin octobre)
 - CA du 3e trimestre 16,96 Md$ (11,56 Md$ au 2e trimestre, soit +47 %), perte nette 23,29 Md$ (surtout des ajustements comptables sur des obligations convertibles), perte d'exploitation 567 M$ (bénéfice de 974 M$ au 2e trimestre), 895,4 Md$ d'engagements de puissance de calcul.

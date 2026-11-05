@@ -50,7 +50,7 @@ DATA = {
               res='o', res_txt="MITIGÉS", bourse=6.53, bfeu='v', bnote="clôture du 4/11", pose='question', bulle="Pas si mal, non ?"),
  'SNAP': dict(nom="SNAP", per="JUILLET À SEPTEMBRE 2026", ca=usd(1.7225), ca_g=14, bn=usd(0.0565), bn_g=None, bn_sub="contre une perte de "+md(usd(0.1035)),
               k3=("UTILISATEURS PAR JOUR", "495 M", "moins que prévu", "+4 %", OR), k4=("EBITDA AJUSTÉ", md(usd(0.3826)), None, "×2,1", GR),
-              res='o', res_txt="MITIGÉS", bourse=-8.6, bfeu='r', bnote="après la clôture du 4/11", pose='triste', bulle="La douche froide…"),
+              res='o', res_txt="MITIGÉS", bourse=-12.3, bfeu='r', bnote="clôture du 5/11", pose='triste', bulle="La douche froide…"),
 }
 KEYS = ('AAPL', 'PLTR', 'AMD', 'NOVO', 'BKNG', 'RACE', 'UBER', 'MCD', 'SNAP')
 LECTURE = {

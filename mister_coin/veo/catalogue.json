@@ -514,5 +514,217 @@
    190
   ],
   "note": "main sur le visage, gêné, puis secoue la tête"
+ },
+ "classique_danse_joie_silence": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 181,
+  "hauteur": 397,
+  "cx": 654,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    83,
+    122
+   ]
+  ],
+  "silence": [
+   [
+    0,
+    82
+   ],
+   [
+    123,
+    239
+   ]
+  ]
+ },
+ "classique_danse_parle_billets": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 185,
+  "hauteur": 397,
+  "cx": 656,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    28,
+    129
+   ],
+   [
+    133,
+    210
+   ]
+  ],
+  "silence": [
+   [
+    211,
+    239
+   ]
+  ]
+ },
+ "classique_danse_parle_compte": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 181,
+  "hauteur": 395,
+  "cx": 653,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    4,
+    29
+   ],
+   [
+    77,
+    108
+   ],
+   [
+    115,
+    204
+   ]
+  ],
+  "silence": [
+   [
+    30,
+    42
+   ],
+   [
+    65,
+    76
+   ]
+  ]
+ },
+ "classique_danse_parle_prudent": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 180,
+  "hauteur": 395,
+  "cx": 655,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    7,
+    37
+   ],
+   [
+    43,
+    112
+   ],
+   [
+    119,
+    158
+   ],
+   [
+    161,
+    231
+   ]
+  ],
+  "silence": []
+ },
+ "classique_danse_parle_swing": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 183,
+  "hauteur": 393,
+  "cx": 658,
+  "pieds": 569,
+  "images": 240,
+  "parle": [
+   [
+    12,
+    37
+   ],
+   [
+    51,
+    112
+   ],
+   [
+    134,
+    190
+   ],
+   [
+    195,
+    237
+   ]
+  ],
+  "silence": [
+   [
+    0,
+    11
+   ],
+   [
+    38,
+    50
+   ]
+  ]
+ },
+ "classique_dos_marche": {
+  "format": [
+   720,
+   1280
+  ],
+  "piece": 314,
+  "hauteur": 685,
+  "cx": 360,
+  "pieds": 1035,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    239
+   ]
+  ]
+ },
+ "classique_dos_plongeon": {
+  "format": [
+   720,
+   1280
+  ],
+  "piece": 266,
+  "hauteur": 579,
+  "cx": 359,
+  "pieds": 979,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    239
+   ]
+  ]
+ },
+ "classique_rocking_chair": {
+  "format": [
+   720,
+   1280
+  ],
+  "piece": 263,
+  "hauteur": 697,
+  "cx": 399,
+  "pieds": 1013,
+  "images": 240,
+  "parle": [],
+  "silence": [
+   [
+    0,
+    239
+   ]
+  ]
  }
 }

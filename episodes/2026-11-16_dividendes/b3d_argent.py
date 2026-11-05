@@ -77,10 +77,10 @@ def gold(name='gold', bump=True, tint=(1.0, 0.66, 0.16)):
         bu = nt.nodes.new('ShaderNodeBump'); bu.inputs['Strength'].default_value = .9; bu.inputs['Distance'].default_value = .02
         nt.links.new(tc.outputs['Object'], mp.inputs['Vector']); nt.links.new(mp.outputs['Vector'], im.inputs['Vector']); nt.links.new(im.outputs['Color'], bu.inputs['Height']); nt.links.new(bu.outputs['Normal'], b.inputs['Normal'])
     return m
-def coin_obj(name='coin', mat=None, r=.5, t=.075):
+def coin_obj(name='coin', mat=None, r=.5, t=.075, verts=96, bev=.012, seg=3):
     import bpy, bmesh
-    bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=r, depth=t); o = bpy.context.active_object; o.name = name
-    mod = o.modifiers.new('bev', 'BEVEL'); mod.width = .012; mod.segments = 3; mod.limit_method = 'ANGLE'
+    bpy.ops.mesh.primitive_cylinder_add(vertices=verts, radius=r, depth=t); o = bpy.context.active_object; o.name = name
+    mod = o.modifiers.new('bev', 'BEVEL'); mod.width = bev; mod.segments = seg; mod.limit_method = 'ANGLE'
     bpy.ops.object.shade_smooth()
     # cannelures sur la tranche (léger relief par un deuxième matériau rugueux) : on garde simple, la bump fait la face
     o.data.materials.append(mat or gold()); return o
@@ -136,10 +136,12 @@ def r_bag():
     cam(sc, (0, -3.0, .55), (0, 0, .02), lens=52); sc.render.filepath = f'{A}/bag.png'; bpy.ops.render.render(write_still=True); print('bag ok')
 def r_stack():
     import bpy
-    sc = scene(360, 1400); g = gold(); random.seed(3); t = .075
+    sc = scene(420, 1500); g = gold(); random.seed(3); t = .06
+    proto = coin_obj('proto', g, t=t, verts=192, bev=.024, seg=8)
     for i in range(95):
-        o = coin_obj(f'c{i}', g); o.location = (random.uniform(-.012, .012), random.uniform(-.012, .012), i*t*1.02); o.rotation_euler = (0, 0, random.uniform(0, 6.3))
-    H = 95*t*1.02; cam(sc, (0, -13, H+2.6), (0, 0, H*.55), lens=85)
+        o = proto.copy(); o.data = proto.data; sc.collection.objects.link(o); o.location = (random.uniform(-.012, .012), random.uniform(-.012, .012), i*t*1.02); o.rotation_euler = (0, 0, random.uniform(0, 6.3))
+    proto.hide_render = True
+    H = 95*t*1.02; cam(sc, (0, -13, H+3.4), (0, 0, H*.52), lens=85)
     sc.render.filepath = f'{A}/stack.png'; bpy.ops.render.render(write_still=True); print('stack ok')
 def r_heap():
     import bpy

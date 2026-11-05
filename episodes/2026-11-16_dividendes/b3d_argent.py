@@ -159,5 +159,29 @@ def r_heap():
     bill.hide_render = True; base.hide_render = True
     c = cam(sc, (0, -11, 2.6), (0, 0, .3), lens=55); c.data.dof.use_dof = True; c.data.dof.focus_distance = 11; c.data.dof.aperture_fstop = 2.2
     sc.render.filepath = f'{A}/heap.png'; bpy.ops.render.render(write_still=True); print('heap ok')
+def r_heap_stages():
+    """parterre qui se constitue : objets à hauteur fixe z = mound × u ; l'étape s montre ceux dont u ≤ s (le tas grandit sans que rien ne bouge)"""
+    import bpy
+    sc = scene(1080, 560); g = gold(); random.seed(7); sc.render.use_persistent_data = True
+    bpy.ops.mesh.primitive_plane_add(size=1); bill = bpy.context.active_object; bill.scale = (1.4*.55, .72*.55, 1); bpy.ops.object.transform_apply(scale=True)
+    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.subdivide(number_cuts=10); bpy.ops.object.mode_set(mode='OBJECT')
+    m = bpy.data.materials.new('bill'); m.use_nodes = True; nt = m.node_tree; b = nt.nodes['Principled BSDF']; im = nt.nodes.new('ShaderNodeTexImage'); im.image = bpy.data.images.load(f'{A}/tex_bill.png')
+    nt.links.new(im.outputs['Color'], b.inputs['Base Color']); b.inputs['Roughness'].default_value = .6; bill.data.materials.append(m)
+    base = coin_obj('base', g, r=.28, t=.045)
+    def mound(x, y): return max(0, 1.1*math.exp(-(x/6.5)**2-(y/2.2)**2))
+    objs = []
+    for i in range(3200):
+        x = random.uniform(-7.5, 7.5); y = random.uniform(-2.5, 2.5); u = random.random()**.7; z = .02+mound(x, y)*u
+        if random.random() < .12: o = bill.copy(); o.data = bill.data; md = o.modifiers.new('b', 'SIMPLE_DEFORM'); md.deform_method = 'BEND'; md.deform_axis = 'Y'; md.angle = math.radians(random.uniform(-40, 40))
+        else: o = base.copy(); o.data = base.data
+        sc.collection.objects.link(o); o.location = (x, y, z); o.rotation_euler = (random.uniform(-.6, .6), random.uniform(-.6, .6), random.uniform(0, 6.3)); objs.append((u, o))
+    bill.hide_render = True; base.hide_render = True
+    c = cam(sc, (0, -11, 2.6), (0, 0, .3), lens=55); c.data.dof.use_dof = True; c.data.dof.focus_distance = 11; c.data.dof.aperture_fstop = 2.2
+    N = int(os.environ.get('STAGES', '10'))
+    for k in range(1, N+1):
+        s_ = k/N
+        for u, o in objs: o.hide_render = u > s_
+        sc.render.filepath = f'{A}/heap_{k:02d}.png'; bpy.ops.render.render(write_still=True); print('stage', k, flush=True)
+    print('heap stages ok')
 if __name__ == '__main__':
-    {'textures': textures, 'coin': r_coin, 'bill': r_bill, 'bag': r_bag, 'stack': r_stack, 'heap': r_heap}[sys.argv[1]]()
+    {'textures': textures, 'coin': r_coin, 'bill': r_bill, 'bag': r_bag, 'stack': r_stack, 'heap': r_heap, 'heapst': r_heap_stages}[sys.argv[1]]()

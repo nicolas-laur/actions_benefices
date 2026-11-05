@@ -34,8 +34,9 @@ def _from_catalogue():
         CLIPS[nm] = (tuple(c['format']), c['piece'], c['cx'], c['pieds'], 'bord' if 'entre' in nm or 'sort' in nm else 'centre')
         if c.get('hauteur'): HAUTEUR[nm] = c['hauteur']
         if c.get('type') == 'reaction': REACTIONS[nm] = tuple(c['action']); continue      # réactions (joie, saut…) : jouées d'un bloc, jamais pour parler
-        if c.get('parle') and c.get('silence'):
-            pl = [tuple(x) for x in c['parle']]; PAROLE[nm] = ((pl[0] if len(pl) == 1 else tuple(pl)), tuple(c['silence'][-1]))
+        if c.get('parle'):                                                    # clip qui parle sans silence final : on prend ses dernières images comme pose de repos
+            pl = [tuple(x) for x in c['parle']]; q = tuple(c['silence'][-1]) if c.get('silence') else (c['images']-8, c['images']-1)
+            PAROLE[nm] = ((pl[0] if len(pl) == 1 else tuple(pl)), q)
 _from_catalogue()
 def _key(a):
     a = a.astype(np.float32); R, G, B = a[..., 0], a[..., 1], a[..., 2]; ks = G-np.maximum(R, B)

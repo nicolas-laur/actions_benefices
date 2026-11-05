@@ -59,13 +59,16 @@ CAPS_SRC = [(0, "Combien il te faut pour toucher [2 000 € par mois] sans trava
     (24, "Au-delà, c'est le compte-titres, taxé à [31,4 %].", OR), (25, "Il te faudrait alors près d'[1,2 million] à 3 %.", OR), (26, "La [bonne nouvelle] :", GR),
     (27, "en remplissant ton PEA avec [1 000 € par mois] pendant 12 ans et demi, puis en le laissant grossir à 7 % par an, ce qui n'est jamais garanti,", GR),
     (28, "tu atteins le [million] en [33 ans] environ.", GR), (29, "Et toi, tu en es où ?", GD)]
-def _split(txt, a, b, maxc=56):
-    """phrase trop longue → morceaux de ≤ 2 lignes, durée au prorata des caractères"""
-    words = txt.split(' '); parts = []; cur = ''
+def _split(txt, a, b, maxc=62):
+    """phrase trop longue → morceaux équilibrés de ≤ 2 lignes, durée au prorata des caractères ; jamais de coupure dans un mot surligné"""
+    plain = lambda x: len(x.replace('[', '').replace(']', ''))
+    n = max(1, math.ceil(plain(txt)/maxc)); words = txt.split(' ')
+    if n == 1: return [(a, b, txt)]
+    target = plain(txt)/n; parts = []; cur = ''
     for w in words:
-        if len((cur+' '+w).replace('[', '').replace(']', '')) > maxc and cur and cur.count('[') == cur.count(']'): parts.append(cur); cur = w
+        if cur and plain(cur) >= target*.92 and cur.count('[') == cur.count(']') and len(parts) < n-1: parts.append(cur); cur = w
         else: cur = (cur+' '+w).strip()
-    parts.append(cur); L = [len(p) for p in parts]; tot = sum(L); out = []; t = a
+    parts.append(cur); L = [plain(p) for p in parts]; tot = sum(L); out = []; t = a
     for p, l in zip(parts, L): d = (b-a)*l/tot; out.append((t, t+d, p)); t += d
     return out
 CAPS = []
@@ -108,8 +111,16 @@ def tilt(k): return .05+.25*(1-ent(k))
 def count_to(v, u): return v*ease(u)
 def title(c, s_, k, y=240):
     text(c, s_, 540, y, 'sb', 30, GD2, 'c', .85*ent(k, .35), 6)
+@functools.lru_cache(maxsize=4)
+def static_base(X):
+    """décor fixe (scène + poursuite, sans l'argent qui tombe) sur lequel le verre est calculé une fois puis mis en cache"""
+    cv = S.stage().copy(); S.spotlight(cv, X, FEET); return np.asarray(cv.convert('RGB')).astype(np.float32)/255
+CUR_SCENE_X = [540]
 def tp(cv, w, h, draw, cx, cy, mood, k, ry=0.0, bev=30):
-    S.tp(cv, w, h, draw, cx, cy+40*(1-ent(k)), mood, rx=tilt(k), ry=ry, bev=bev)
+    P = bev-10; W2, H2 = w+2*P, h+2*P; rx = tilt(k); cy = cy+40*(1-ent(k))
+    rx, cy = round(rx, 3), round(cy, 1)
+    def dd(kk, ww, hh): kk.translate(P, P); draw(kk, w, h)
+    tplace(cv, static_base(CUR_SCENE_X[0]), W2, H2, dd, tilt_quad(cx, cy, W2, H2, ry=ry, rx=rx), 1.0, mood, bevel=bev, r=40, frost=30, dim=.45, cache=True)
 # pile de pièces qui se forme pièce par pièce (les pièces tombent du haut et se posent)
 @functools.lru_cache(maxsize=4)
 def stack_scaled(w):
@@ -139,7 +150,7 @@ def pile_anim(cv, c, cx, base, n_target, t, t0, t1, tint=None, crack=0.0, w=170)
         for (x2, y2) in pts[:max(1, int(len(pts)*crack))]: kk.line_to(x2, min(y2, base-12))
         kk.set_line_width(5); kk.set_source_rgba(.06, .02, 0, .95); kk.stroke_preserve(); kk.set_line_width(1.5); kk.set_source_rgba(1, .8, .4, .5); kk.stroke(); cv.alpha_composite(to_img(s3))
     return top, n
-N_COINS = {r_: int(round(400*CAP[r_]/CAP[1.5]/stack_scaled(170)[2])) for r_ in CAP}
+N_COINS = {r_: int(round(390*CAP[r_]/CAP[1.5]/stack_scaled(170)[2])) for r_ in CAP}
 def euro(v):
     if v >= 1e6: return f"{v/1e6:.2f}".replace('.', ',')+" M€"
     return f"{int(round(v, -3)):,}".replace(',', NB)+" €"
@@ -199,7 +210,9 @@ def sc_rendement(cv, c, t, k):
     tp(cv, 900, 430, d, 540, 600, 'or', k)
 PILES = [(220, 1.5, "ETF MONDE", None, WHITE, 37.6, 44.6), (540, 3, "ETF DIVIDENDES", None, GD, 47.1, 51.4), (860, 5, "ACTIONS À GROS DIVIDENDES", (1.0, .78, .6), OR, 60.3, 62.7)]
 def _piles(cv, c, t, k, show3, crack=0.0):
-    title(c, "POUR 2 000 € NETS PAR MOIS", k); base = 930
+    if t < 66.4: title(c, "POUR 2 000 € NETS PAR MOIS", k)
+    elif t < 66.8: text(c, "POUR 2 000 € NETS PAR MOIS", 540, 240, 'sb', 30, GD2, 'c', .85*(1-ent(t-66.4, .3)), 6)      # le titre laisse la place au bandeau Stellantis
+    base = 885
     for i, (x, r_, lab, tint, vc, t0, t1) in enumerate(PILES):
         if i == 2 and not show3: continue
         if t < t0-.4:
@@ -209,7 +222,7 @@ def _piles(cv, c, t, k, show3, crack=0.0):
         v = CAP[r_]*min(1, n/N_COINS[r_])
         text(c, euro(v) if v >= 1e6 else f"{int(round(v, -3)):,} €".replace(',', NB), x, min(top, base-20)-60, 'a', 60 if r_ == 1.5 else 54, vc, 'c', al)
         text(c, f"{str(r_).replace('.', ',')} %", x, min(top, base-20)-120, 'xb', 32, ICE, 'c', .9*al)
-        text(c, lab, x, base+50, 'xb', 22 if r_ != 5 else 19, ICE, 'c', .85*al, 1)
+        text(c, lab, x, base+38, 'xb', 22 if r_ != 5 else 19, ICE, 'c', .85*al, 1)
 def sc_piles(cv, c, t, k): _piles(cv, c, t, k, False)
 def sc_piles2(cv, c, t, k):
     _piles(cv, c, t, 9, True, crack=ent(t-64.6, 1.0))
@@ -217,7 +230,7 @@ def sc_piles2(cv, c, t, k):
     if a > 0:
         def d(kk, w, h):
             text(kk, "STELLANTIS", 110, 40, 'xb', 28, WHITE, 'l', 1, 1); text(kk, "plus rien depuis avril 2025", 110, 78, 'sb', 22, ICE, 'l', .85); text(kk, "0 €", w-40, 58, 'a', 52, RD, 'r')
-        S.tp(cv, 520, 116, d, 760, 330+30*(1-a), 'rouge', rx=.05, ry=-.08, bev=22); logo(cv, 'STLA', 760-260+12+50, 330+30*(1-a), 56, cross=True)
+        tp(cv, 520, 116, d, 700, 262, 'rouge', t-66.6, ry=-.08, bev=22); logo(cv, 'STLA', 700-260+12+50, 302-40*ent(t-66.6), 56, cross=True)
 ACT = [('CA', "CRÉDIT AGRICOLE", "7,5 %", 53.8), ('BNP', "BNP PARIBAS", "6,0 %", 55.0), ('ENGIE', "ENGIE", "5,8 %", 55.9), ('AXA', "AXA", "5,4 %", 56.6), ('ORANGE', "ORANGE", "5,2 %", 57.3)]
 def sc_actions(cv, c, t, k):
     title(c, "LES GROS DIVIDENDES DU CAC 40", k)
@@ -294,7 +307,7 @@ def frame(t):
         if a-FADE <= t < b+FADE:
             al = ent(t-a, FADE)*(1-ent(t-b, FADE)) if a > 0 else 1-ent(t-b, FADE)
             if al <= .01: continue
-            lay = cv.copy(); s, c = surface(); f(lay, c, t, max(0.0, t-a)); lay.alpha_composite(to_img(s))
+            CUR_SCENE_X[0] = cx; lay = cv.copy(); s, c = surface(); f(lay, c, t, max(0.0, t-a)); lay.alpha_composite(to_img(s))
             cv = Image.blend(cv, lay, al) if al < .999 else lay
     cv = coin_layer(cv, t, X)
     s, c = surface(); cap_layer(c, t); cv.alpha_composite(to_img(s))

@@ -7,3 +7,7 @@ Erreur numéro trois : les petites dépenses. Les Français paient en moyenne so
 La règle simple, c'est cinquante, trente, vingt. Cinquante pour cent pour l'essentiel, trente pour tes envies, vingt pour ton avenir. Sur deux mille euros, ça fait quatre cents euros par mois. En trente ans, près de quatre cent quatre-vingt-dix mille euros.
 Et si ton salaire ne couvre même pas l'essentiel, le problème ne vient pas de toi. Commence par dix euros. Ce qui compte, c'est l'habitude.
 Et toi, tu te paies en premier ?
+
+
+## Texte réellement enregistré (voix du 06/11, transcrit mot à mot dans voix/mots_whisper.txt)
+Ajouts de Nicolas : « Écoute bien jusqu'à la fin, car c'est peut-être ton cas. » ; « Les gens organisés » au lieu de « Les riches » ; « …dans le rouge, et ça va être compliqué. » ; « Vérifie combien tu paies d'abonnements, et ceux qui sont inutiles. » ; « Commence par dix euros par mois en investissement pour ton futur. » ; « …au début du mois ? »

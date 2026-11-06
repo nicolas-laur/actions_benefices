@@ -268,7 +268,8 @@ def glitchoff():   # extinction : grésillement puis note qui chute (écran qui 
     return x
 MAP = dict(glitch=glitch, glitchbig=glitchbig, glitchoff=glitchoff, drop=drop, zap2=zap2, draw=lambda: whoosh()*1.5, zap=zap, nozzle=nozzle, clack=clack, hop=hop, fill0=lambda: fill(0), fill1=lambda: fill(1), fill2=lambda: fill(2), fill3=lambda: fill(3), tadaa=tadaa, bonk=bonk, shutter=shutter, scream=scream, zoom=zoom, cdbeep=cdbeep, ignite=ignite, cutoff=cutoff, coins=coins, boom=boom, shatter=shatter, proj=proj, bid=bid, gavel=gavel, neon=neon, pop=pop, kiosk=kiosk, printer=printer, key=key, click=click, impact=impact, swish=swish, tick=tick, glint=glint, riser=riser, paid=paid, beep=beep, coin=coin, whoosh=whoosh, trans=trans, hit=hit, thud=thud, crash=crash, low=low, count=count)
 fx = np.zeros(N); duck = np.ones(N)
-for t0, k in V.events():
+import video_bw as VB
+for t0, k in VB.events():
     add(fx, MAP[k](), t0-(.35 if k == 'whoosh' else (.12 if k in ('trans', 'swish') else 0)), .45 if k == 'ignite' else (1.8 if k.startswith('fill') else 1.0))
     if k in ('impact', 'boom'):     # la musique s'efface brièvement sous l'impact : plus de punch sans monter le volume
         i = int(t0*SR); m = int(.5*SR); env = 1-.45*np.exp(-np.arange(m)/(.12*SR))

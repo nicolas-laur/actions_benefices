@@ -42,7 +42,18 @@ def coin_bw(cv_rgb, t):
     fx = V.MC.feet_x(al, Y)
     if fx is not None:
         m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), V.FEET-3), (95, 15), 0, 0, 360, .6, -1); cv_rgb *= (1-cv2.GaussianBlur(m, (0, 0), 9)[..., None])
-    return cv_rgb*(1-al[..., None])+L[..., None]*al[..., None]
+    coin = np.repeat(L[..., None], 3, 2)
+    if t > COL_T:                                                     # fin : il retrouve ses couleurs, des pieds au chapeau
+        rows = np.where(al.max(1) > .05)[0]
+        if len(rows):
+            top, bot = rows[0], rows[-1]; u = inout((t-COL_T)/COL_D); front = bot+60-(bot-top+180)*u
+            yy = np.arange(H, dtype=np.float32)[:, None]
+            m = np.clip((yy-front)/60+.5, 0, 1)                         # bord doux de 60 px
+            glow = np.exp(-((yy-front)/26)**2)*(1-u)*.45              # liseré lumineux qui monte avec le front
+            coin = coin*(1-m[..., None])+rgb_.astype(np.float32)*m[..., None]
+            coin = coin+glow[..., None]*np.array([255, 226, 140], np.float32)
+    return cv_rgb*(1-al[..., None])+coin*al[..., None]
+COL_T, COL_D = 93.0, 1.6
 
 # ---------- or dessiné : rendu Blender passé en aplats + contour à l'encre ----------
 def toon(rgba, outline=3):
@@ -291,7 +302,7 @@ def cap_bw(c, t):
             al = ease((t-a+.05)/.12)*(1-ease((t-(end-.12))/.12) if end-b > .1 or k+1 >= len(V.CAPS) else 1)
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else PAPER, a=al); return
 def events():
-    ev = [e for e in V.events() if e[1] != 'swish'] + [(ta-IR, 'whoosh') for ta in IRIS]
+    ev = [e for e in V.events() if e[1] != 'swish'] + [(ta-IR, 'whoosh') for ta in IRIS] + [(COL_T+.05, 'glint')]
     return sorted(ev)
 def main():
     if sys.argv[1] == 'info': print(DUR); return

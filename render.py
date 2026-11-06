@@ -10,6 +10,7 @@ A = ap.parse_args()
 ROOT = os.path.dirname(os.path.abspath(__file__)); EP = os.path.abspath(A.ep); NAME = os.path.basename(EP)
 os.environ['FPS'] = str(A.fps); T0 = time.time()
 def sh(cmd, **kw): return subprocess.run(cmd, shell=True, check=True, cwd=EP, **kw)
+VID = os.environ.get('VIDEO', 'video.py')   # script de rendu (ex. VIDEO=video_bw.py)
 os.makedirs(os.path.expanduser('~/.fonts'), exist_ok=True)
 for f in glob.glob(f'{ROOT}/fonts/*'):
     d = os.path.expanduser(f'~/.fonts/{os.path.basename(f)}')
@@ -17,7 +18,7 @@ for f in glob.glob(f'{ROOT}/fonts/*'):
 os.makedirs(f'{EP}/tmp/chunks', exist_ok=True); os.makedirs(f'{EP}/out', exist_ok=True)
 if not os.path.exists(f'{EP}/voice_full.wav'): sh('ffmpeg -loglevel error -y -i voice.mp3 -ac 1 -ar 48000 voice_full.wav')
 if not os.path.exists(f'{EP}/mix.wav'): sh('python3 mix.py')
-dur = float(subprocess.check_output('python3 video.py info', shell=True, cwd=EP).decode().split()[-1])
+dur = float(subprocess.check_output(f'python3 {VID} info', shell=True, cwd=EP).decode().split()[-1])
 tot = int(dur*A.fps); chunks = [(a, min(tot, a+A.chunk)) for a in range(0, tot, A.chunk)]
 def path(a): return f'{EP}/tmp/chunks/c{a:06d}.mp4'
 todo = [c for c in chunks if not os.path.exists(path(c[0]))]
@@ -33,7 +34,7 @@ while (todo or running):
     left = A.budget-(time.time()-T0)
     while todo and len(running) < A.workers and left > (avg or 60)*1.1:
         a, b = todo.pop(0)
-        p = subprocess.Popen(['python3', 'video.py', 'seg', path(a)+'.part.mp4', str(a), str(b)], cwd=EP, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        p = subprocess.Popen(['python3', VID, 'seg', path(a)+'.part.mp4', str(a), str(b)], cwd=EP, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         running[p] = (a, b, time.time())
     if not running: break
     time.sleep(1)

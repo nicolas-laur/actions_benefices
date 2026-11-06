@@ -242,16 +242,16 @@ def b_courbe(cv, c, t, k):
     ink_line(c, [(x0, y1-20), (x0, y0), (x1, y0)], 4, INKC, seed=1, t=t)
     for v in (250000, 500000, 750000, 1000000): ink_text(c, f"{v//1000} k€" if v < 1e6 else "1 M€", x0-14, Y(v), 20, INKC, 'Limelight', 'r', outline=.3)
     for yr in (0, 10, 20, 30): ink_text(c, f"{yr} ans", X(yr), y0+30, 20, INKC, 'Limelight', outline=.3)
-    u = inout((t-83.2)/8.2); Mmax = int(T*12*u); r = .07/12; val = 0; pts = []
+    u = inout((t-83.2)/8.2); Mmax = int(397*u); r = .07/12; val = 0; pts = []
     for m in range(0, Mmax+1):
         if m > 0: val = val*(1+r)+(1000 if m <= 150 else 0)
         if m % 3 == 0 or m == Mmax: pts.append((X(m/12), Y(val)))
     if len(pts) > 1:
         c.move_to(*pts[0]); [c.line_to(*p) for p in pts]; c.line_to(pts[-1][0], y0); c.line_to(x0, y0); c.close_path(); col(c, GOLD[1], .55); c.fill()
         ink_line(c, pts, 8, GOLD[2], seed=7, t=t); ink_line(c, pts, 2, INKC, seed=8, t=t)
-        num(c, V.euro(val), pts[-1][0]-12, pts[-1][1]-40, 40, 1, align='c')
-    if t > 84.0: ink_text(c, "1 000 €/mois pendant 12 ans et demi, puis plus rien", X(17), Y(150000), 21, INKC, 'Limelight', outline=.4, a=ent(t-84, .3))
-    if t > 91.4: ink_text(c, "en 33 ans !", X(30), Y(982800)+50, 30, INKC, 'Alfa Slab One', outline=.6, a=ent(t-91.4, .3))
+        num(c, "1 MILLION €" if Mmax >= 397 else V.euro(val), min(pts[-1][0], 720), pts[-1][1]-40, 40, 1, align='c')
+    if t > 84.0: [ink_text(c, l_, 340, 140+28*i_, 22, INKC, 'Limelight', outline=.4, a=ent(t-84, .3)) for i_, l_ in enumerate(("1 000 €/mois pendant 12 ans et demi,", "puis plus rien"))]
+    if t > 91.4: ink_text(c, "en 33 ans !", 340, 240, 34, INKC, 'Alfa Slab One', outline=.6, a=ent(t-91.4, .3))
     ink_text(c, "hypothèse : 7 % par an, jamais garanti", 460, 590, 20, INKC, 'Limelight', outline=.4, a=ent(k, .5))
     end_card(c)
 def b_fin(cv, c, t, k):

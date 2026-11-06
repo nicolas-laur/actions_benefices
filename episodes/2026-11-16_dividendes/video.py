@@ -14,33 +14,37 @@ FPS = 60; VOICE = f'{D}/voice_full.wav'; DUR = 96.6; S.DUR = DUR
 def inout(x): x = clamp(x); return x*x*(3-2*x)
 def lerp(a, b, u): return a+(b-a)*u
 
-# ---------- parterre : 10 étapes Blender, fondu doux de l'une à l'autre ----------
+# ---------- décor 3D Blender (b3d_theatre.py) ----------
+TH = f'{D}/assets/theatre'
+def _load16(p):
+    im = cv2.imread(p, cv2.IMREAD_UNCHANGED); im = im[..., [2, 1, 0, 3]] if im.shape[2] == 4 else im[..., ::-1]
+    return im.astype(np.float32)/(65535.0 if im.dtype == np.uint16 else 255.0)
+@functools.lru_cache(maxsize=1)
+def plates():
+    A_ = _load16(f'{TH}/plateA.png')[..., :3]**2.2                          # en lumière linéaire pour additionner la poursuite
+    B_ = cv2.resize(_load16(f'{TH}/plateB.png')[..., :3], (W, H), interpolation=cv2.INTER_CUBIC)**2.2
+    return A_, B_
+@functools.lru_cache(maxsize=8)
+def stage_at(X):
+    """scène éclairée par la poursuite centrée sur X (la passe de la poursuite est décalée horizontalement)"""
+    A_, B_ = plates(); dx = int(round(X-540))
+    Bs = np.zeros_like(B_)
+    if dx >= 0: Bs[:, dx:] = B_[:, :W-dx]
+    else: Bs[:, :W+dx] = B_[:, -dx:]
+    out = np.clip(A_+Bs, 0, 1)**(1/2.2)
+    return Image.fromarray((out*255+.5).astype(np.uint8)).convert('RGBA')
 @functools.lru_cache(maxsize=None)
 def heap_stage(k):
-    im = Image.open(f'{S.ASSETS}/heap_{k:02d}.png').convert('RGBA'); a = np.asarray(im).astype(np.float32); a[..., :3] *= .84
-    prof = np.argmax(a[..., 3] > 120, axis=0).astype(np.float32); prof[(a[..., 3] > 120).sum(0) == 0] = im.height
-    return a, prof
-HY = H-400                                                                 # le bas du tas rendu passe sous le cadre
+    a = _load16(f'{TH}/heap_{k:02d}.png'); return (a*255).astype(np.float32)
 def heap(cv, t):
     s = 1+9*clamp((t-1)/(DUR-6))**.9; k0 = int(math.floor(s)); k1 = min(10, k0+1); u = inout(s-k0)
-    a0, p0 = heap_stage(k0); a1, p1 = heap_stage(k1); a = a0*(1-u)+a1*u
-    cv.alpha_composite(Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA'), (0, HY))
-    return HY+(p0*(1-u)+p1*u)
+    a = heap_stage(k0)*(1-u)+heap_stage(k1)*u
+    cv.alpha_composite(Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA'))
+@functools.lru_cache(maxsize=4)
+def money_frame(i):
+    im = Image.open(f'{TH}/money_{i:04d}.png').convert('RGBA'); return im.resize((W, H), Image.BICUBIC)
 def money(cv, t):
-    lay = Image.new('RGBA', (W, H), 0); prof = None
-    for p in S._drops():
-        dt = t-p['t0']
-        if dt < 0: continue
-        x, y, ang = S.fall(p, dt)
-        if y > H-120: continue
-        size = {'c': 80, 'b': 150, 's': 110}[p['kind']]*p['sz']
-        fr = int(9+4*math.sin(p['w']*dt+p['rot'])) if p['kind'] == 'b' else int((dt*20+p['rot']*6)*(1 if p['spin'] > 0 else -1))
-        im = S.sprite(p['kind'], fr, int(size))
-        if ang: im = im.rotate(ang, resample=Image.BICUBIC, expand=True)
-        lay.alpha_composite(im, (int(x-im.width/2), int(y-im.height/2)))
-    arr = cv2.GaussianBlur(np.asarray(lay), (0, 0), 2.6).astype(np.float32); arr[..., :3] *= .78
-    cv.alpha_composite(Image.fromarray(arr.astype(np.uint8), 'RGBA'))
-    heap(cv, t)
+    cv.alpha_composite(money_frame(int(t*30) % 240))
 
 # ---------- calage : plages de parole de la voix (timing.py) ----------
 C = [(0.04, 3.16), (3.60, 7.82), (8.26, 11.60), (11.96, 13.96), (14.40, 17.54), (18.06, 23.26), (23.76, 26.98), (27.52, 28.64), (29.22, 30.04), (30.40, 33.02),
@@ -114,7 +118,7 @@ def title(c, s_, k, y=240):
 @functools.lru_cache(maxsize=4)
 def static_base(X):
     """décor fixe (scène + poursuite, sans l'argent qui tombe) sur lequel le verre est calculé une fois puis mis en cache"""
-    cv = S.stage().copy(); S.spotlight(cv, X, FEET); return np.asarray(cv.convert('RGB')).astype(np.float32)/255
+    return np.asarray(stage_at(round(X)).convert('RGB')).astype(np.float32)/255
 CUR_SCENE_X = [540]
 def tp(cv, w, h, draw, cx, cy, mood, k, ry=0.0, bev=30):
     P = bev-10; W2, H2 = w+2*P, h+2*P; rx = tilt(k); cy = cy+40*(1-ent(k))
@@ -302,14 +306,14 @@ def sc_fin(cv, c, t, k):
 FADE = .35
 def frame(t):
     X = coin_x(t)
-    cv = S.stage().copy(); money(cv, t); S.spotlight(cv, X, FEET)
+    cv = stage_at(round(X)).copy(); money(cv, t)
     for (a, b, f, cx) in scene_list():
         if a-FADE <= t < b+FADE:
             al = ent(t-a, FADE)*(1-ent(t-b, FADE)) if a > 0 else 1-ent(t-b, FADE)
             if al <= .01: continue
             CUR_SCENE_X[0] = cx; lay = cv.copy(); s, c = surface(); f(lay, c, t, max(0.0, t-a)); lay.alpha_composite(to_img(s))
             cv = Image.blend(cv, lay, al) if al < .999 else lay
-    cv = coin_layer(cv, t, X)
+    cv = coin_layer(cv, t, X); heap(cv, t)                                     # le parterre est au premier plan, devant Mister Coin
     s, c = surface(); cap_layer(c, t); cv.alpha_composite(to_img(s))
     return cv
 def events():

@@ -227,7 +227,7 @@ def caption(c, s, hl=GD, y=1060, size=44, a=1):
         x = 540-lw/2; yy = y0+li*72
         for i in idx:
             w, k, g = words[i]
-            if k: rr(c, x, yy-34, wd[i], 64, 14); col(c, hl, a); c.fill(); text(c, w, x+10, yy, 'b', size, NAVY if hl == GD else WHITE, 'l', a)
+            if k: rr(c, x, yy-34, wd[i], 64, 14); col(c, hl, a); c.fill(); text(c, w, x+10, yy, 'b', size, NAVY if hl in (GD, 'F4F1EA') else WHITE, 'l', a)
             else: text(c, w, x, yy, 'b', size, WHITE, 'l', a)
             x += wd[i]+gaps[i]
 

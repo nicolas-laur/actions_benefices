@@ -5,8 +5,15 @@ from scipy.io import wavfile
 from scipy.signal import butter, sosfilt
 D = os.path.dirname(os.path.abspath(__file__)); E = os.path.dirname(D)
 SR = 48000; DUR = 19.2; BURST = 16*60/128.7
-sr, m = wavfile.read(f'{D}/spot_raw.wav'); m = m.astype(np.float32)/32768; assert sr == SR
-m = m[:int(DUR*SR)]; N = len(m); t = np.arange(N)/SR; rng = np.random.default_rng(3)
+sr, src = wavfile.read(f'{D}/swing.wav'); src = src.astype(np.float32)/32768; assert sr == SR
+# « Swing » (music_for_videos, Pixabay, licence Pixabay) : l'attaque après la cassure (25,46 s) tombe sur l'explosion (7,46 s) ;
+# raccord sur une mesure à 13,64 s vers les 3 dernières mesures du morceau, coup final à 18,27 s pendant le tour de Mister Coin.
+BAR = 4*.386; OFF = 25.46-BURST; SPL = BURST+4*BAR; T2 = 100.67-3*BAR
+f = int(.04*SR)                                               # fondu enchaîné de 40 ms (les deux morceaux se chevauchent, pas de trou)
+a1 = src[int(OFF*SR):int((OFF+SPL)*SR)+f//2].copy(); a2 = src[int(T2*SR)-f//2:int((T2+DUR-SPL)*SR)+SR].copy()
+w = np.sin(np.linspace(0, np.pi/2, f))[:, None]
+mid = a1[-f:]*np.cos(np.linspace(0, np.pi/2, f))[:, None]+a2[:f]*w
+m = np.concatenate([a1[:-f], mid, a2[f:]])[:int(DUR*SR)]; N = len(m); t = np.arange(N)/SR; rng = np.random.default_rng(3)
 def bp(x, lo, hi): return sosfilt(butter(3, [lo, hi], 'band', fs=SR, output='sos'), x, axis=0)
 mono = m.mean(1)
 # 78 tours : bande 280-3200 Hz, pleurage de 0,4 %, craquements et souffle
@@ -27,7 +34,7 @@ env = np.convolve(np.abs(vo), np.ones(int(.05*SR))/int(.05*SR), 'same'); env = n
 sm = np.zeros(N); acc = 0.0; a_, r_ = 1-np.exp(-1/(.03*SR)), 1-np.exp(-1/(.30*SR))
 for i in range(0, N, 64): e = env[i]; acc += (a_ if e > acc else r_)*64*(e-acc); sm[i:i+64] = acc
 rms = lambda x: np.sqrt(np.mean(x[np.abs(x) > 1e-4]**2))
-g = .30*rms(vo)/rms(mus.mean(1))                             # musique ~ -10 dB sous la voix hors parole
+g = .22*rms(vo)/rms(mus.mean(1))                             # musique ~ -10 dB sous la voix hors parole
 duck = (1-.55*sm)*np.where(t < BURST, .8, 1.0)
 out = vx+mus*(g*duck)[:, None]
 out = np.tanh(out*1.05)/np.tanh(1.05); out *= .9/np.abs(out).max()

@@ -272,7 +272,7 @@ _AV = None
 def avatar_surf(d=440):
     global _AV
     if _AV is None:
-        im = Image.open(f'{D}/../../branding/avatar_face_1_nuit_doree.png').convert('RGBA').resize((d, d), Image.LANCZOS)
+        im = Image.open(f'{D}/../../branding/avatar_profil_zoom.png').convert('RGBA').resize((d, d), Image.LANCZOS)
         m = Image.new('L', (d, d), 0); ImageDraw.Draw(m).ellipse((0, 0, d-1, d-1), fill=255); im.putalpha(m)
         _AV = cairo.ImageSurface.create_for_data(bytearray(np.asarray(im)[..., [2, 1, 0, 3]].tobytes()), cairo.FORMAT_ARGB32, d, d)
     return _AV

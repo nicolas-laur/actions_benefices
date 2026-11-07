@@ -203,7 +203,7 @@ def decor_col(t):
 JARGON = ["ETF", "PER", "PFU", "CAC 40", "OPCVM", "dividende", "obligation", "inflation", "PEA", "taux directeur", "spread", "bilan", "Bourse", "FED", "marge"]
 _jr = np.random.default_rng(11)
 JPOS = [(200, 250), (860, 230), (520, 180), (330, 380), (760, 400), (150, 520), (900, 560), (560, 330), (240, 690), (800, 700), (520, 520), (380, 830), (700, 840), (150, 380), (930, 400)]
-JW = [(w, JPOS[i][0], JPOS[i][1], 3.1+(.18*i if i < 7 else 3.2+.16*(i-7)), _jr.random()*6.28, .6+_jr.random()*.6, (_jr.random()-.5)*.4) for i, w in enumerate(JARGON)]
+JW = [(w, JPOS[i][0], JPOS[i][1], 3.1+.13*i, _jr.random()*6.28, .6+_jr.random()*.6, (_jr.random()-.5)*.4) for i, w in enumerate(JARGON)]
 def jargon(c, t):
     """mots de jargon qui flottent en désordre (monde gris et confus), balayés par l'explosion de couleurs"""
     for (w, x, y, t0, ph, sp, rot) in JW:
@@ -245,7 +245,7 @@ def affiche_surf(name, w):
         im = Image.open(f'{D}/affiche_{name}.png').convert('RGB'); im = im.resize((w, int(w*16/9)), Image.LANCZOS).convert('RGBA')
         _AF[(name, w)] = S.sprite(im) if hasattr(S, 'sprite') and False else cairo.ImageSurface.create_for_data(bytearray(np.asarray(im)[..., [2, 1, 0, 3]].tobytes()), cairo.FORMAT_ARGB32, im.width, im.height)
     return _AF[(name, w)]
-AFF = [('2026-11-16_dividendes', 10.55, 250, -.12), ('2026-11-07_pauvre', 12.2, 440, -.04), ('2026-10-29_carburant', 13.64, 640, .05), ('2026-11-05_ubisoft', 14.72, 830, .13)]
+AFF = [('2026-11-16_dividendes', 8.51, 250, -.12), ('2026-11-07_pauvre', 10.16, 440, -.04), ('2026-10-29_carburant', 11.6, 640, .05), ('2026-11-05_ubisoft', 12.68, 830, .13)]
 def affiches(c, t, out=0.0):
     w = 300; h = int(w*16/9)
     for (name, t0, x, rot) in AFF:
@@ -262,8 +262,8 @@ def affiches(c, t, out=0.0):
         bulbs(c, w+44, h+44, t+x/100, n=8, r=8); c.restore()
 def big_title(c, t):
     k = t-V.BURST-.05
-    if k <= 0 or t > 10.9: return
-    a = 1-ease((t-10.45)/.4)
+    if k <= 0 or t > 8.86: return
+    a = 1-ease((t-8.41)/.4)
     c.save(); c.translate(540, 390); s = back(k/.35); c.scale(s, s)
     for g_, a_ in ((40, .10), (22, .16)): ink_text(c, "MISTER COIN", 0, 0, 122+g_//4, 'FFE27A', 'Alfa Slab One', a=a*a_, outline=g_)
     ink_text(c, "MISTER COIN", 0, 0, 122, GOLD[0], 'Alfa Slab One', a=a, outline=7)
@@ -277,7 +277,7 @@ def avatar_surf(d=440):
         _AV = cairo.ImageSurface.create_for_data(bytearray(np.asarray(im)[..., [2, 1, 0, 3]].tobytes()), cairo.FORMAT_ARGB32, d, d)
     return _AV
 def end_card(c_, t):
-    k = t-16.95
+    k = t-14.91
     if k <= 0: return
     d = 440; s = back(k/.4); c_.save(); c_.translate(540, 470); c_.scale(s, s)
     c_.arc(10, 16, d/2+22, 0, 2*math.pi); col(c_, '000000', .45); c_.fill()
@@ -288,18 +288,22 @@ def end_card(c_, t):
         an = 2*math.pi*j/n; on = .55+.45*math.sin(t*5-j*.9); x, y = math.cos(an)*(d/2+11), math.sin(an)*(d/2+11)
         c_.arc(x, y, 15, 0, 2*math.pi); col(c_, 'FFE9A8', .2*on); c_.fill(); c_.arc(x, y, 7, 0, 2*math.pi); col(c_, 'FFF6D8' if on > .6 else 'E9C46A'); c_.fill()
     c_.restore()
-    # bouton qui s'enfonce sous le doigt puis passe à « Abonné »
-    kb = t-17.25
-    if kb > 0:
-        pressed = t > 17.75; sb = back(kb/.35)*(.94 if 17.6 < t < 17.85 else 1)
-        c_.save(); c_.translate(540, 790); c_.scale(sb, sb)
-        rr(c_, -230+6, -52+10, 460, 104, 52); col(c_, '000000', .45); c_.fill()
-        rr(c_, -230, -52, 460, 104, 52); col(c_, '3A3A3A' if pressed else 'E63946'); c_.fill_preserve(); c_.set_line_width(6); col(c_, INKC); c_.stroke()
-        ink_text(c_, "ABONNÉ !" if pressed else "ABONNE-TOI", 0, 0, 44, PAPER, 'Alfa Slab One', outline=3); c_.restore()
-    if 17.3 < t < 18.4:
-        u = clamp((t-17.3)/.45); ty = 920-60*ease(u)+(14 if 17.6 < t < 17.85 else 0)
+    kc = t-14.96
+    if kc > 0:
+        sc = back(kc/.35)*(1+.03*math.sin(t*6)); c_.save(); c_.translate(540, 800); c_.rotate(-.035); c_.scale(sc, sc); banner(c_, 0, 0, 660, 128, t=t)
+        ink_text(c_, "ABONNE-TOI !", 0, 0, 62, INKC, 'Alfa Slab One', outline=1.2); c_.restore()
+    if t > 15.84: ink_text(c_, "déjà +10 000 vues ce mois-ci", 540, 915, 34, PAPER, 'Alfa Slab One', outline=4.5, a=ent(t-15.84, .3))
 # ================= scènes =================
+def hook(c, t):
+    """la question écrite en très grand dès la 1re image (son coupé) ; elle tremble quand la voix la prononce"""
+    if t > 4.2: return
+    a = 1-ease((t-3.9)/.3); sh_ = 6*math.sin(t*60)*math.exp(-max(0, t-3.08)*6) if t > 3.08 else 0
+    s_ = 1+.04*math.sin(t*4)                                           # visible dès l'image 0, légère respiration
+    c.save(); c.translate(540+sh_, 830); c.scale(s_, s_)
+    ink_text(c, "TU N'Y COMPRENDS", 0, -52, 76, GOLD[0], 'Alfa Slab One', a=a, outline=6)
+    ink_text(c, "RIEN ?", 0, 44, 112, GOLD[0], 'Alfa Slab One', a=a, outline=7); c.restore()
 def b_intro(cv, c, t, k):
+    hook(c, t)
     sign(c, 540, 300, "L'ÉCONOMIE", t-.05, t, w=560); sign(c, 540, 450, "LA BOURSE", t-.84, t, w=500); sign(c, 540, 600, "LES FINANCES PERSO", t-1.54, t, w=700)
 def b_flou(cv, c, t, k):
     for i, (lab, y, w) in enumerate((("L'ÉCONOMIE", 300, 560), ("LA BOURSE", 450, 500), ("LES FINANCES PERSO", 600, 700))):   # les panneaux se décrochent et tombent
@@ -307,14 +311,14 @@ def b_flou(cv, c, t, k):
         if u < 0: sign(c, 540, y, lab, 9, t, w=w); continue
         yy = y+1600*u*u
         if yy < 1300: c.save(); c.translate(0, yy-y); c.rotate(.12*u*(1 if i % 2 else -1)); sign(c, 540, y, lab, 9, t, w=w); c.restore()
-    jargon(c, t)
+    hook(c, t); jargon(c, t)
     stamp(c, 540, 860, "C'EST NORMAL", None, t-4.3, t, rot=-.04, w=480, h=96)
 def b_couleur(cv, c, t, k):
     jargon(c, t); confetti(c, t); big_title(c, t)
-    if t > 10.4:
-        out = ease((t-16.6)/.45) if t > 16.6 else 0
+    if t > 8.36:
+        out = ease((t-14.56)/.45) if t > 14.56 else 0
         affiches(c, t, out)
-    stamp(c, 540, 905, "SANS JARGON", None, t-16.04, t, rot=.04, w=470, h=96) if t < 16.95 else None
+    stamp(c, 540, 905, "SANS JARGON", None, t-14, t, rot=.04, w=470, h=96) if t < 14.91 else None
     end_card(c, t)
 SC = [(0.0, 3.0, b_intro, 'scene'), (3.0, V.BURST, b_flou, 'scene'), (V.BURST, DUR, b_couleur, 'couleur')]
 BLOCS = [(0.0, V.BURST, 'scene')]
@@ -351,9 +355,6 @@ def frame(t):
             yy, xx = np.ogrid[:H, :W]; ring = np.exp(-((np.sqrt((xx-540.)**2+(yy-1350.)**2)-r)/22)**2)[..., None]; arr = arr+(255-arr)*ring*.8
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
     s, c = surface(); cap_bw(c, t); out.alpha_composite(to_img(s))
-    if 17.3 < t < 18.4:                                                    # doigt qui appuie sur le bouton (émoji Noto, au-dessus de tout)
-        u = clamp((t-17.3)/.45); ty = 930-60*ease(u)+(14 if 17.6 < t < 17.85 else 0)
-        S.put_emoji(out, '👆', 650, int(ty), 96)
     return out
 def cap_bw(c, t):
     for k, (a, b, s_, hl) in enumerate(V.CAPS):
@@ -363,9 +364,9 @@ def cap_bw(c, t):
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else PAPER, a=al); return
 IRIS = []; IR = .42
 def events():
-    ev = V.events() + [(.05, 'pop'), (.84, 'pop'), (1.54, 'pop'), (3.1, 'crash'), (4.3, 'thud'), (8.85, 'riser'), (V.BURST, 'tadaa'), (V.BURST+.05, 'impact'),
-                       (V.BURST+.15, 'coins'), (10.55, 'pop'), (12.2, 'pop'), (13.64, 'pop'), (14.72, 'pop'), (16.04, 'thud'), (16.6, 'whoosh'),
-                       (16.95, 'glint'), (17.25, 'pop'), (17.7, 'click'), (17.75, 'paid'), (COL_T+.05, 'glint')]
+    ev = V.events() + [(.05, 'pop'), (.84, 'pop'), (1.54, 'pop'), (3.1, 'crash'), (4.3, 'thud'), (6.85, 'riser'), (V.BURST, 'tadaa'), (V.BURST+.05, 'impact'),
+                       (V.BURST+.15, 'coins'), (8.51, 'pop'), (10.16, 'pop'), (11.6, 'pop'), (12.68, 'pop'), (14, 'thud'), (14.56, 'whoosh'),
+                       (14.91, 'glint'), (14.96, 'pop'), (15.84, 'coin'), (COL_T+.05, 'glint')]
     return sorted(ev)
 def main():
     if sys.argv[1] == 'info': print(DUR); return

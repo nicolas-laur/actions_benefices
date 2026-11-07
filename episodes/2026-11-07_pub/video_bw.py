@@ -310,7 +310,7 @@ def b_flou(cv, c, t, k):
         u = t-3.08-.12*i
         if u < 0: sign(c, 540, y, lab, 9, t, w=w); continue
         yy = y+1600*u*u
-        if yy < 1300: c.save(); c.translate(0, yy-y); c.rotate(.12*u*(1 if i % 2 else -1)); sign(c, 540, y, lab, 9, t, w=w); c.restore()
+        if yy < 820: c.save(); c.translate(0, yy-y); c.rotate(.12*u*(1 if i % 2 else -1)); sign(c, 540, y, lab, 9, t, w=w); c.restore()
     hook(c, t); jargon(c, t)
     stamp(c, 540, 860, "C'EST NORMAL", None, t-4.3, t, rot=-.04, w=480, h=96)
 def b_couleur(cv, c, t, k):

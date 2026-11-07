@@ -170,18 +170,40 @@ def stamp(c, x, y, l1, l2, k, t, rot=-.05, w=640, h=118):
     ink_text(c, l1, 0, -16 if l2 else 0, 34, INKC, outline=1.2)
     if l2: ink_text(c, l2, 0, 28, 24, INKC, 'Limelight', outline=.5)
     c.restore()
-def figure(c, x, y, r, dark, k, t, seed=0):
-    """petit bonhomme-pièce dessiné (silhouette simple, pas un personnage connu)"""
+def figure(c, x, y, r, sad, k, t, seed=0):
+    """petit bonhomme noir dessiné : souriant, ou triste avec une larme (silhouette simple, pas un personnage connu)"""
     if k <= 0: return
     s = back(k/.35); c.save(); c.translate(x, y); c.scale(s, s)
-    c.arc(0, 0, r, 0, 2*math.pi); col(c, '3A3A3A' if dark else PAPER); c.fill_preserve(); c.set_line_width(6); col(c, INKC); c.stroke()
-    for ex in (-r*.3, r*.3): c.arc(ex, -r*.15, r*.09, 0, 2*math.pi); col(c, PAPER if dark else INKC); c.fill()
+    c.arc(0, r*1.55, r*.95, math.pi, 2*math.pi); c.close_path(); col(c, '1A1A1A'); c.fill_preserve(); c.set_line_width(5); col(c, INKC); c.stroke()
+    c.arc(0, 0, r*.72, 0, 2*math.pi); col(c, '1A1A1A'); c.fill_preserve(); c.set_line_width(5); col(c, INKC); c.stroke()
+    for ex in (-r*.25, r*.25): c.arc(ex, -r*.12, r*.08, 0, 2*math.pi); col(c, PAPER); c.fill()
     c.new_path()
-    if dark: c.arc(0, r*.45, r*.28, math.pi*1.15, math.pi*1.85)
-    else: c.arc(0, r*.1, r*.32, math.pi*.15, math.pi*.85)
-    c.set_line_width(5); col(c, PAPER if dark else INKC); c.stroke()
-    if dark: ink_text(c, "–", r*.75, -r*.8, 54, GOLD[0])
+    if sad: c.arc(0, r*.42, r*.24, math.pi*1.15, math.pi*1.85)
+    else: c.arc(0, r*.06, r*.28, math.pi*.15, math.pi*.85)
+    c.set_line_width(5); col(c, PAPER); c.stroke()
+    if sad:
+        ty = r*.02+r*.25*((t*.8) % 1); c.move_to(r*.25, ty-r*.12); c.curve_to(r*.33, ty, r*.33, ty+r*.1, r*.25, ty+r*.1); c.curve_to(r*.17, ty+r*.1, r*.17, ty, r*.25, ty-r*.12)
+        col(c, PAPER, .9); c.fill()
     c.restore()
+
+# pluie d'abonnements : tuiles façon icône d'appli (logos demandés par Nicolas pour cette vidéo, dossier logos/)
+LOGOS = ['netflix', 'apple', 'basicfit', 'spotify', 'canalplus', 'strava', 'youtube']
+_LS = {}
+def logo_surf(n):
+    if n not in _LS: _LS[n] = cairo.ImageSurface.create_from_png(f'{D}/logos/{n}.png')
+    return _LS[n]
+_rng = np.random.default_rng(7)
+RAIN = [(41.7+.13*i, 110+_rng.random()*860, LOGOS[i % len(LOGOS)], (_rng.random()-.5)*2.4, (_rng.random()-.5)*.6) for i in range(26)]
+def rain(c, t):
+    for (t0, x, n, spin, rot0) in RAIN:
+        dt = t-t0
+        if dt <= 0 or dt > 1.6: continue
+        y = -140+60*dt+.5*2200*dt*dt; xx = x+18*math.sin(dt*5+x)
+        a = 1-ease((y-780)/200)
+        if a <= 0: continue
+        c.save(); c.translate(xx, y); c.rotate(rot0+spin*dt); c.scale(124/256, 124/256)
+        rr(c, -118, -114, 256, 256, 58); col(c, '000000', .35*a); c.fill()
+        c.set_source_surface(logo_surf(n), -128, -128); c.paint_with_alpha(a); c.restore()
 
 # ================= scènes =================
 def b_hook(cv, c, t, k):
@@ -192,7 +214,7 @@ def b_decouvert(cv, c, t, k):
     title_bw(c, "À DÉCOUVERT", k, t)
     card(c, 540, 600, 900, 560, k, t)
     num(c, "1 FRANÇAIS SUR 4", 450, 80, 64, t-5.6)
-    for i in range(4): figure(c, 150+200*i, 235, 62, i == 3 and t > 7.0, t-5.9-.18*i, t, seed=i)
+    for i in range(4): figure(c, 150+200*i, 215, 62, i == 3 and t > 7.0, t-5.9-.18*i, t, seed=i)
     ink_text(c, "à découvert presque tous les mois", 450, 360, 28, INKC, 'Limelight', outline=.6, a=ent(t-7.2, .3))
     if t > 9.0:
         s = back((t-9.0)/.35); c.save(); c.translate(600, 465); c.rotate(.06); c.scale(s, s)
@@ -231,7 +253,9 @@ def b_loyer(cv, c, t, k):
         u = ent(t-30.9, .6)
         if u > 0: rr(c, x0, y-h/2, (xt-x0)*u, h, 14); col(c, GOLD[1]); c.fill()
         u2 = ent(t-36.4, 1.2)
-        if u2 > 0: c.rectangle(xt, y-h/2, (x1-x0)*.22*u2, h); col(c, '3A3A3A'); c.fill()
+        if u2 > 0:
+            for g_, a_ in ((18, .10), (10, .18), (4, .3)): rr(c, xt-g_, y-h/2-g_, (x1-x0)*.22*u2+2*g_, h+2*g_, 14+g_); col(c, 'FF1E3C', a_*u2); c.fill()
+            c.rectangle(xt, y-h/2, (x1-x0)*.22*u2, h); col(c, 'FF1E3C'); c.fill()
         rr(c, x0, y-h/2, x1-x0, h, 14); c.set_line_width(6); col(c, INKC, a); c.stroke()
         for q in (1, 2): ink_line(c, [(x0+(x1-x0)*q/3, y-h/2), (x0+(x1-x0)*q/3, y+h/2)], 4, INKC, a=a*.6, seed=q, t=t)
         if t > 31.0: ink_text(c, "1/3 MAX", (x0+xt)/2, y, 34, INKC, outline=1.0, a=ent(t-31.0, .3))
@@ -239,7 +263,7 @@ def b_loyer(cv, c, t, k):
     if t > 35.1:
         ink_line(c, [((x0+xt)/2, y+h/2+6), ((x0+xt)/2, y+h/2+60*ent(t-35.1, .3))], 6, INKC, seed=4, t=t)
         num(c, "667 €", (x0+xt)/2+30, 365, 92, t-35.2); ink_text(c, "de loyer maximum", (x0+xt)/2+30, 430, 24, INKC, 'Limelight', outline=.5, a=ent(t-35.4, .3))
-    if t > 37.4: ink_text(c, "le mois commence", 640, 360, 28, INKC, 'Limelight', outline=.6, a=ent(t-37.4, .3)); ink_text(c, "DANS LE ROUGE", 640, 410, 36, INKC, outline=1.0, a=ent(t-37.6, .3))
+    if t > 37.4: ink_text(c, "le mois commence", 640, 360, 28, INKC, 'Limelight', outline=.6, a=ent(t-37.4, .3)); ink_text(c, "DANS LE ROUGE", 640, 410, 36, 'FF1E3C', outline=3.5, a=ent(t-37.6, .3))
     end_card(c)
 def b_depenses(cv, c, t, k):
     title_bw(c, "ERREUR N° 3 : LES PETITES DÉPENSES", k, t)
@@ -258,6 +282,7 @@ def b_depenses(cv, c, t, k):
             if kk > 0: ink_text(c, lab, x+10, 535, 21, INKC, 'Alfa Slab One', outline=.4, a=ent(kk, .25)); check(c, x+10, 492, ok, kk-.2, t, seed=20+i)
     ink_text(c, "hypothèse : 7 % par an, jamais garanti", 450, 578, 18, INKC, 'Limelight', outline=.3, a=.85*ent(t-47.7, .5))
     end_card(c)
+    rain(c, t)
 def b_regle(cv, c, t, k):
     title_bw(c, "LA RÈGLE 50 / 30 / 20", k, t)
     card(c, 540, 600, 920, 580, k, t, rot=.01)
@@ -329,7 +354,7 @@ def cap_bw(c, t):
 def events():
     ev = V.events() + [(ta-IR, 'whoosh') for ta in IRIS] + [(COL_T+.05, 'glint')]
     ev += [(.35, 'impact'), (1.9, 'pop'), (5.6, 'pop'), (7.0, 'thud'), (9.0, 'pop'), (11.6, 'pop'), (18.2, 'thud'), (21.9, 'glint'), (24.0, 'pop'),
-           (30.9, 'tick'), (35.2, 'glint'), (36.4, 'thud'), (45.0, 'pop'), (49.9, 'tick'), (51.0, 'glint'), (58.1, 'pop'), (60.0, 'pop'), (61.15, 'glint'),
+           (30.9, 'tick'), (35.2, 'glint'), (36.4, 'thud'), (45.0, 'pop'), (41.80, 'tick'), (42.28, 'tick'), (42.76, 'tick'), (43.24, 'tick'), (43.72, 'tick'), (44.20, 'tick'), (49.9, 'tick'), (51.0, 'glint'), (58.1, 'pop'), (60.0, 'pop'), (61.15, 'glint'),
            (64.55, 'pop'), (66.75, 'tick'), (67.9, 'glint'), (71.1, 'pop'), (73.4, 'glint'), (77.3, 'pop'), (78.3, 'impact')]
     ev += [(51.8+.45*i+.2, 'tick') for i in range(4)]
     return sorted(ev)

@@ -216,151 +216,213 @@ def coin_col(cv_rgb, t):
     if fx is not None:
         m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), V.FEET-3), (95, 15), 0, 0, 360, .5, -1); cv_rgb *= (1-cv2.GaussianBlur(m, (0, 0), 9)[..., None])
     return cv_rgb*(1-al[..., None])+rgb_.astype(np.float32)*al[..., None]
-RED = 'E63946'; GREEN = '2A9D8F'; SKY = '4361EE'
-# ================= objets dessinés =================
-def medal(c, x, y, r, label, k, t, fill=GOLD[1]):
+RED = 'B3161B'; CREAM = 'F6E7C1'; BROWN = '3B2412'; CHALK = 'F3F1E8'; SKY = '4361EE'
+# ================= accessoires Gemini (détourés, dossier props/) =================
+_PS = {}
+def psurf(name):
+    if name not in _PS:
+        im = Image.open(f'{D}/props/{name}.png').convert('RGBA'); a = np.asarray(im).astype(np.float32)
+        pre = a.copy(); pre[..., :3] *= a[..., 3:4]/255
+        buf = np.ascontiguousarray(pre[..., [2, 1, 0, 3]].astype(np.uint8))
+        _PS[name] = (cairo.ImageSurface.create_for_data(bytearray(buf.tobytes()), cairo.FORMAT_ARGB32, im.width, im.height), im.width, im.height)
+    return _PS[name]
+def prop(c, name, x, y, h=None, w=None, k=1.0, rot=0.0, a=1.0, shadow=True, ax=.5, ay=.5):
+    """pose un accessoire (centre x, y) ; taille par hauteur h ou largeur w ; k = pop caoutchouc"""
+    if k <= 0 or a <= 0: return 0, 0
+    sf, iw, ih = psurf(name); s = (h/ih) if h else (w/iw); s *= back(k/.35)
+    c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s)
+    if shadow:
+        c.save(); c.translate(10/s, 16/s); c.set_source_surface(sf, -iw*ax, -ih*ay); c.paint_with_alpha(.0); c.restore()
+    c.set_source_surface(sf, -iw*ax, -ih*ay); c.paint_with_alpha(a); c.restore()
+    return iw*s, ih*s
+def paint(c, s_, x, y, size, fill=CREAM, a=1.0, align='c', rot=0.0, fam='Alfa Slab One'):
+    """lettres peintes : crème/or, contour brun chaud, ombre portée"""
+    if a <= 0: return
+    c.save(); c.select_font_face(fam, 0, 0); c.set_font_size(size); e = c.text_extents(s_)
+    xx = -e.x_advance/2 if align == 'c' else (-e.x_advance if align == 'r' else 0)
+    c.translate(x, y); c.rotate(rot); c.translate(xx, size*.35); ol = max(3, size*.09)
+    c.move_to(ol*.6, ol*.9); c.text_path(s_); c.set_source_rgba(0, 0, 0, .5*a); c.fill()
+    c.move_to(0, 0); c.text_path(s_); c.set_line_join(cairo.LINE_JOIN_ROUND); c.set_line_width(ol*2); col(c, BROWN, a); c.stroke_preserve(); col(c, fill, a); c.fill()
+    c.restore()
+def fit(c, s_, size, maxw, fam='Alfa Slab One'):
+    c.save(); c.select_font_face(fam, 0, 0); c.set_font_size(size); w = c.text_extents(s_).x_advance; c.restore()
+    return size if w <= maxw else int(size*maxw/w)
+def ribbon(c, s_, x, y, w, k, t, fill=CREAM, rot=0.0, size=40):
+    """ruban rouge Gemini avec texte peint, qui se déroule (pop)"""
     if k <= 0: return
-    s = back(k/.35); c.save(); c.translate(x, y); c.scale(s, s)
-    c.arc(6, 10, r, 0, 2*math.pi); col(c, '000000', .4); c.fill()
-    c.arc(0, 0, r, 0, 2*math.pi); col(c, fill); c.fill_preserve(); c.set_line_width(6); col(c, INKC); c.stroke()
-    c.arc(0, 0, r*.78, 0, 2*math.pi); c.set_line_width(3); col(c, GOLD[2]); c.stroke()
-    ink_text(c, label, 0, 4, int(r*1.05), INKC, 'Alfa Slab One', outline=.8); c.restore()
-def gauge(c, x0, y, w, h, frac, colr, k, dashed=False):
-    """barre de jauge dessinée à l'encre ; frac = remplissage visé (0-1), k = avancement"""
-    rr(c, x0, y-h/2, w, h, h/2); col(c, PAPER); c.fill_preserve(); c.set_line_width(5); col(c, INKC); c.stroke()
-    u = ent(k, .8)*frac
-    if u > .005:
-        rr(c, x0+5, y-h/2+5, max(h-10, (w-10)*u), h-10, (h-10)/2); col(c, colr, .55 if dashed else 1); c.fill()
-        if dashed:
-            c.save(); rr(c, x0+5, y-h/2+5, max(h-10, (w-10)*u), h-10, (h-10)/2); c.clip()
-            for k_ in range(-20, 60): c.move_to(x0+k_*22, y+h/2); c.line_to(x0+k_*22+h, y-h/2)
-            c.set_line_width(6); col(c, colr); c.stroke(); c.restore()
+    sf, iw, ih = psurf('ruban'); s = w/iw; sx = s*back(k/.4); sy = s*min(1, back(k/.3))
+    c.save(); c.translate(x, y); c.rotate(rot); c.scale(sx, sy); c.set_source_surface(sf, -iw/2, -ih/2); c.paint(); c.restore()
+    paint(c, s_, x, y-4, fit(c, s_, size, w*.62), fill, a=ent(k-.15, .2), rot=rot)
+def sign_title(c, s_, t, t0, t_out=None):
+    """enseigne Gemini suspendue à ses chaînes, qui descend du cintre et se balance"""
+    k = t-t0
+    if k <= 0: return
+    sf, iw, ih = psurf('enseigne'); s = 560/iw
+    drop = (1-ent(k, .5))*-420+(ease((t-t_out)/.45)*-520 if t_out and t > t_out else 0)
+    sw = .06*math.exp(-k*1.6)*math.sin(k*6)+.012*math.sin(t*1.3)
+    c.save(); c.translate(540, -165+drop); c.rotate(sw); c.scale(s, s); c.set_source_surface(sf, -iw/2, 0); c.paint(); c.restore()
+    py = -165+drop+975*s
+    c.save(); c.translate(540, -165+drop); c.rotate(sw); c.translate(-540, 165-drop)
+    paint(c, s_, 540, py, fit(c, s_, 56, 330), BROWN if False else 'FFE27A'); c.restore()
+def thermo(c, x, top, h, v, colr, k, t, est=None):
+    """thermomètre Gemini ; liquide jusqu'à v (%) ; échelle 0-4 % entre les graduations"""
+    sf, iw, ih = psurf('thermometre'); s = h/ih; x0 = x-iw*s/2
+    Y = lambda yy: top+yy*s; X = lambda xx: x0+xx*s
+    lvl = lambda p: 1112-(p/4)*(1112-327)
+    c.save()
+    u = ent(k, 1.0)*v
+    if k > 0:
+        c.arc(X(318), Y(1700), 118*s, 0, 2*math.pi); col(c, colr, .92); c.fill()
+        yt = lvl(u); rr(c, X(268), Y(yt), (362-268)*s, Y(1640)-Y(yt), 40*s); col(c, colr, .92); c.fill()
+        c.rectangle(X(282), Y(yt)+6, 14*s, Y(1600)-Y(yt)-6); col(c, 'FFFFFF', .28); c.fill()
+    c.set_source_surface(sf, 0, 0); c.restore()
+    c.save(); c.translate(x0, top); c.scale(s, s); c.set_source_surface(sf, 0, 0); c.paint_with_alpha(.55 if k > 0 else 1); c.restore()
+    if est is not None and t > est[1]:                                        # repère hachuré de l'estimation de février
+        ye = Y(lvl(est[0])); u2 = ent(t-est[1], .4)
+        c.save(); c.set_dash([10, 7]); c.move_to(X(250), ye); c.line_to(X(250)+(X(380)-X(250))*u2, ye); c.set_line_width(5); col(c, 'FFE27A'); c.stroke(); c.restore()
+    return Y(lvl(v)), lambda p: Y(lvl(p))
+def coin_fall(c, x, y0, y1, k, size=58, spin=0.0):
+    if k <= 0: return
+    u = min(1, k/.45); y = y0+(y1-y0)*u*u
+    prop(c, 'piece', x, y, h=size, rot=spin*k, shadow=False)
+def chalk_line(c, pts, wdt=5, colr=CHALK, a=.9, seed=0):
+    if len(pts) < 2: return
+    rng = np.random.default_rng(seed)
+    for pas in range(2):
+        c.move_to(*pts[0])
+        for (x, y) in pts[1:]: c.line_to(x+rng.normal(0, .8), y+rng.normal(0, .8))
+        c.set_line_width(wdt*(1 if pas == 0 else .5)); c.set_line_cap(cairo.LINE_CAP_ROUND); c.set_line_join(cairo.LINE_JOIN_ROUND); col(c, colr, a*(.75 if pas == 0 else .5)); c.stroke()
+def chalk_text(c, s_, x, y, size, colr=CHALK, a=.92, fam='Limelight'):
+    c.save(); c.select_font_face(fam, 0, 0); c.set_font_size(size); e = c.text_extents(s_)
+    c.move_to(x-e.x_advance/2, y+size*.35); c.text_path(s_); col(c, colr, a); c.fill(); c.restore()
+# ================= scènes =================
+def b_hook(cv, c, t, k):
+    sw = 1+.025*math.sin(t*4)
+    c.save(); c.translate(540, 400); c.scale(sw, sw)
+    paint(c, "COMMENT COMMENCER", 0, -58, 64); paint(c, "À T'ENRICHIR ?", 0, 50, 96, 'FFE27A'); c.restore()
+    for i in range(3):
+        kk = t-1.9-.2*i; wob = .22*math.sin((t-3.0)*12)*math.exp(-max(0, t-3.0)*2.5) if (i == 0 and t > 3.0) else 0
+        if kk <= 0: continue
+        c.save(); c.translate(300+240*i, 690); c.rotate(wob+.15*math.sin(t*2+i))
+        prop(c, 'piece', 0, 0, h=170, k=kk); s_ = back(kk/.35)
+        c.scale(s_, s_); paint(c, str(i+1), 0, 4, 110, CREAM); c.restore()
+    if t > 2.9: paint(c, "la 1re va te surprendre !", 540, 850, 36, a=ent(t-2.9, .3))
+def b_step1(cv, c, t, k):
+    sign_title(c, "ÉTAPE 1", t, 4.6)
+    ribbon(c, "NE LAISSE PAS DORMIR TON ARGENT" if t < 24.0 else "GARDE UNE RÉSERVE", 540, 370, 800, t-(6.1 if t < 24.0 else 24.0), t)
+    if 6.1 < t < 8.6: zzz(c, t, 520, 900)
+    if 8.4 <= t < 24.6:
+        out = ease((t-24.0)/.5) if t > 24.0 else 0
+        for (x, lab, v, colr, t0, t1, est) in ((330, "LIVRET A", 1.7, 'F2B82E', 8.4, 9.9, (2.5, 20.9)), (750, "INFLATION", 3.4, RED, 10.8, 13.2, None)):
+            kk = t-t0
+            if kk <= 0: continue
+            xx = x+(-500 if x < 540 else 500)*out
+            yl, Lv = thermo(c, xx, 535+(1-ent(kk, .4))*600, 450, v, colr, t-t1, t, est)
+            paint(c, lab, xx, 515+(1-ent(kk, .4))*600, 36, 'FFE27A' if x < 540 else 'FF8A8A')
+            if t > t1+.6: paint(c, f"{v:.1f} %".replace('.', ','), (165 if x < 540 else 915)+(xx-x), yl, 52, 'FFE27A' if x < 540 else 'FF8A8A', a=ent(t-t1-.6, .3))
+            if est and t > est[1]:
+                paint(c, "≈ 2,5 %", 165+(xx-x), Lv(2.5)-34, 38, CREAM, a=ent(t-est[1], .3)); paint(c, "en février ?", 165+(xx-x), Lv(2.5)-72, 22, CREAM, a=ent(t-est[1]-.2, .3))
+        if t > 22.5 and out < 1:
+            _, Lv = thermo.__defaults__ and (None, None) or (None, None)
+            y_inf = 535+(1112-(3.4/4)*(1112-327))*(450/2055)
+            u = ent(t-22.5, .4); c.save(); c.set_dash([16, 10]); c.move_to(750, y_inf); c.line_to(750-(750-330)*u, y_inf); c.set_line_width(6); col(c, RED, 1-out); c.stroke(); c.restore()
+        if t > 22.6 and t < 24.2: ribbon(c, "TOUJOURS SOUS L'INFLATION", 540, 905, 700, t-22.6, t, rot=-.02)
+    if t >= 24.0:
+        kk = t-24.1
+        prop(c, 'coffre_securite', 540, 650, h=360, k=kk, rot=.02*math.sin(t*1.5))
+        if t > 24.6: ribbon(c, "3 À 6 MOIS DE DÉPENSES", 540, 900, 700, t-24.6, t, rot=.015)
+        if t > 26.6:
+            sc = back((t-26.6)/.3); c.save(); c.translate(800, 520); c.rotate(.18); c.scale(sc, sc); paint(c, "PAS PLUS !", 0, 0, 58, 'FF8A8A'); c.restore()
 def zzz(c, t, x, y):
     for i in range(3):
         u = ((t*.45+i/3) % 1); a = math.sin(u*math.pi)
-        ink_text(c, "Z", x+40*u+12*math.sin(u*6), y-120*u, int(30+24*u), SKY, 'Alfa Slab One', a=a*.9, outline=4)
-def emoji_tile(cv, x, y, e_, k, size=92):
-    if k <= 0: return
-    s = back(k/.35); S.put_emoji(cv, e_, int(x), int(y), max(8, int(size*s)))
-# ================= scènes =================
-def b_hook(cv, c, t, k):
-    sw = 1+.03*math.sin(t*4)
-    c.save(); c.translate(540, 420); c.scale(sw, sw)
-    ink_text(c, "COMMENT COMMENCER", 0, -56, 62, PAPER, 'Alfa Slab One', outline=6)
-    ink_text(c, "À T'ENRICHIR ?", 0, 46, 90, GOLD[0], 'Alfa Slab One', outline=7); c.restore()
-    for i in range(3):
-        kk = t-1.9-.2*i; wob = .18*math.sin((t-3.0)*12)*math.exp(-max(0, t-3.0)*2.5) if (i == 0 and t > 3.0) else 0
-        c.save(); c.translate(300+240*i, 700); c.rotate(wob); medal(c, 0, 0, 74, str(i+1), kk, t); c.restore()
-    if t > 2.9: ink_text(c, "la 1re va te surprendre !", 540, 850, 34, PAPER, 'Alfa Slab One', outline=4.5, a=ent(t-2.9, .3))
-def step_title(c, n, sub, t, t0, t1):
-    medal(c, 120, 258, 56, str(n), t-t0, t)
-    if t > t1: ink_text(c, sub, 200, 262, min(46, int(1240/max(1, len(sub)))), PAPER, 'Alfa Slab One', align='l', outline=5.5, a=ent(t-t1, .3))
-def b_step1(cv, c, t, k):
-    step_title(c, 1, "NE LAISSE PAS DORMIR TON ARGENT" if t < 24.0 else "GARDE UNE RÉSERVE", t, 4.6, 6.1)
-    if 6.1 < t < 8.6: zzz(c, t, 520, 900)
-    if 8.4 <= t < 24.1:
-        a = 1-ent(t-23.8, .3)
-        c.save(); c.push_group(); card(c, 540, 620, 920, 560, t-8.4, t)
-        rows = ((90, "LIVRET A", "aujourd'hui", 1.7, GOLD[1], 9.9, False), (230, "INFLATION", "sur un an", 3.4, RED, 13.2, False), (370, "LIVRET A", "février (estimation)", 2.5, GOLD[1], 20.9, True))
-        for (y, lab, sub, v, colr, t0, dash) in rows:
-            if t < t0-1.2: continue
-            ink_text(c, lab, 140, y-12, 30, INKC, 'Alfa Slab One', outline=.6, a=ent(t-t0+1.2, .3)); ink_text(c, sub, 140, y+22, 19, INKC, 'Limelight', outline=.3, a=ent(t-t0+1.2, .3))
-            gauge(c, 270, y, 470, 64, v/4.0, colr, t-t0, dash)
-            if t > t0+.5: num(c, ("≈ " if dash else "")+f"{v:.1f}".replace('.', ',')+" %", 820, y+2, 40, t-t0-.5, gold=colr != RED)
-        if t > 22.5:
-            xi = 270+5+(470-10)*3.4/4.0; ink_line(c, [(xi, 30), (xi, 430)], 5, RED, a=ent(t-22.5, .3), seed=7, t=t)
-            ink_text(c, "inflation", xi, 455, 22, RED, 'Alfa Slab One', outline=3, a=ent(t-22.5, .3))
-        end_card(c); c.pop_group_to_source(); c.paint_with_alpha(a); c.restore()
-        stamp(c, 540, 950, "TOUJOURS SOUS L'INFLATION", None, t-22.6, t, rot=-.035, w=700, h=100) if t < 24.0 else None
-    if t >= 24.0:
-        card(c, 540, 600, 860, 420, t-24.0, t, rot=.012)
-        emoji_tile(cv, 0, 0, '🛟', 0)
-        ink_text(c, "ÉPARGNE DE SÉCURITÉ", 430, 80, 40, INKC, 'Alfa Slab One', outline=.8)
-        num(c, "3 à 6 mois", 430, 190, 92, t-24.6)
-        ink_text(c, "de dépenses", 430, 270, 34, INKC, 'Limelight', outline=.5, a=ent(t-25.2, .3))
-        if t > 26.6: ink_text(c, "PAS PLUS !", 430, 350, 46, RED, 'Alfa Slab One', outline=4, a=ent(t-26.6, .25))
-        end_card(c)
+        paint(c, "Z", x+40*u+12*math.sin(u*6), y-120*u, int(30+24*u), 'B9D7FF', a=a*.9)
 def b_step2(cv, c, t, k):
-    step_title(c, 2, "DEVIENS ACTIONNAIRE", t, 27.6, 28.5)
-    if t < 29.9: return
-    card(c, 540, 630, 920, 600, t-29.9, t, rot=-.01)
-    items = (("TÉLÉPHONE", 30.0, 150), ("BASKETS", 30.95, 450), ("CAFÉ", 31.75, 750))
-    for lab, t0, x in items:
-        if t > t0: ink_text(c, lab, x, 200, 26, INKC, 'Alfa Slab One', outline=.5, a=ent(t-t0, .3))
-    if t > 33.0:
-        for i, (lab, t0, x) in enumerate(items):
-            u = ent(t-33.0-.12*i, .35); ink_line(c, [(x, 215), (x+(450-x)*u*.85, 215+105*u)], 6, INKC, seed=30+i, t=t)
-        sb = back((t-33.6)/.35) if t > 33.6 else 0
-        if sb > 0:
-            c.save(); c.translate(450, 360); c.scale(sb, sb); box(c, 0, 0, 520, 96, "ENTREPRISE COTÉE", GOLD[1], size=34); c.restore()
-    if t > 36.2:
-        a2 = ent(t-36.2, .3); ink_text(c, "tu es son", 450, 470, 28, INKC, 'Limelight', outline=.5, a=a2)
-        ink_text(c, "CLIENT", 230, 535, 46, '6B6B6B', 'Alfa Slab One', outline=.8, a=a2)
-        if t > 37.7:
-            u = ent(t-37.7, .25); ink_line(c, [(140, 540), (140+180*u, 528)], 7, RED, seed=41, t=t)
-            ink_line(c, [(365, 535), (365+60*u, 535)], 7, INKC, seed=42, t=t)
-            if u > .9: c.move_to(437, 535); c.line_to(415, 520); c.line_to(415, 550); c.close_path(); col(c, INKC); c.fill()
-            num(c, "ACTIONNAIRE", 650, 535, 48, t-37.85)
-    end_card(c)
-def emojis_step2(cv, t):
-    if not (29.9 <= t < 39.6): return
-    cx, cy = 540, 630; x0, y0 = cx-460, cy-300                       # repère de la carte (approximatif, sans rotation)
-    for (e_, t0, x) in (('📱', 30.0, 150), ('👟', 30.95, 450), ('☕', 31.75, 750)):
-        emoji_tile(cv, x0+x, y0+78, e_, t-t0, 96)
+    sign_title(c, "ÉTAPE 2", t, 27.6)
+    ribbon(c, "DEVIENS ACTIONNAIRE", 540, 370, 720, t-28.5, t)
+    cert = t > 37.7
+    for (name, lab, t0, x, h, w) in (('telephone', "TON TÉLÉPHONE", 30.0, 210, 250, None), ('basket', "TES BASKETS", 30.95, 540, None, 290), ('cafe', "TON CAFÉ", 31.75, 870, None, 250)):
+        kk = t-t0
+        if kk <= 0: continue
+        a = 1-ent(t-37.7, .3) if cert else 1
+        bob = 6*math.sin(t*2.2+x)
+        prop(c, name, x, 640+bob, h=h, w=w, k=kk, a=a, rot=.05*math.sin(t*1.7+x))
+        paint(c, lab, x, 800, 32, a=a*ent(kk-.1, .3))
+        if t > 33.1:
+            u = ent(t-33.1-.1*(x/330), .4); ink_line(c, [(x, 828), (x+(540-x)*u*.6, 828+40*u)], 6, BROWN, a=a, seed=x, t=t)
+    if 33.4 < t and not cert: ribbon(c, "= DES ENTREPRISES COTÉES", 540, 905, 700, t-33.4, t)
+    if 36.2 < t < 37.9: paint(c, "et toi, tu n'es que CLIENT…", 540, 1000-60, 34, 'FF8A8A', a=ent(t-36.2, .3)*(1-ent(t-37.6, .25)))
+    if cert:
+        kk = t-37.75; sc = back(kk/.4)
+        c.save(); c.translate(540, 680); c.rotate(-.03+.01*math.sin(t*1.4)); c.scale(sc, sc)
+        prop(c, 'certificat', 0, 0, h=560)
+        paint(c, "ACTIONNAIRE :", 0, -120, 44, CREAM); paint(c, "TOI !", 0, -10, 120, 'FFE27A')
+        c.restore()
 PRICES = [100, 92, 80, 71, 77, 88, 84, 95, 108, 102, 116, 124]
 def b_step3(cv, c, t, k):
-    step_title(c, 3, "INVESTIS TOUS LES MOIS", t, 39.7, 40.5)
-    if 42.8 <= t < 51.2:
-        a = 1-ent(t-50.9, .3); c.save(); c.push_group()
-        card(c, 540, 640, 940, 600, t-42.8, t)
-        ink_text(c, "DCA = la même somme, chaque mois", 470, 45, 30, INKC, 'Alfa Slab One', outline=.6)
-        ink_text(c, "(Dollar Cost Averaging)", 470, 82, 20, INKC, 'Limelight', outline=.3)
-        X = lambda i: 90+i*(770/11); Y = lambda p: 300-(p-60)*2.6
+    sign_title(c, "ÉTAPE 3", t, 39.7, t_out=42.6)
+    if t < 43.2: ribbon(c, "INVESTIS TOUS LES MOIS", 540, 370, 760, t-40.5, t, rot=0)
+    if 42.6 <= t < 51.6:
+        kk = t-42.6; out = ease((t-51.0)/.55) if t > 51.0 else 0
+        sf, iw, ih = psurf('tableau'); s = .92; slide = (1-ent(kk, .45))*900+out*-1100
+        bx = 540+slide; by = -40
+        c.save(); c.translate(bx-iw*s/2, by); c.scale(s, s); c.set_source_surface(sf, 0, 0); c.paint(); c.restore()
+        L, T = bx-iw*s/2+205*s, by+318*s; R, B = bx-iw*s/2+912*s, by+1020*s               # ardoise
+        cx = (L+R)/2
+        if t > 43.0:
+            chalk_text(c, "DCA : la même somme, chaque mois", cx, T+34, 30, 'FFF6A8')
+            chalk_text(c, "(Dollar Cost Averaging)", cx, T+72, 21)
+        X = lambda i: L+40+i*((R-L-80)/11); Y = lambda p: T+300-(p-65)*2.9
         n = clamp((t-43.0)/4.6)*11
         pts = [(X(i), Y(p)) for i, p in enumerate(PRICES) if i <= n]
-        if n > 0 and len(pts) < 12: i = int(n); f = n-i; pts.append((X(i)+(X(i+1)-X(i))*f, Y(PRICES[i]+(PRICES[i+1]-PRICES[i])*f)))
-        if len(pts) > 1: ink_line(c, pts, 6, SKY, seed=50, t=t)
-        ink_text(c, "cours de la bourse", 120, 118, 23, SKY, 'Alfa Slab One', outline=2.5, align='l')
+        if 0 < n < 11: i = int(n); f = n-i; pts.append((X(i)+(X(i+1)-X(i))*f, Y(PRICES[i]+(PRICES[i+1]-PRICES[i])*f)))
+        chalk_line(c, pts, 5, CHALK, seed=3)
+        if t > 43.2: chalk_text(c, "cours de la bourse", L+130, T+118, 25, 'BFE3FF')
         for i, p in enumerate(PRICES):
             ti = 43.0+i*4.6/11
             if t < ti: continue
-            hb = 100/p*140; u = ent(t-ti, .3)
-            rr(c, X(i)-22, 470-hb*u, 44, hb*u, 6); col(c, GREEN); c.fill_preserve(); c.set_line_width(3); col(c, INKC); c.stroke()
-            c.arc(X(i), Y(p), 9, 0, 2*math.pi); col(c, GOLD[1]); c.fill_preserve(); c.set_line_width(3); col(c, INKC); c.stroke()
-        if t > 43.6: ink_text(c, "parts achetées avec 100 €", 470, 505, 22, GREEN, 'Alfa Slab One', outline=2.5, a=ent(t-43.6, .3))
+            hb = 100/p*150*ent(t-ti, .3); x = X(i)
+            c.save(); c.rectangle(x-15, B-25-hb, 30, hb); c.clip()
+            for j in range(-12, 30): c.move_to(x-15, B-25-hb+j*8); c.line_to(x+15, B-25-hb+j*8-14)
+            c.set_line_width(3); col(c, 'FFE27A', .85); c.stroke(); c.restore()
+            c.rectangle(x-15, B-25-hb, 30, hb); c.set_line_width(2.5); col(c, 'FFE27A', .9); c.stroke()
+        if t > 43.6: chalk_text(c, "parts achetées avec 100 €", cx, B-6, 25, 'FFE27A')
         if t > 48.3:
             hm = len(PRICES)/sum(1/p for p in PRICES); u = ent(t-48.3, .5); yy = Y(hm)
-            c.save(); c.set_dash([18, 10]); c.move_to(X(0), yy); c.line_to(X(0)+(X(11)-X(0))*u, yy); c.set_line_width(5); col(c, GOLD[2]); c.stroke(); c.restore()
-            if t > 48.8: ink_text(c, "ton prix moyen, lissé", X(11)-10, yy-26, 22, GOLD[2], 'Alfa Slab One', outline=3, align='r', a=ent(t-48.8, .3))
-        end_card(c); c.pop_group_to_source(); c.paint_with_alpha(a); c.restore()
-    if t >= 51.1:
-        card(c, 540, 620, 900, 580, t-51.1, t, rot=.01)
-        ink_text(c, "100 €/mois · ETF monde · PEA", 450, 50, 32, INKC, 'Alfa Slab One', outline=.6)
-        ink_text(c, "7 % par an pendant 30 ans", 450, 92, 22, INKC, 'Limelight', outline=.3, a=ent(t-54.6, .3))
-        base = 485
-        for (x, lab, val, t0, d, colr) in ((260, "versé", 36000, 56.9, 1.0, 'B8B8B8'), (640, "au bout de 30 ans", 121997, 59.0, 1.1, GOLD[1])):
-            if t < t0-.3: continue
-            u = ent(t-t0+.3, d); h_ = val/121997*245*u
-            rr(c, x-90, base-h_, 180, h_, 10); col(c, colr); c.fill_preserve(); c.set_line_width(5); col(c, INKC); c.stroke()
-            ink_text(c, lab, x, base+30, 24, INKC, 'Alfa Slab One', outline=.5)
-            num(c, ("≈ " if val > 50000 else "")+V.euro(count_to(val, (t-t0+.3)/d)), x, base-h_-40, 50 if val < 50000 else 60, t-t0+.3, gold=val > 50000)
-        ink_text(c, "hypothèse : 7 % par an, jamais garanti", 450, 560, 18, INKC, 'Limelight', outline=.3, a=.85*ent(t-54.6, .5))
-        end_card(c)
+            c.save(); c.set_dash([14, 9]); c.move_to(X(0), yy); c.line_to(X(0)+(X(11)-X(0))*u, yy); c.set_line_width(4); col(c, 'FF9EC4', .95); c.stroke(); c.restore()
+            if t > 48.8: chalk_text(c, "ton prix moyen, lissé", cx+80, yy+28, 23, 'FF9EC4')
+    if t >= 51.0:
+        ribbon(c, "100 €/MOIS · ETF MONDE · PEA", 540, 300, 900, t-51.1, t)
+        jx, jy, jh = 300, 700, 400
+        prop(c, 'bocal', jx, jy, h=jh, k=t-51.2)
+        n_in = int(clamp((t-51.6)/5.2)*14)
+        for i in range(n_in):                                              # pièces empilées au fond du bocal
+            row, colm = divmod(i, 4); prop(c, 'piece', jx-75+50*colm+(row % 2)*20, jy+jh*.36-row*36, h=56, shadow=False, rot=.3*math.sin(i))
+        if 51.6 < t < 56.8:
+            ph = ((t-51.6)/5.2*14) % 1; coin_fall(c, jx+10, jy-330, jy+jh*.36-(n_in//4)*36, ph*.45/.45, 60, 4)
+        prop(c, 'bocal', jx, jy, h=jh, k=t-51.2, a=.35, shadow=False)          # reflet du verre par-dessus les pièces
+        if t > 56.6:
+            paint(c, "versé", jx, 935, 30, a=ent(t-56.6, .3)); paint(c, V.euro(count_to(36000, (t-56.6)/1.0)), jx, 455, 48, CREAM, a=ent(t-56.6, .3))
+        if t > 58.3:
+            prop(c, 'tresor', 770, 715, h=420*(.6+.4*ent(t-58.3, 1.0)), k=t-58.3)
+            paint(c, "≈ "+V.euro(count_to(121997, (t-58.3)/1.1)), 770, 455, 62, 'FFE27A')
+            paint(c, "au bout de 30 ans", 770, 935, 30, a=ent(t-58.6, .3))
+        if t > 54.6: paint(c, "hypothèse : 7 % par an pendant 30 ans, jamais garanti", 540, 968, 20, a=.9*ent(t-54.6, .5), fam='Limelight')
 def b_fin(cv, c, t, k):
     if t < 65.7:
         a = 1-ent(t-65.4, .3)
         c.save(); c.push_group()
-        ink_text(c, "Le meilleur moment pour commencer :", 540, 330, 36, PAPER, 'Alfa Slab One', outline=4.5, a=ent(t-60.6, .3))
-        if t > 62.5: num(c, "IL Y A 10 ANS", 540, 430, 76, t-62.5, gold=False)
-        if t > 63.4: ink_text(c, "Le deuxième meilleur :", 540, 560, 36, PAPER, 'Alfa Slab One', outline=4.5, a=ent(t-63.4, .3))
-        if t > 64.5: num(c, "AUJOURD'HUI !", 540, 670, 100, t-64.5)
+        paint(c, "Le meilleur moment pour commencer :", 540, 290, 36, a=ent(t-60.6, .3))
+        ribbon(c, "IL Y A 10 ANS", 540, 425, 620, t-62.5, t, rot=-.02, size=56)
+        if t > 63.4: paint(c, "Le deuxième meilleur :", 540, 590, 36, a=ent(t-63.4, .3))
+        if t > 64.5:
+            sc = back((t-64.5)/.35); c.save(); c.translate(540, 710); c.scale(sc, sc); paint(c, "AUJOURD'HUI !", 0, 0, 100, 'FFE27A'); c.restore()
         c.pop_group_to_source(); c.paint_with_alpha(a); c.restore()
     else:
-        num(c, "ET TOI,", 540, 330, 96, t-65.75, gold=False)
-        ink_text(c, "de quelle marque", 540, 450, 54, PAPER, 'Alfa Slab One', outline=5, a=ent(t-66.0, .3))
-        ink_text(c, "aimerais-tu être", 540, 525, 54, PAPER, 'Alfa Slab One', outline=5, a=ent(t-66.4, .3))
-        num(c, "ACTIONNAIRE ?", 540, 625, 92, t-67.1)
-        if t > 68.2: ink_text(c, "Dis-le en commentaire", 540, 760, 38, PAPER, 'Alfa Slab One', a=ent(t-68.2, .3), outline=4.5); S.put_emoji(cv, '👇', 540, int(835+8*math.sin(t*5)), 56)
+        paint(c, "ET TOI,", 540, 330, 92, a=ent(t-65.75, .3))
+        paint(c, "de quelle marque", 540, 450, 52, a=ent(t-66.0, .3)); paint(c, "aimerais-tu être", 540, 525, 52, a=ent(t-66.4, .3))
+        ribbon(c, "ACTIONNAIRE ?", 540, 640, 760, t-67.1, t, size=72)
+        if t > 68.2: paint(c, "Dis-le en commentaire", 540, 790, 38, a=ent(t-68.2, .3)); S.put_emoji(cv, '👇', 540, int(865+8*math.sin(t*5)), 56)
 SC = [(0.0, 4.5, b_hook, 'theatre_couleur'), (4.5, 27.5, b_step1, 'chambre'), (27.5, 39.5, b_step2, 'avenue'), (39.5, 60.44, b_step3, 'jardin'), (60.44, DUR, b_fin, 'theatre_couleur')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
 IRIS = [s_[0] for s_ in SC[1:]]; IR = .42
@@ -369,7 +431,6 @@ def frame(t):
     img = decor_c(dec, t)
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
     s, c = surface(); f(cv, c, t, max(0.0, t-a)); cv.alpha_composite(to_img(s))
-    if f is b_step2: emojis_step2(cv, t)
     arr = np.asarray(cv.convert('RGB')).astype(np.float32)
     arr = coin_col(arr, t)
     fl = film(arr.copy(), t); arr = arr*.72+fl*.28                      # pellicule discrète : l'image reste éclatante
@@ -387,10 +448,10 @@ def cap_c(c, t):
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al); return
 def events():
     ev = V.events() + [(ta-IR, 'whoosh') for ta in IRIS]
-    ev += [(1.9, 'pop'), (2.1, 'pop'), (2.3, 'pop'), (3.0, 'bonk'), (4.66, 'pop'), (9.9, 'fill1'), (13.2, 'thud'), (20.9, 'tick'), (22.6, 'thud'),
-           (24.6, 'glint'), (26.6, 'thud'), (27.7, 'pop'), (30.0, 'pop'), (30.95, 'pop'), (31.75, 'pop'), (33.6, 'impact'), (37.85, 'tadaa'),
-           (39.8, 'pop'), (48.3, 'glint'), (56.6, 'tick'), (58.7, 'tick'), (60.0, 'coins'), (64.5, 'glint'), (67.1, 'impact')]
-    ev += [(43.0+i*4.6/11, 'coin') for i in range(12)]
+    ev += [(1.9, 'pop'), (2.1, 'pop'), (2.3, 'pop'), (3.0, 'bonk'), (4.7, 'thud'), (6.1, 'swish'), (9.9, 'fill1'), (13.2, 'fill2'), (20.9, 'tick'), (22.6, 'thud'),
+           (24.1, 'thud'), (24.6, 'swish'), (26.6, 'bonk'), (27.7, 'thud'), (28.5, 'swish'), (30.0, 'pop'), (30.95, 'pop'), (31.75, 'pop'), (33.4, 'swish'),
+           (37.75, 'tadaa'), (39.8, 'thud'), (40.5, 'swish'), (42.7, 'whoosh'), (48.3, 'glint'), (51.1, 'swish'), (56.6, 'tick'), (58.3, 'coins'), (64.5, 'glint'), (67.1, 'impact')]
+    ev += [(51.6+i*5.2/14+.4, 'coin') for i in range(14)]
     return sorted(ev)
 def main():
     if sys.argv[1] == 'info': print(DUR); return

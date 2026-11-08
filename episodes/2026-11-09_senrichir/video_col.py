@@ -419,10 +419,10 @@ def b_fin(cv, c, t, k):
             sc = back((t-64.5)/.35); c.save(); c.translate(540, 710); c.scale(sc, sc); paint(c, "AUJOURD'HUI !", 0, 0, 100, 'FFE27A'); c.restore()
         c.pop_group_to_source(); c.paint_with_alpha(a); c.restore()
     else:
-        paint(c, "ET TOI,", 540, 330, 92, a=ent(t-65.75, .3))
-        paint(c, "de quelle marque", 540, 450, 52, a=ent(t-66.0, .3)); paint(c, "aimerais-tu être", 540, 525, 52, a=ent(t-66.4, .3))
-        ribbon(c, "ACTIONNAIRE ?", 540, 640, 760, t-67.1, t, size=72)
-        if t > 68.2: paint(c, "Dis-le en commentaire", 540, 790, 38, a=ent(t-68.2, .3)); S.put_emoji(cv, '👇', 540, int(865+8*math.sin(t*5)), 56)
+        paint(c, "ET TOI,", 540, 290, 92, a=ent(t-65.75, .3))
+        paint(c, "de quelle marque", 540, 400, 52, a=ent(t-66.0, .3)); paint(c, "aimerais-tu être", 540, 470, 52, a=ent(t-66.4, .3))
+        ribbon(c, "ACTIONNAIRE ?", 540, 655, 760, t-67.1, t, size=72)
+        if t > 68.2: paint(c, "Dis-le en commentaire", 540, 830, 38, a=ent(t-68.2, .3)); S.put_emoji(cv, '👇', 540, int(905+8*math.sin(t*5)), 56)
 SC = [(0.0, 4.5, b_hook, 'theatre_couleur'), (4.5, 27.5, b_step1, 'chambre'), (27.5, 39.5, b_step2, 'avenue'), (39.5, 60.44, b_step3, 'jardin'), (60.44, DUR, b_fin, 'theatre_couleur')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
 IRIS = [s_[0] for s_ in SC[1:]]; IR = .42

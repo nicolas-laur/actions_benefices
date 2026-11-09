@@ -1,5 +1,4 @@
-"""Bande son Ubisoft, SANS musique (Nicolas pose la sienne dans Edits) : voix (5 fichiers placés), bruitages, et le son réel de
-la vidéo Gemini de la brèche (tirs, explosion, débris)."""
+"""Bande son Boeing : voix, bruitages, ambiances (vent, hangar, terminal) ; mix.wav avec une musique douce, mix_sans_musique.wav sans."""
 import sys
 sys.argv = ['x', 'info']
 import numpy as np
@@ -310,6 +309,13 @@ def birds(d):   # oiseaux lointains : petits gazouillis (création originale)
 def space(d):   # souffle d'espace très discret, qui respire
     n = int(d*SR); t = tt(n); return lp(rng.standard_normal(n), 500)*.006*(1+.3*np.sin(2*np.pi*.12*t))
 
+def windy(d):   # vent d'altitude : souffle qui respire
+    n = int(d*SR); t = tt(n); return lp(hp(rng.standard_normal(n), 120), 900)*.012*(1+.45*np.sin(2*np.pi*.17*t))
+def engine(d):   # moteurs à hélice au loin : ronronnement grave
+    n = int(d*SR); t = tt(n); return (lp(rng.standard_normal(n), 180)*.010+np.sin(2*np.pi*72*t)*.003+np.sin(2*np.pi*144*t)*.0015)
+seg(0, 4.12, windy(4.2)+engine(4.2)); seg(30.2, 44.36, windy(14.2)); seg(36.0, 44.36, engine(8.4))
+seg(4.12, 17.8, hum(13.7)); seg(44.36, 58.43, hum(14.1)); seg(17.8, 30.2, windy(12.4)*.6)
+seg(58.43, DUR, babble(DUR-58.43)*.8)
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 sr_v, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 assert sr_v == SR, f'voice_full.wav doit être en {SR} Hz (trouvé {sr_v} Hz) : sinon la voix est accélérée et plus aiguë'

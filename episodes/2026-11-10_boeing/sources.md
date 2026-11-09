@@ -7,4 +7,8 @@
 - Alaska Airlines 1282, 5/01/2024 : le panneau de porte (door plug) d'un 737 MAX 9 s'arrache environ six minutes après le décollage de Portland ; 177 personnes à bord, 8 blessés légers, aucun mort. Les quatre boulons de fixation manquaient : retirés lors d'une reprise à l'usine de Renton et jamais remis. Le NTSB attribue la responsabilité à Boeing (formation et contrôle insuffisants). AviationPros (rapport préliminaire), https://www.aviationpros.com/aircraft/article/53095894/preliminary-ntsb-report-finds-four-bolts-were-missing ; AirlineGeeks (rapport final du 10/07/2025), https://airlinegeeks.com/2025/07/10/ntsb-releases-final-report-on-alaska-door-plug-blowout/
 - « If it's not Boeing, I'm not going » : slogan populaire chez les pilotes et les passagers américains, pas un slogan officiel de Boeing.
 
+- Cotation : les registres de la Bourse de New York font démarrer la cotation de Boeing (BA) le 2 janvier 1962 (Motley Fool, https://www.fool.com/investing/2019/11/21/if-you-invested-500-in-boeings-ipo-this-is-how-muc.aspx ; VerifiedInvesting). Entreprise fondée en 1916 ; aucune source fiable trouvée sur une cotation antérieure.
+- Plus bas Covid : clôture de 95,01 $ le 20 mars 2020 (Macrotrends, plus bas de 2020 ; ChartRow, creux le 20/03/2020). Le 18/03/2020 l'action clôturait à 101,89 $ (StatMuse).
+- Conversions au taux de référence BCE : 1,1383 $ pour 1 € le 1/03/2019 (Banca d'Italia), soit 440,62 $ = 387 € ; 1,0707 $ le 20/03/2020 (PoundSterlingLive, série BCE), soit 95,01 $ = 89 €.
+
 À vérifier le jour de la publication : le cours de clôture du 9/11 (le −60 % peut bouger d'un ou deux points).

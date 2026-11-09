@@ -8,13 +8,13 @@ Chiffres au 6/11/2026 (voir sources.md). Pas de logo Boeing : avion générique,
 
 Comment l'avion le plus sûr du monde a-t-il pu perdre une porte en plein vol ?
 
-Pendant des décennies, les pilotes disaient : si ce n'est pas un Boeing, je n'y vais pas.
+Pendant des décennies, les pilotes disaient : « If it's not Boeing, I'm not going. »
 
-En mars deux mille dix-neuf, l'action bat son record.
+Coté à la Bourse de New York depuis mille neuf cent soixante-deux, Boeing bat son record en mars deux mille dix-neuf : trois cent quatre-vingt-sept euros l'action.
 
 Mais pour rattraper Airbus, Boeing veut aller vite avec son 737 MAX. Un logiciel mal conçu fait piquer l'avion. Deux crashs, trois cent quarante-six morts.
 
-Le MAX est cloué au sol pendant vingt mois. Puis le Covid vide le ciel : l'action perd près de quatre-vingts pour cent.
+Le MAX est cloué au sol pendant vingt mois. Puis le Covid vide le ciel : l'action perd près de quatre-vingts pour cent et tombe à quatre-vingt-neuf euros.
 
 Et en janvier deux mille vingt-quatre, en plein vol, un panneau de porte d'un 737 MAX presque neuf s'arrache. Quatre boulons n'avaient jamais été remis.
 
@@ -22,18 +22,19 @@ Aujourd'hui, l'action vaut encore soixante pour cent de moins qu'à son record. 
 
 Pourtant, plus de six mille trois cents avions attendent d'être livrés. Un record.
 
-Alors, Boeing : avion en panne, ou bonne affaire ? Et toi, tu montes encore dans un 737 MAX ?
+Alors, Boeing : avion en panne, ou bonne affaire ?
 
-(environ 165 mots, soit 55 à 60 s au rythme de Thomas)
+(environ 180 mots, soit 55 à 60 s au rythme de Thomas)
 
 ## Textes à l'écran (sous-titres et chiffres)
 
 - Accroche, dès l'image 0 : « Comment l'avion le plus sûr du monde a perdu une porte en plein vol ? »
 - « If it's not Boeing, I'm not going »
-- Record : mars 2019
+- Coté à New York depuis 1962
+- Record : 387 € (440,62 $), 1er mars 2019
 - 737 MAX : 2 crashs, 346 morts
 - Cloué au sol : 20 mois
-- Covid : −78 % (mars 2020)
+- Covid : −78 %, 89 € (95,01 $) le 20 mars 2020
 - 5 janvier 2024 : 4 boulons manquants
 - Aujourd'hui : −60 % depuis le record
 - 27 octobre 2026 : −10,7 % en une séance

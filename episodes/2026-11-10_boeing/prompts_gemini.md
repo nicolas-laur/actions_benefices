@@ -1,7 +1,7 @@
 # Prompts Gemini : Boeing (10/11/2026)
 
-Même méthode que « s'enrichir » : 3 décors animés (vidéo 9:16) et 8 accessoires en image fixe sur fond vert.
-On réutilise theatre_couleur, l'enseigne, le ruban et le thermomètre de l'épisode du 9/11.
+Même méthode que « s'enrichir » : 4 décors animés (vidéo 9:16) et 11 accessoires en image fixe sur fond vert.
+Aucun élément réutilisé de l'épisode du 9/11 : décor de fin, panneaux, banderole et jauge sont propres à cet épisode.
 
 ## Décors (vidéo, format vertical 9:16, 8 s)
 
@@ -11,6 +11,7 @@ Common block (to paste at the end of each décor prompt):
 1. decor_ciel : "A wide open cartoon sky seen from high altitude, big rounded cumulus clouds slowly drifting from right to left, a warm afternoon sun in the upper corner, a faint patchwork of fields far below."
 2. decor_hangar : "Inside a grand 1930s aircraft hangar with a curved steel roof and tall riveted windows, golden light beams falling on a polished concrete floor, hanging industrial lamps gently swaying, workbenches and ladders along the walls, the empty center left free."
 3. decor_piste : "An airport runway at dusk next to a small art deco control tower, runway lights glowing softly, a windsock gently moving, orange and violet sky, the tarmac in the foreground empty and wide."
+4. decor_terminal : "A grand 1930s art deco airport departure hall, marble floor, tall arched windows showing the sky, brass railings, a large blank departures board high on the back wall, warm chandeliers softly glowing, dust particles floating in the light, the center of the floor empty."
 
 ## Accessoires (image fixe, fond vert uni #00FF00)
 
@@ -25,3 +26,8 @@ Common block (to paste at the end of each prop prompt):
 6. fleche : "A big thick red arrow made of glossy enamel, bending and diving steeply downward to the bottom right, cartoon style."
 7. commandes : "A tall wobbly stack of cream order forms and paper contracts tied with red string, a few sheets flying off the top."
 8. ruban_noir : "A simple black mourning ribbon loop, elegant and sober, satin texture."
+9. altimetre : "A round vintage cockpit altimeter gauge with a brass bezel, a cream dial with blank tick marks and no numbers, and one long red needle, front view."
+10. banderole : "A long blank cream cloth banner with a red border, gently waving, attached by ropes to a small red 1930s propeller biplane flying to the left, the banner trailing behind it."
+11. panneau_depart : "A rectangular vintage split-flap departure board panel in a dark green metal frame with brass rivets, all flaps blank and black, front view."
+
+Usage dans la vidéo : la banderole tirée par le biplan porte les titres de scène (comme le ruban le faisait), l'altimètre remplace le thermomètre pour le −60 % et le −78 % (l'aiguille descend), et deux panneaux de départ portent « EN PANNE » et « BONNE AFFAIRE » à la fin, dans le hall du terminal.

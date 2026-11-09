@@ -47,5 +47,7 @@ Alors, Boeing : avion en panne, ou bonne affaire ? Et toi, tu montes encore dans
 3. Le MAX (11–22 s) : l'avion pique du nez, deux rubans noirs « 346 », puis l'avion enchaîné au sol avec un cadenas. Décor : piste.
 4. Covid (22–27 s) : ciel vide, la courbe plonge à −78 %. Décor : ciel.
 5. La porte (27–36 s) : panneau qui s'envole, quatre boulons qui tombent un à un (bruitage). Décor : ciel.
-6. Aujourd'hui (36–48 s) : thermomètre ou courbe à −60 %, chute de −10,7 % le 27/10, puis la pile de bons de commande qui monte jusqu'au plafond « 6 300 avions ». Décor : hangar.
-7. Fin (48–58 s) : théâtre couleur, deux pancartes « EN PANNE » et « BONNE AFFAIRE », question en commentaire. Décor : theatre_couleur (déjà fait).
+6. Aujourd'hui (36–48 s) : altimètre dont l'aiguille descend à −60 %, chute de −10,7 % le 27/10, puis la pile de bons de commande qui monte jusqu'au plafond « 6 300 avions ». Décor : hangar.
+7. Fin (48–58 s) : hall du terminal, deux panneaux de départ « EN PANNE » et « BONNE AFFAIRE », question en commentaire. Décor : terminal.
+
+Rien n'est réutilisé de l'épisode du 9/11 (demande de Nicolas) : titres sur la banderole du biplan, chiffres sur l'altimètre.

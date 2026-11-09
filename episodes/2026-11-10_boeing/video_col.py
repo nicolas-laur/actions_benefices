@@ -277,19 +277,69 @@ def b_ciel(cv, c, t, k):
                 bx = hx-60+40*i-90*kk; by = hy+40+430*kk*kk
                 if by < 990: prop(c, 'boulon', bx, by, h=105, rot=5*kk+i, shadow=False, a=1-ent(by-900, 80))
             if t > 43.6: paint(c, "retirés à l'usine, jamais remis", 540, 900, 30, a=ent(t-43.6, .3), fam='Limelight')
+# cours de Boeing en dollars (clôtures non ajustées) : fins d'année 2017-2019 et 2020-2024, record et plus bas Covid, puis fins de mois 2025-2026
+M = lambda y, m, d=28: y+(m-1)/12+(d-1)/365
+BA = [(M(2017, 12), 294.91), (M(2018, 12), 322.50), (M(2019, 3, 1), 440.62), (M(2019, 12), 325.76), (M(2020, 3, 20), 95.01), (M(2020, 12), 214.06),
+      (M(2021, 12), 201.32), (M(2022, 12), 190.49), (M(2023, 12), 260.66), (M(2024, 11), 155.44), (M(2024, 12), 177.00)]
+BA += [(M(2025, m), v) for m, v in enumerate([176.52, 174.63, 170.55, 183.24, 207.32, 209.53, 221.84, 234.68, 215.83, 201.02, 189.00, 217.12], 1)]
+BA += [(M(2026, m), v) for m, v in enumerate([233.72, 227.53, 199.03, 229.03, 231.15, 216.47, 216.14, 207.78, 186.05], 1)]
+BA += [(M(2026, 10, 26), 188.31), (M(2026, 10, 27), 168.18), (M(2026, 10, 30), 171.55), (M(2026, 11, 6), 173.40)]
+CX0, CX1, CY0, CY1 = 150, 975, 455, 905
+def cxy(d, v): return CX0+(d-2017.85)/(2026.95-2017.85)*(CX1-CX0), CY1-v/470*(CY1-CY0)
+def ba_at(d):
+    for (d0, v0), (d1, v1) in zip(BA, BA[1:]):
+        if d0 <= d <= d1: return v0+(v1-v0)*(d-d0)/(d1-d0)
+    return BA[-1][1]
+def chart(c, t, t0, dx=0.0):
+    """carte de papier : la courbe du cours se trace de fin 2017 à aujourd'hui, avec les repères de l'histoire"""
+    k = t-t0
+    if k <= 0: return
+    sc = back(k/.4); c.save(); c.translate(540+dx, 680); c.scale(sc, sc); c.translate(-540, -680)
+    rng = np.random.default_rng(int(t*12)); c.new_path(); x0, y0, x1, y1 = 70, 380, 1010, 975
+    pts = [(x0+(x1-x0)*i/20, y0+rng.normal(0, 1)) for i in range(21)]+[(x1+rng.normal(0, 1), y0+(y1-y0)*i/12) for i in range(1, 13)]
+    pts += [(x1-(x1-x0)*i/20, y1+rng.normal(0, 1)) for i in range(1, 21)]+[(x0+rng.normal(0, 1), y1-(y1-y0)*i/12) for i in range(1, 12)]
+    c.move_to(pts[0][0]+10, pts[0][1]+14); [c.line_to(p[0]+10, p[1]+14) for p in pts[1:]]; c.close_path(); col(c, '000000', .35); c.fill()
+    c.move_to(*pts[0]); [c.line_to(*p) for p in pts[1:]]; c.close_path(); col(c, 'F7ECCF'); c.fill_preserve(); c.set_line_width(7); col(c, BROWN); c.stroke()
+    for v in (100, 200, 300, 400):                                   # graduations discrètes
+        y = cxy(2018, v)[1]; c.move_to(CX0, y); c.line_to(CX1, y); c.set_line_width(2); col(c, 'C9B48A', .6); c.stroke()
+    for yr in range(2018, 2027):
+        x = cxy(yr, 0)[0]; c.select_font_face('Alfa Slab One', 0, 0); c.set_font_size(22); e = c.text_extents(str(yr))
+        c.move_to(x-e.x_advance/2, CY1+38); c.show_text(str(yr)) if False else None
+        c.move_to(x-e.x_advance/2, CY1+38); c.text_path(str(yr)); col(c, BROWN, .85); c.fill()
+    dend = 2017.85+(2026.86-2017.85)*inout(k/2.9)                    # la courbe avance à vitesse régulière dans le temps
+    path = [cxy(d, v) for d, v in BA if d <= dend]+[cxy(dend, ba_at(dend))]
+    c.move_to(path[0][0], CY1); [c.line_to(*p) for p in path]; c.line_to(path[-1][0], CY1); c.close_path()
+    g = cairo.LinearGradient(0, CY0, 0, CY1); g.add_color_stop_rgba(0, .70, .09, .11, .30); g.add_color_stop_rgba(1, .70, .09, .11, .04); c.set_source(g); c.fill()
+    for wdt, colr in ((13, BROWN), (7, 'F2B82E')):
+        c.move_to(*path[0]); [c.line_to(*p) for p in path]; c.set_line_width(wdt); c.set_line_join(cairo.LINE_JOIN_ROUND); c.set_line_cap(cairo.LINE_CAP_ROUND); col(c, colr); c.stroke()
+    c.arc(*path[-1], 11, 0, 2*math.pi); col(c, 'FFF6C8'); c.fill_preserve(); c.set_line_width(4); col(c, BROWN); c.stroke()
+    def mark(d, v, lab, sub, colr, dy, tt):
+        if dend < d or t < tt: return
+        x, y = cxy(d, v); u = ent(t-tt, .3)
+        c.arc(x, y, 12*u, 0, 2*math.pi); col(c, colr); c.fill_preserve(); c.set_line_width(4); col(c, BROWN); c.stroke()
+        c.move_to(x, y+dy*.25); c.line_to(x, y+dy*.62); c.set_line_width(3); col(c, BROWN, u); c.stroke()
+        lx = min(x, 905)
+        paint(c, lab, lx, y+dy, 40, colr, a=u)
+        if sub: paint(c, sub, lx, y+dy+(26 if dy > 0 else -30), 21, CREAM, a=u)
+    D = lambda d: t0+2.9*0+(d-2017.85)/(2026.86-2017.85)*2.9
+    mark(M(2019, 3, 1), 440.62, f"387{NB}€", "record, mars 2019", YEL, 62, t0+.45)
+    mark(M(2020, 3, 20), 95.01, f"89{NB}€", "Covid, mars 2020", PINK, -78, t0+.75)
+    if dend > 2024.02 and t > t0+1.6:
+        x, y = cxy(2024.02, ba_at(2024.02)); prop(c, 'porte', x, y-62, h=56, k=t-t0-1.6, rot=-.2, shadow=False)
+        paint(c, "la porte", x, y-110, 22, CREAM, a=ent(t-t0-1.7, .3))
+    mark(M(2026, 11, 6), 173.40, f"155{NB}€", "aujourd'hui", PINK, -78, t0+2.95)
+    c.restore()
 def b_today(cv, c, t, k):
     if t < 54.2:
         out = ease((t-53.6)/.55) if t > 53.6 else 0
         title(c, "AUJOURD'HUI", t, 44.4, 290, 76, t1=53.5)
-        pct = 22+(39.4-22)*inout((t-45.0)/1.4) if t > 45.0 else 22
-        if t > 48.4: pct = 39.4+4.4*(1-inout((t-48.6)/.8)) if t < 49.4 else 39.4
-        alti(c, 540-out*1100, 650, 380, pct, t-44.6, t, shake=1 if 48.6 < t < 49.5 else 0)
-        if t > 46.3: pop_text(c, f"−60{NB}%", 540-out*1100, 895, 76, t, 46.3, PINK)
-        if t > 46.8: paint(c, "depuis le record", 540-out*1100, 958, 30, a=ent(t-46.8, .3)*(1-out))
+        chart(c, t, 44.6, dx=-out*1100)
+        if t > 46.3: pop_text(c, f"−60{NB}% depuis le record", 690-out*1100, 445, 40, t, 46.3, PINK, rot=-.02, a=1-ent(t-48.3, .25))
         if t > 48.4:
-            pop_text(c, f"−10,7{NB}% EN UN JOUR", 540-out*1100, 372, 50, t, 48.4, PINK, rot=-.02)
-            paint(c, "27 octobre 2026", 540-out*1100, 420, 28, a=ent(t-48.7, .3))
-        if t > 52.0: pop_text(c, "LIVRAISONS EN RETARD", 540-out*1100, 650, 50, t, 52.0, PINK, rot=-.06)
+            x, y = cxy(M(2026, 10, 27), 168.18); u = ent(t-48.4, .35); x -= out*1100
+            c.save(); c.arc(x, y, 46*u, 0, 2*math.pi); c.set_line_width(7); col(c, RED); c.stroke(); c.restore()
+            pop_text(c, f"−10,7{NB}% le 27 octobre", 690-out*1100, 445, 40, t, 48.45, PINK, rot=-.02)
+        if t > 52.0: pop_text(c, "LIVRAISONS EN RETARD", 540-out*1100, 640, 50, t, 52.0, PINK, rot=-.06)
     else:
         title(c, "EN ATTENTE DE LIVRAISON", t, 53.7, 290, 56)
         board(c, 540, 640, 470, ["", f"6{NB}300", "AVIONS", ""], t, 54.3, k=t-53.9)
@@ -334,7 +384,7 @@ def events():
     ev += [(2.98, 'crash'), (4.7, 'swish'), (9.0, 'thud'), (11.6, 'impact'), (12.8, 'thud'), (12.9, 'tadaa'), (15.6, 'tick'), (16.5, 'glint'),
            (18.0, 'thud'), (18.2, 'whoosh'), (22.4, 'swish'), (23.95, 'riser'), (27.6, 'thud'), (28.3, 'crash'), (29.25, 'impact'),
            (30.3, 'thud'), (32.7, 'crash'), (33.9, 'impact'), (34.6, 'impact'), (35.8, 'thud'), (36.0, 'whoosh'), (41.28, 'crash'), (42.15, 'swish'),
-           (44.4, 'thud'), (46.3, 'impact'), (48.4, 'crash'), (52.0, 'bonk'), (53.7, 'thud'), (57.3, 'tadaa'), (58.5, 'thud'), (60.2, 'pop'), (61.9, 'impact')]
+           (44.4, 'thud'), (44.6, 'swish'), (45.1, 'glint'), (45.4, 'crash'), (46.3, 'impact'), (47.5, 'tick'), (48.4, 'crash'), (52.0, 'bonk'), (53.7, 'thud'), (57.3, 'tadaa'), (58.5, 'thud'), (60.2, 'pop'), (61.9, 'impact')]
     ev += [(42.3+.32*i+.55, 'tick') for i in range(4)]
     for (t0, n) in ((54.3, 12), (59.5, 7), (60.5, 12)): ev += [(t0+.12*i, 'click') for i in range(n)]
     return sorted(ev)

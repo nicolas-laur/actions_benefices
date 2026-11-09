@@ -11,4 +11,7 @@
 - Plus bas Covid : clôture de 95,01 $ le 20 mars 2020 (Macrotrends, plus bas de 2020 ; ChartRow, creux le 20/03/2020). Le 18/03/2020 l'action clôturait à 101,89 $ (StatMuse).
 - Conversions au taux de référence BCE : 1,1383 $ pour 1 € le 1/03/2019 (Banca d'Italia), soit 440,62 $ = 387 € ; 1,0707 $ le 20/03/2020 (PoundSterlingLive, série BCE), soit 95,01 $ = 89 €.
 
+- Courbe du cours (en dollars, non ajusté) : clôtures de fin d'année 2017-2024 (Digrin, prix réels, https://www.digrin.com/stocks/detail/BA/price), record du 1/03/2019 et plus bas du 20/03/2020, clôtures mensuelles de novembre 2024 à octobre 2026 (StatMuse), séances des 26, 27 et 30/10 et 6/11/2026 (StockAnalysis). Entre 2020 et 2023, la courbe relie les clôtures annuelles : c'est un tracé simplifié.
+- Aujourd'hui : 173,40 $ le 6/11/2026, au taux BCE de 1,1165 $ pour 1 € (BCE, https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/eurofxref-graph-usd.en.html), soit 155 €.
+
 À vérifier le jour de la publication : le cours de clôture du 9/11 (le −60 % peut bouger d'un ou deux points).

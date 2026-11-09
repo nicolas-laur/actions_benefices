@@ -304,10 +304,14 @@ def chart_glass(cv, t, t0, dx=0.0):
         dend = D0+(2026.86-D0)*inout((t-t0-.3)/2.9)
         if dend <= D0+.01: return
         pts = [(X(dd), Y(v)) for dd, v in BA if dd <= dend]+[(X(dend), Y(ba_at(dend)))]
-        kk.move_to(pts[0][0], yb); [kk.line_to(*p_) for p_ in pts]; kk.line_to(pts[-1][0], yb); kk.close_path()
-        g = cairo.LinearGradient(0, yt, 0, yb); g.add_color_stop_rgba(0, 1, .30, .37, .40); g.add_color_stop_rgba(1, 1, .30, .37, 0); kk.set_source(g); kk.fill()
-        kk.move_to(*pts[0]); [kk.line_to(*p_) for p_ in pts]; kk.set_line_join(cairo.LINE_JOIN_ROUND); kk.set_line_cap(cairo.LINE_CAP_ROUND)
-        kk.set_line_width(16); col(kk, S.GD, .18); kk.stroke_preserve(); kk.set_line_width(6); col(kk, S.GD); kk.stroke()
+        UP, DN = (.25, .88, .54), (1, .30, .37)                          # vert quand le cours monte, rouge quand il baisse
+        segs = [(p0, p1, UP if p1[1] <= p0[1] else DN) for p0, p1 in zip(pts, pts[1:])]
+        for (p0, p1, cl) in segs:                                         # aire sous la courbe, teintée segment par segment
+            e_ = 1.2; kk.move_to(p0[0]-e_, yb); kk.line_to(p0[0]-e_, p0[1]); kk.line_to(p1[0]+e_, p1[1]); kk.line_to(p1[0]+e_, yb); kk.close_path()
+            g = cairo.LinearGradient(0, yt, 0, yb); g.add_color_stop_rgba(0, *cl, .38); g.add_color_stop_rgba(1, *cl, 0); kk.set_source(g); kk.fill()
+        kk.set_line_cap(cairo.LINE_CAP_ROUND)
+        for wdt, al in ((16, .2), (6, 1.0)):
+            for (p0, p1, cl) in segs: kk.move_to(*p0); kk.line_to(*p1); kk.set_line_width(wdt); kk.set_source_rgba(*cl, al); kk.stroke()
         kk.arc(*pts[-1], 9, 0, 2*math.pi); col(kk, S.WHITE); kk.fill()
         def mark(dd, v, big, small, colr, dy, tt, xo=0):
             if dend < dd or t < tt: return
@@ -319,7 +323,7 @@ def chart_glass(cv, t, t0, dx=0.0):
         if dend > 2024.02 and t > t0+1.9:
             x, y = X(2024.02), Y(ba_at(2024.02)); prop(kk, 'porte', x, y-58, h=52, k=t-t0-1.9, rot=-.2, shadow=False)
             T(kk, "la porte, janv. 2024", x, y-104, 'sb', 20, S.ICE, 'c', .8*ent(t-t0-2.0, .3))
-        mark(M(2026, 11, 6), 173.40, f"155{NB}€", "le 6 novembre", S.RD, -64, t0+3.2, -40)
+        mark(M(2026, 11, 6), 173.40, f"155{NB}€", "le 6 novembre", S.RD, 74, t0+3.2, -40)
         if t > 46.3:
             a = ent(t-46.3, .3)*(1-ent(t-48.3, .25)); T(kk, f"−60{NB}% depuis le record", w-60, 40, 'xb', 30, S.RD, 'r', a)
         if t > 48.4:
@@ -327,7 +331,7 @@ def chart_glass(cv, t, t0, dx=0.0):
             kk.arc(x, y, 40*u, 0, 2*math.pi); kk.set_line_width(5); col(kk, S.RD); kk.stroke()
             T(kk, f"−10,7{NB}% le 27 octobre", w-60, 40, 'xb', 30, S.RD, 'r', ent(t-48.45, .3)*(1-ent(t-51.9, .2)))
         if t > 52.1: T(kk, "les livraisons prennent du retard", w-60, 40, 'xb', 30, S.RD, 'r', ent(t-52.1, .3))
-    S.tp(cv, 900, 560, d, 540+dx, 665+40*(1-ent(k, .45)), 'rouge', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=30)
+    S.tp(cv, 900, 560, d, 540+dx, 665+40*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=30)
 def b_today(cv, c, t, k):
     if t < 54.2:
         out = ease((t-53.6)/.55) if t > 53.6 else 0

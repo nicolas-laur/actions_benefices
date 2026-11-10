@@ -1,4 +1,4 @@
-"""Action, obligation, fonds euros (11/11/2026), cartoon 1930 en Technicolor : décors Gemini (rue, fournil, salle des coffres), accessoires Gemini détourés,
+"""Action ou obligation (11/11/2026 ; passage fonds euros retiré au montage, voir video.CUTS), cartoon 1930 en Technicolor : décors Gemini (rue, fournil, salle des coffres), accessoires Gemini détourés,
 Mister Coin Boulanger (clip Gemini qui jongle, en boucle) à côté de Mister Coin,
 Mister Coin en couleurs, pellicule discrète, iris aux changements de décor.
 usage : python3 video_col.py info | png t1 t2 … | seg out.mp4 f0 f1"""
@@ -58,9 +58,9 @@ _NF = {}
 def nframes(name):
     if name not in _NF: c = cv2.VideoCapture(DECC[name]); _NF[name] = int(c.get(cv2.CAP_PROP_FRAME_COUNT)); c.release()
     return _NF[name]
-DSLOW = {('fournil', 12.0): .3}                                       # fournil de l'action : travelling ralenti (le boulanger reste derrière le comptoir)
+DSLOW = {('fournil', V.inv(12.0)): .3}                                       # fournil de l'action : travelling ralenti (le boulanger reste derrière le comptoir)
 def decor_c(name, t):
-    a, b = next((a, b) for (a, b, d) in BLOCS if d == name and a <= t < b+.5)
+    a, b = next((a, b) for (a, b, d) in BLOCS_OUT if d == name and a <= t < b+.5)
     n = nframes(name); sp = min(1.0, (n-1)/24/max(.1, b-a))*DSLOW.get((name, a), 1.0); i = min(n-1, int(max(0, t-a)*sp*24))
     f = _RD.get(name, i)
     g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_CUBIC).astype(np.float32)
@@ -180,10 +180,10 @@ def star(c, x, y, r):
     c.close_path(); col(c, 'FFF6C8', .95); c.fill()
 # ================= scènes =================
 def b_rue1(cv, c, t, k):
-    paint(c, "ACTION, OBLIGATION, FONDS EUROS…", 540, 290, fit(c, "ACTION, OBLIGATION, FONDS EUROS…", 52, 960))
+    paint(c, "ACTION, OBLIGATION…", 540, 290, fit(c, "ACTION, OBLIGATION…", 60, 960))
     paint(c, "TU SAIS CE QUE TU ACHÈTES ?", 540, 370, fit(c, "TU SAIS CE QUE TU ACHÈTES ?", 66, 960), YEL)
     out = ease((t-6.1)/.45) if t > 6.1 else 0
-    for i, (nm, lab, t0, x) in enumerate((('certificat_action', "ACTION", .1, 195), ('obligation_coupons', "OBLIGATION", .8, 540), ('coffre', "FONDS EUROS", 2.3, 885))):
+    for i, (nm, lab, t0, x) in enumerate((('certificat_action', "ACTION", .1, 300), ('obligation_coupons', "OBLIGATION", .8, 780))):
         if t < t0: continue
         bob = 8*math.sin(t*2+i); y = 590+bob+out*900
         if nm == 'certificat_action': prop(c, nm, x, y, w=300, k=t-t0, rot=-.04)
@@ -328,10 +328,10 @@ def baker_state(t):
         if b is not None and t > b: dx = 700*ease((t-b)/.6)
         return ('cote', dx) if dx < 699 else None
     return None
-def baker(out, t):
+def baker(out, t, tout):
     st = baker_state(t)
     if st is None: return
-    mode, off = st; im = _BK.get(int(t*24))
+    mode, off = st; im = _BK.get(int(tout*24))
     if mode == 'fond':
         im = im.resize((int(im.width*FOND_S/BAK_S), int(im.height*FOND_S/BAK_S)), Image.LANCZOS)
         cpt = float(np.interp(t, CPT_T, CPT_Y)); x = int(FOND_X-im.width/2); y = int(cpt+70+off-BAK_FOOT_Y*FOND_S)
@@ -343,25 +343,27 @@ def baker(out, t):
     if x < W: out.alpha_composite(im, (max(x, 0), y), (max(0, -x), 0))
 
 SC = [(0.0, 6.5, b_rue1, 'rue'), (6.5, 12.0, b_rue2, 'rue'), (12.0, 25.3, b_action, 'fournil'), (25.3, 39.6, b_oblig, 'rue'),
-      (39.6, 60.45, b_fonds, 'coffres'), (60.45, DUR, b_fin, 'fournil')]
+      (39.6, 60.45, b_fonds, 'coffres'), (60.45, V.DUR_O, b_fin, 'fournil')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
-IRIS = [12.0, 25.3, 39.6, 60.45]; IR = .42
-def frame(t):
+BLOCS_OUT = [(V.inv(a), V.inv(b), d) for (a, b, d) in BLOCS]
+IRIS_O = [12.0, 25.3, 39.6, 60.45]; IRIS = [V.inv(x) for x in IRIS_O]; IR = .42
+def frame(tout):
+    t = V.tm(tout)                                                      # temps d'origine pour les scènes, tout pour le décor, les clips et les sous-titres
     i = max(j for j, s_ in enumerate(SC) if t >= s_[0] or j == 0); a, b, f, dec = SC[i]
-    img = decor_c(dec, t)
+    img = decor_c(dec, tout)
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
     st = baker_state(t)
-    if st and st[0] == 'fond': baker(cv, t)                             # au fond : derrière les accessoires de la scène
+    if st and st[0] == 'fond': baker(cv, t, tout)                             # au fond : derrière les accessoires de la scène
     s, c = surface(); f(cv, c, t, max(0.0, t-a)); cv.alpha_composite(to_img(s))
-    if st and st[0] == 'cote': baker(cv, t)
+    if st and st[0] == 'cote': baker(cv, t, tout)
     arr = np.asarray(cv.convert('RGB')).astype(np.float32)
-    arr = coin_col(arr, t)
-    fl = film(arr.copy(), t); arr = arr*.72+fl*.28
+    arr = coin_col(arr, tout)
+    fl = film(arr.copy(), tout); arr = arr*.72+fl*.28
     for ta in IRIS:
-        if ta-IR <= t < ta: arr = iris(arr, inout((t-(ta-IR))/IR))
-        elif ta <= t < ta+IR: arr = iris(arr, 1-inout((t-ta)/IR))
+        if ta-IR <= tout < ta: arr = iris(arr, inout((tout-(ta-IR))/IR))
+        elif ta <= tout < ta+IR: arr = iris(arr, 1-inout((tout-ta)/IR))
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
-    s, c = surface(); cap_c(c, t); out.alpha_composite(to_img(s))
+    s, c = surface(); cap_c(c, tout); out.alpha_composite(to_img(s))
     if t > 63.7: S.put_emoji(out, '👇', 860, int(960+8*math.sin(t*5)), 46)
     return out
 def cap_c(c, t):
@@ -372,13 +374,14 @@ def cap_c(c, t):
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al); return
 def events():
     ev = V.events() + [(ta-IR, 'whoosh') for ta in IRIS]
-    ev += [(.1, 'pop'), (.8, 'pop'), (2.3, 'pop'), (4.15, 'impact'), (6.6, 'swish'), (6.7, 'thud'), (7.9, 'swish'), (9.7, 'thud'), (11.05, 'impact'),
+    so = [(.1, 'pop'), (.8, 'pop'), (4.15, 'impact'), (6.6, 'swish'), (6.7, 'thud'), (7.9, 'swish'), (9.7, 'thud'), (11.05, 'impact'),
            (12.25, 'thud'), (12.9, 'glint'), (14.85, 'impact'), (17.4, 'swish'), (20.05, 'tadaa'), (21.2, 'glint'),
            (22.7, 'thud'), (22.8, 'crash'), (24.2, 'impact'), (25.45, 'swish'), (25.6, 'thud'), (25.9, 'pop'), (27.85, 'glint'), (28.8, 'impact'),
            (32.1, 'thud'), (33.6, 'pop'), (34.45, 'bonk'), (35.9, 'thud'), (36.0, 'swish'), (37.0, 'impact'),
            (39.85, 'thud'), (40.0, 'thud'), (41.9, 'swish'), (42.3, 'fill1'), (44.85, 'pop'), (45.0, 'glint'), (47.15, 'impact'),
            (49.75, 'thud'), (50.0, 'swish'), (54.4, 'fill1'), (55.3, 'tadaa'), (58.4, 'fill2'), (60.55, 'swish'), (60.6, 'thud'), (61.2, 'swish'), (62.6, 'swish'), (63.6, 'impact')]
-    ev += [(30.9+.35*i+.55, 'coin') for i in range(3)] + [(17.9+.32*i+.4, 'tick') for i in range(6)]
+    so += [(30.9+.35*i+.55, 'coin') for i in range(3)] + [(17.9+.32*i+.4, 'tick') for i in range(6)]
+    ev += [(V.inv(x), k) for x, k in so if not V.in_cut(x)]
     return sorted(ev)
 def main():
     if sys.argv[1] == 'info': print(DUR); return

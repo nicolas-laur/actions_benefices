@@ -3,7 +3,11 @@
 Vidéo éducative, dessin animé 1930 en Technicolor, 50 à 60 s. Accroche : question.
 Fil rouge : une boulangerie qui veut ouvrir une deuxième boutique.
 
-## Texte pour la voix (Thomas)
+## Montage du 10/11
+
+Passage « fonds euros » retiré à la demande de Nicolas (voix coupée, voir `video.py`, CUTS) : « fonds euros » dans l'accroche et le paragraphe du fonds euros. Il fera l'objet d'une vidéo dédiée. Durée finale 54 s.
+
+## Texte pour la voix (Thomas), version d'origine
 
 Action, obligation, fonds euros… tu sais vraiment ce que tu achètes ?
 

@@ -185,12 +185,11 @@ def b_rue1(cv, c, t, k):
     out = ease((t-6.1)/.45) if t > 6.1 else 0
     for i, (nm, lab, t0, x) in enumerate((('certificat_action', "ACTION", .1, 300), ('obligation_coupons', "OBLIGATION", .8, 780))):
         if t < t0: continue
-        bob = 8*math.sin(t*2+i); y = 590+bob+out*900
-        if nm == 'certificat_action': prop(c, nm, x, y, w=300, k=t-t0, rot=-.04)
-        elif nm == 'obligation_coupons': prop(c, nm, x, y, h=300, k=t-t0, rot=.03)
-        else: prop(c, nm, x, y, h=250, k=t-t0, rot=-.02)
-        pop_text(c, lab, x, 790+out*900, 40, t, t0+.1, CREAM if i != 1 else CREAM)
-    if t > 4.1: pop_text(c, "?", 540, 900+out*900, 120, t, 4.15, YEL)
+        bob = 8*math.sin(t*2+i); y = 590+bob; fo = 1-out
+        if nm == 'certificat_action': prop(c, nm, x, y, w=300*(1-.15*out), k=t-t0, rot=-.04, a=fo)
+        else: prop(c, nm, x, y, h=300*(1-.15*out), k=t-t0, rot=.03, a=fo)
+        pop_text(c, lab, x, 790, 40, t, t0+.1, CREAM, a=fo)
+    if t > 4.1: pop_text(c, "?", 540, 900, 120, t, 4.15, YEL, a=1-out)
 def b_rue2(cv, c, t, k):
     sw = .04*math.sin(t*1.7)
     board(c, 952, 836, 262, t-7.9, rot=-.03, lines=(("BOUTIQUE", 165, BROWN), ("N° 2", 210, RED)))
@@ -199,11 +198,12 @@ def b_rue2(cv, c, t, k):
     if t > 11.0: pop_text(c, "2 SOLUTIONS", 540, 290, 78, t, 11.05, YEL)
 def b_action(cv, c, t, k):
     if t < 22.6:
-        title(c, "1. L'ACTION", t, 12.25, 290, 80, YEL)
+        fa = 1-ent(t-22.2, .35) if t > 22.2 else 1                     # tout s'efface en fondu avant la faillite
+        title(c, "1. L'ACTION", t, 12.25, 290, 80, YEL, t1=22.2)
         mv = inout((t-17.4)/.7) if t > 17.4 else 0                    # le certificat se range à gauche pour laisser place au dividende
         cx_, cy_, w_ = 540-260*mv, 560-60*mv, 520-210*mv
         grow = 1+.14*inout((t-21.0)/.8) if t > 21.0 else 1
-        on_prop(c, 'certificat_action', cx_, cy_, w=w_*grow, k=t-12.9, rot=-.03+.02*math.sin(t*1.3),
+        on_prop(c, 'certificat_action', cx_, cy_, w=w_*grow, k=t-12.9, rot=-.03+.02*math.sin(t*1.3), a=fa,
                 texts=(("UNE PART", 833, 300, 120, BROWN), ("DE LA BOULANGERIE", 833, 560, 96, BROWN)))
         if t > 14.85: pop_text(c, "ACTION = PROPRIÉTAIRE", 540, 735, 52, t, 14.85, YEL, maxw=900, a=1-ent(t-17.3, .25))
         if t > 17.4:
@@ -211,13 +211,13 @@ def b_action(cv, c, t, k):
                 t0 = 17.9+.32*i; kk = t-t0
                 if kk <= 0: continue
                 tx, ty = 735+(-60, 60, 0, -70, 70, 0)[i], 720-(0, 0, 80, 150, 150, 230)[i]
-                y = ty-560*(1-ent(kk, .45)); prop(c, 'croissant', tx, y, w=170, rot=(-.2, .2, .05, -.15, .15, 0)[i], shadow=False)
-            if t > 20.0: pop_text(c, "DIVIDENDE", 735, 760, 60, t, 20.05, YEL)
+                y = ty-560*(1-ent(kk, .45)); prop(c, 'croissant', tx, y, w=170, rot=(-.2, .2, .05, -.15, .15, 0)[i], shadow=False, a=fa)
+            if t > 20.0: pop_text(c, "DIVIDENDE", 735, 760, 60, t, 20.05, YEL, a=fa)
             if t > 21.2:
-                pop_text(c, "+ DE VALEUR", 280, 655, 44, t, 21.2, MINT, rot=-.04)
+                pop_text(c, "+ DE VALEUR", 280, 655, 44, t, 21.2, MINT, rot=-.04, a=fa)
                 for i in range(3):
                     ph = ((t-21.2)*.8+i*.33) % 1; S_ = math.sin(ph*math.pi)
-                    if S_ > .1: star(c, 280+(-130, 120, 150)[i], 420+(0, 30, 250)[i], 24*S_)
+                    if S_*fa > .1: star(c, 280+(-130, 120, 150)[i], 420+(0, 30, 250)[i], 24*S_*fa)
     else:
         title(c, "FAILLITE", t, 22.7, 290, 90, PINK)
         sh = 6*math.sin(t*38)*(1-ent(t-23.6, .6)) if t > 23.0 else 0
@@ -230,14 +230,14 @@ def b_oblig(cv, c, t, k):
         prop(c, 'poignee_de_main', 540, 590+6*math.sin(t*3), w=480, k=t-25.9, a=a)
         if t > 26.4: pop_text(c, "UN PRÊT", 540, 790, 60, t, 26.4, CREAM, a=a)
     elif t < 36.0:
-        out = ease((t-35.5)/.5) if t > 35.5 else 0
+        fo = 1-ent(t-35.45, .35) if t > 35.45 else 1                  # l'obligation s'efface sur place, l'obligation d'État apparaît au même endroit
         gone = sum(1 for g in (30.9, 31.25, 31.6) if t > g)
-        bond(c, 540-out*1100, 585, 520, t, k=t-27.85, gone=gone, tgo=(30.9, 31.25, 31.6))
-        if t > 28.8: pop_text(c, "OBLIGATION = PRÊTEUR", 540-out*1100, 940, 52, t, 28.8, YEL, maxw=900, a=1-ent(t-30.4, .25))
-        if t > 30.6: pop_text(c, "INTÉRÊTS FIXES", 540-out*1100, 940, 54, t, 30.6, YEL, a=1-ent(t-32.0, .25))
-        if t > 32.1: pop_text(c, "+ REMBOURSÉ À LA FIN", 540-out*1100, 940, 52, t, 32.1, MINT, maxw=900, a=1-ent(t-33.5, .25))
-        if t > 33.6: pop_text(c, "MOINS DE RISQUE", 540-out*1100, 895, 44, t, 33.6, MINT)
-        if t > 34.45: pop_text(c, "PAS DE JACKPOT", 540-out*1100, 955, 44, t, 34.45, PINK)
+        bond(c, 540, 585, 520, t, k=t-27.85, a=fo, gone=gone, tgo=(30.9, 31.25, 31.6))
+        if t > 28.8: pop_text(c, "OBLIGATION = PRÊTEUR", 540, 940, 52, t, 28.8, YEL, maxw=900, a=fo*(1-ent(t-30.4, .25)))
+        if t > 30.6: pop_text(c, "INTÉRÊTS FIXES", 540, 940, 54, t, 30.6, YEL, a=fo*(1-ent(t-32.0, .25)))
+        if t > 32.1: pop_text(c, "+ REMBOURSÉ À LA FIN", 540, 940, 52, t, 32.1, MINT, maxw=900, a=fo*(1-ent(t-33.5, .25)))
+        if t > 33.6: pop_text(c, "MOINS DE RISQUE", 540, 895, 44, t, 33.6, MINT, a=fo)
+        if t > 34.45: pop_text(c, "PAS DE JACKPOT", 540, 955, 44, t, 34.45, PINK, a=fo)
     else:
         bond(c, 540, 585, 520, t, k=t-36.0, label=False)
         sf_, iw_, ih_ = psurf('obligation_coupons'); s_ = 520/ih_*back((t-36.0)/.35)
@@ -299,7 +299,7 @@ def b_fin(cv, c, t, k):
     if t > 63.6: paint(c, "Dis-le en commentaire", 540, 960, 36, a=ent(t-63.7, .3))
 # ================= Mister Coin Boulanger =================
 BAK = f'{S.ROOT}/mister_coin/veo/boulanger_jongle.mp4'; BAK_X, BAK_FEET, BAK_S = 745, 1650, .60; BAK_FOOT_Y = 1035
-BAK_ON = [('fond', 12.3, 22.5), ('cote', 25.45, None)]                  # au fond derrière le comptoir du fournil, puis à côté de Mister Coin
+BAK_ON = [('fond', 12.0, 22.5), ('cote', 25.3, None)]                  # au fond derrière le comptoir du fournil, puis à côté de Mister Coin
 FOND_X, FOND_S = 300, .52
 CPT_T, CPT_Y = (12.0, 15.0, 18.0, 21.0, 25.3), (1151, 1160, 1169, 1180, 1196)   # bord arrière du comptoir (mesuré sur le décor ralenti)             # comptoir : bord arrière du plateau (le boulanger est coupé en dessous)
 class _Bak:
@@ -319,14 +319,9 @@ _BK = _Bak()
 def baker_state(t):
     """(mode, décalage) : au fond, il monte de derrière le comptoir puis redescend ; à côté, il entre et sort par la droite"""
     for mode, a, b in BAK_ON:
-        if t < a-.6 or (b is not None and t > b+.6): continue
-        if mode == 'fond':
-            if t < a: return 'fond', 450*(1-ease((t-a+.6)/.6))
-            if t > b: return 'fond', 450*ease((t-b)/.6)
-            return 'fond', 0
-        dx = 700*(1-ease((t-a+.6)/.6)) if t < a else 0
-        if b is not None and t > b: dx = 700*ease((t-b)/.6)
-        return ('cote', dx) if dx < 699 else None
+        if t < a or (b is not None and t > b+.6): continue               # il est là dès le changement de décor (sous l'iris fermé), comme Mister Coin
+        if mode == 'fond': return 'fond', (450*ease((t-b)/.6) if t > b else 0)   # à la faillite, il se cache derrière le comptoir
+        return 'cote', 0
     return None
 def baker(out, t, tout):
     st = baker_state(t)
@@ -345,7 +340,10 @@ def baker(out, t, tout):
 SC = [(0.0, 6.5, b_rue1, 'rue'), (6.5, 12.0, b_rue2, 'rue'), (12.0, 25.3, b_action, 'fournil'), (25.3, 39.6, b_oblig, 'rue'),
       (39.6, 60.45, b_fonds, 'coffres'), (60.45, V.DUR_O, b_fin, 'fournil')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
-BLOCS_OUT = [(V.inv(a), V.inv(b), d) for (a, b, d) in BLOCS]
+BLOCS_OUT = []
+for (a, b, d) in BLOCS:
+    if BLOCS_OUT and BLOCS_OUT[-1][2] == d and abs(BLOCS_OUT[-1][1]-V.inv(a)) < 1e-6: BLOCS_OUT[-1] = (BLOCS_OUT[-1][0], V.inv(b), d)
+    else: BLOCS_OUT.append((V.inv(a), V.inv(b), d))
 IRIS_O = [12.0, 25.3, 39.6, 60.45]; IRIS = [V.inv(x) for x in IRIS_O]; IR = .42
 def frame(tout):
     t = V.tm(tout)                                                      # temps d'origine pour les scènes, tout pour le décor, les clips et les sous-titres
@@ -359,12 +357,15 @@ def frame(tout):
     arr = np.asarray(cv.convert('RGB')).astype(np.float32)
     arr = coin_col(arr, tout)
     fl = film(arr.copy(), tout); arr = arr*.72+fl*.28
-    for ta in IRIS:
-        if ta-IR <= tout < ta: arr = iris(arr, inout((tout-(ta-IR))/IR))
-        elif ta <= tout < ta+IR: arr = iris(arr, 1-inout((tout-ta)/IR))
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
     s, c = surface(); cap_c(c, tout); out.alpha_composite(to_img(s))
     if t > 63.7: S.put_emoji(out, '👇', 860, int(960+8*math.sin(t*5)), 46)
+    arr = np.asarray(out.convert('RGB')).astype(np.float32); u = 0
+    for ta in IRIS:
+        if ta-IR <= tout < ta: u = inout((tout-(ta-IR))/IR)
+        elif ta <= tout < ta+IR: u = 1-inout((tout-ta)/IR)
+    if u > 0: arr = iris(arr, u)
+    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
     return out
 def cap_c(c, t):
     for k, (a, b, s_, hl) in enumerate(V.CAPS):

@@ -145,8 +145,8 @@ def banner_plane(c, x, y, s, l1, l2, t, a=1.0):
     c.rectangle(-RX, -400, RX+12, 1400); c.clip(); c.set_source_surface(sf, -RX, -RY); c.paint_with_alpha(a); c.restore()
     cx, cy = x-(RX-440)*sx, y+bob-(RY-322)*sy
     c.save(); c.translate(cx, cy); c.rotate(wav)
-    sz = fit(c, l1, 44, 400)
-    paint(c, l1, 0, -30 if l2 else 0, sz, RED, a=a); paint(c, l2, 0, 32, sz, RED, a=a) if l2 else None
+    sz = min(fit(c, l1, 34, 360), fit(c, l2 or l1, 34, 360))              # texte contenu dans la partie crème, entre les bordures rouges
+    paint(c, l1, 0, -21 if l2 else 0, sz, RED, a=a); paint(c, l2, 0, 23, sz, RED, a=a) if l2 else None
     c.restore()
 ALT_HUB = (742, 750); ALT_R = 505; ALT_A0 = 34.0                     # moyeu de l'aiguille, rayon du cadran, angle d'origine de l'aiguille
 def alti(c, x, y, h, pct, k, t=0.0, shake=0.0):

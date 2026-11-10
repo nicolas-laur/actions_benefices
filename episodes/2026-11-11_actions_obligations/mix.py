@@ -313,9 +313,15 @@ def windy(d):   # vent d'altitude : souffle qui respire
     n = int(d*SR); t = tt(n); return lp(hp(rng.standard_normal(n), 120), 900)*.012*(1+.45*np.sin(2*np.pi*.17*t))
 def engine(d):   # moteurs à hélice au loin : ronronnement grave
     n = int(d*SR); t = tt(n); return (lp(rng.standard_normal(n), 180)*.010+np.sin(2*np.pi*72*t)*.003+np.sin(2*np.pi*144*t)*.0015)
-seg(0, 4.12, windy(4.2)+engine(4.2)); seg(30.2, 44.36, windy(14.2)); seg(36.0, 44.36, engine(8.4))
-seg(4.12, 17.8, hum(13.7)); seg(44.36, 58.43, hum(14.1)); seg(17.8, 30.2, windy(12.4)*.6)
-seg(58.43, DUR, babble(DUR-58.43)*.8)
+def crackle(d):   # four à bois : crépitements doux + souffle chaud du feu
+    n = int(d*SR); t = tt(n); x = lp(rng.standard_normal(n), 400)*.008*(1+.25*np.sin(2*np.pi*.2*t)); tc = .1
+    while tc < d-.1:
+        m = int(.02*SR); u = tt(m); add(x, bp(rng.standard_normal(m), 1200, 6000)*np.exp(-u*220)*rng.uniform(.01, .04), tc); tc += rng.exponential(.18)
+    return x
+RUE = lambda d: birds(d)+babble(d)*.35
+seg(0, 12.0, RUE(12.0)); seg(25.3, 39.6, RUE(14.3))
+seg(12.0, 25.3, crackle(13.3)); seg(60.45, DUR, crackle(DUR-60.45))
+seg(39.6, 60.45, hum(20.9)*.8+ticktock(20.9)*.6)
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 sr_v, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 assert sr_v == SR, f'voice_full.wav doit être en {SR} Hz (trouvé {sr_v} Hz) : sinon la voix est accélérée et plus aiguë'

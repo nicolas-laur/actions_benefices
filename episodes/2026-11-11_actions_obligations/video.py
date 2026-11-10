@@ -55,11 +55,14 @@ CAPS = []
 for (a, b), txt, hl in CAPS_SRC:
     for (x0, x1, p) in _split(txt, a, b): CAPS.append((x0, x1, p, hl))
 FEET = 1650
-MC = VeoCoin([(inv(a), clip, m) for a, clip, m in [(0.0, 'classique_parle_question', 'voix'), (6.6, 'classique_parle_explique', 'voix'), (12.2, 'classique_parle_enthousiaste', 'voix'),
-              (22.6, 'classique_parle_inquiet', 'voix'), (25.4, 'classique_parle_confidence', 'voix'), (30.4, 'classique_danse_parle_compte', 'voix'),
-              (35.7, 'classique_parle_explique', 'voix'), (49.6, 'classique_danse_parle_billets', 'voix'),
-              (60.5, 'classique_danse_parle_swing', 'voix'), (63.6, 'classique_danse_joie_silence', 'une')]],
-             voix=VOICE, duree=DUR, x=300, pieds=FEET, largeur_piece=170, lisse=True)
+# Plan « dynamique » (retour du 10/11) : plusieurs clips par scène, il change de geste toutes les 4 s environ pendant un petit saut,
+# en privilégiant les clips dansés ; temps d'origine convertis en temps de la vidéo montée.
+EN, EX, QU, IN, CO = 'classique_parle_enthousiaste', 'classique_parle_explique', 'classique_parle_question', 'classique_parle_inquiet', 'classique_parle_confidence'
+SW, CP, BI, PR = 'classique_danse_parle_swing', 'classique_danse_parle_compte', 'classique_danse_parle_billets', 'classique_danse_parle_prudent'
+MC = VeoCoin([(inv(a), clips, m) for a, clips, m in [(0.0, [QU, SW], 'voix'), (6.6, [EX, SW, EN], 'voix'), (12.2, [EN, CP, BI], 'voix'),
+              (22.6, IN, 'voix'), (25.4, [CO, PR, SW], 'voix'), (30.4, [CP, EX, BI], 'voix'), (35.7, [EX, SW], 'voix'),
+              (49.6, [BI, EN, CP], 'voix'), (60.5, [SW, QU], 'voix'), (63.6, 'classique_danse_joie_silence', 'une')]],
+             voix=VOICE, duree=DUR, x=300, pieds=FEET, largeur_piece=170, lisse=True, variete=2.0, silence_min=8)
 def euro(v): return f"{int(round(v)):,}".replace(',', NB)+NB+"€"
 def count_to(v, u): return v*ease(u)
 def events(): return sorted([(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops)])

@@ -58,9 +58,10 @@ _NF = {}
 def nframes(name):
     if name not in _NF: c = cv2.VideoCapture(DECC[name]); _NF[name] = int(c.get(cv2.CAP_PROP_FRAME_COUNT)); c.release()
     return _NF[name]
+DSLOW = {('fournil', 12.0): .3}                                       # fournil de l'action : travelling ralenti (le boulanger reste derrière le comptoir)
 def decor_c(name, t):
     a, b = next((a, b) for (a, b, d) in BLOCS if d == name and a <= t < b+.5)
-    n = nframes(name); sp = min(1.0, (n-1)/24/max(.1, b-a)); i = min(n-1, int(max(0, t-a)*sp*24))
+    n = nframes(name); sp = min(1.0, (n-1)/24/max(.1, b-a))*DSLOW.get((name, a), 1.0); i = min(n-1, int(max(0, t-a)*sp*24))
     f = _RD.get(name, i)
     g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_CUBIC).astype(np.float32)
     return np.clip((g-128)*1.06+130, 0, 255)
@@ -130,6 +131,18 @@ def ink(c, s_, x, y, size, colr, a=1.0, maxw=None):
     c.select_font_face('Alfa Slab One', 0, 0); c.set_font_size(size); e = c.text_extents(s_)
     if maxw and e.x_advance > maxw: size *= maxw/e.x_advance; c.set_font_size(size); e = c.text_extents(s_)
     c.move_to(x-e.x_advance/2, y+e.height/2-(e.height+e.y_bearing)/2); c.text_path(s_); col(c, colr, a); c.fill()
+BOARD = (30, 975, 1195, 1715)                                           # planche seule de la pancarte (sans les cordes), coordonnées de pancarte.png
+def board(c, x, y, w, k, rot=0.0, lines=()):
+    """planche de la pancarte sans cordes, clouée sur un support du décor ; lignes de texte à l'encre"""
+    if k <= 0: return
+    sf, iw, ih = psurf('pancarte'); x0, y0, x1, y1 = BOARD; s = w/(x1-x0)*back(k/.35)
+    c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.translate(-(x0+x1)/2, -(y0+y1)/2)
+    c.rectangle(x0, y0, x1-x0, y1-y0); c.clip(); c.set_source_surface(sf, 0, 0); c.paint()
+    n = len(lines); cy = (y0+y1)/2
+    for i, (tx, sz, colr) in enumerate(lines): ink(c, tx, (x0+x1)/2, cy+(i-(n-1)/2)*sz*1.15, sz, colr, maxw=(x1-x0)*.8)
+    for (nx, ny) in ((x0+55, y0+55), (x1-55, y0+55), (x0+55, y1-55), (x1-55, y1-55)):     # clous
+        c.arc(nx, ny, 18, 0, 2*math.pi); col(c, '5A4A3A'); c.fill()
+    c.restore()
 def fade(t, t0, t1=None, d=.3): return ent(t-t0, d)*(1-ent(t-t1, d) if t1 is not None else 1)
 def on_prop(c, name, x, y, w=None, h=None, k=1.0, rot=0.0, a=1.0, texts=()):
     """accessoire + textes écrits dessus, en coordonnées de l'image de l'accessoire : (texte, px, py, taille, couleur)"""
@@ -180,7 +193,7 @@ def b_rue1(cv, c, t, k):
     if t > 4.1: pop_text(c, "?", 540, 900+out*900, 120, t, 4.15, YEL)
 def b_rue2(cv, c, t, k):
     sw = .04*math.sin(t*1.7)
-    on_prop(c, 'pancarte', 850, 470+(1-ent(t-7.9, .5))*-700, w=400, k=1, rot=sw, texts=(("BOUTIQUE", 610, 1250, 165, BROWN), ("N° 2", 610, 1480, 210, RED)))
+    board(c, 952, 836, 262, t-7.9, rot=-.03, lines=(("BOUTIQUE", 165, BROWN), ("N° 2", 210, RED)))
     title(c, "UNE BOULANGERIE", t, 6.7, 290, 70, t1=9.6)
     title(c, "IL LUI FAUT DE L'ARGENT", t, 9.7, 290, 56, t1=10.75)
     if t > 11.0: pop_text(c, "2 SOLUTIONS", 540, 290, 78, t, 11.05, YEL)
@@ -188,20 +201,20 @@ def b_action(cv, c, t, k):
     if t < 22.6:
         title(c, "1. L'ACTION", t, 12.25, 290, 80, YEL)
         mv = inout((t-17.4)/.7) if t > 17.4 else 0                    # le certificat se range à gauche pour laisser place au dividende
-        cx_, cy_, w_ = 540-260*mv, 600-90*mv, 560-250*mv
+        cx_, cy_, w_ = 540-260*mv, 560-60*mv, 520-210*mv
         grow = 1+.14*inout((t-21.0)/.8) if t > 21.0 else 1
         on_prop(c, 'certificat_action', cx_, cy_, w=w_*grow, k=t-12.9, rot=-.03+.02*math.sin(t*1.3),
                 texts=(("UNE PART", 833, 300, 120, BROWN), ("DE LA BOULANGERIE", 833, 560, 96, BROWN)))
-        if t > 14.85: pop_text(c, "ACTION = PROPRIÉTAIRE", 540, 870, 54, t, 14.85, YEL, maxw=900, a=1-ent(t-17.3, .25))
+        if t > 14.85: pop_text(c, "ACTION = PROPRIÉTAIRE", 540, 735, 52, t, 14.85, YEL, maxw=900, a=1-ent(t-17.3, .25))
         if t > 17.4:
             for i in range(6):                                           # les croissants du dividende tombent en pile
                 t0 = 17.9+.32*i; kk = t-t0
                 if kk <= 0: continue
                 tx, ty = 735+(-60, 60, 0, -70, 70, 0)[i], 720-(0, 0, 80, 150, 150, 230)[i]
                 y = ty-560*(1-ent(kk, .45)); prop(c, 'croissant', tx, y, w=170, rot=(-.2, .2, .05, -.15, .15, 0)[i], shadow=False)
-            if t > 20.0: pop_text(c, "DIVIDENDE", 735, 870, 62, t, 20.05, YEL)
+            if t > 20.0: pop_text(c, "DIVIDENDE", 735, 760, 60, t, 20.05, YEL)
             if t > 21.2:
-                pop_text(c, "+ DE VALEUR", 280, 760, 44, t, 21.2, MINT, rot=-.04)
+                pop_text(c, "+ DE VALEUR", 280, 655, 44, t, 21.2, MINT, rot=-.04)
                 for i in range(3):
                     ph = ((t-21.2)*.8+i*.33) % 1; S_ = math.sin(ph*math.pi)
                     if S_ > .1: star(c, 280+(-130, 120, 150)[i], 420+(0, 30, 250)[i], 24*S_)
@@ -226,10 +239,14 @@ def b_oblig(cv, c, t, k):
         if t > 33.6: pop_text(c, "MOINS DE RISQUE", 540-out*1100, 895, 44, t, 33.6, MINT)
         if t > 34.45: pop_text(c, "PAS DE JACKPOT", 540-out*1100, 955, 44, t, 34.45, PINK)
     else:
-        on_prop(c, 'pancarte', 540, 380+(1-ent(t-36.0, .5))*-700, w=620, k=1, rot=.02*math.sin(t*1.5),
-                texts=(("SUR 10 ANS", 610, 1200, 150, BROWN), (f"+ DE 4{NB}%", 610, 1450, 200, RED)))
+        bond(c, 540, 585, 520, t, k=t-36.0, label=False)
+        sf_, iw_, ih_ = psurf('obligation_coupons'); s_ = 520/ih_*back((t-36.0)/.35)
+        if t > 36.0:
+            c.save(); c.translate(540, 585); c.scale(s_, s_); c.translate(-iw_/2, -ih_/2)
+            ink(c, "ÉTAT FRANÇAIS", 715, 292, 100, '1E3A5F', maxw=480); ink(c, "SUR 10 ANS", 705, 595, 90, '1E3A5F', maxw=560); c.restore()
+        if t > 38.4: pop_text(c, f"+ DE 4{NB}%", 540, 660, 110, t, 38.4, RED, rot=-.08)
         title(c, "L'ÉTAT AUSSI", t, 35.9, 290, 74)
-        if t > 38.9: paint(c, f"4,44{NB}% en moyenne en septembre 2026", 540, 960, 28, a=ent(t-38.9, .3))
+        if t > 38.9: paint(c, f"4,44{NB}% en moyenne en septembre 2026", 540, 935, 28, a=ent(t-38.9, .3))
 def b_fonds(cv, c, t, k):
     if t < 49.6:
         title(c, "LE FONDS EUROS", t, 39.85, 290, 76, YEL)
@@ -282,7 +299,9 @@ def b_fin(cv, c, t, k):
     if t > 63.6: paint(c, "Dis-le en commentaire", 540, 960, 36, a=ent(t-63.7, .3))
 # ================= Mister Coin Boulanger =================
 BAK = f'{S.ROOT}/mister_coin/veo/boulanger_jongle.mp4'; BAK_X, BAK_FEET, BAK_S = 745, 1650, .60; BAK_FOOT_Y = 1035
-BAK_ON = [(6.6, 22.55), (25.45, None)]
+BAK_ON = [('fond', 12.3, 22.5), ('cote', 25.45, None)]                  # au fond derrière le comptoir du fournil, puis à côté de Mister Coin
+FOND_X, FOND_S = 300, .52
+CPT_T, CPT_Y = (12.0, 15.0, 18.0, 21.0, 25.3), (1151, 1160, 1169, 1180, 1196)   # bord arrière du comptoir (mesuré sur le décor ralenti)             # comptoir : bord arrière du plateau (le boulanger est coupé en dessous)
 class _Bak:
     def __init__(s): s.cap = None; s.i = -1; s.f = None
     def get(s, n):
@@ -297,20 +316,31 @@ class _Bak:
         rgba = np.dstack([np.clip(a, 0, 255), m*255]).astype(np.uint8)
         im = Image.fromarray(rgba, 'RGBA'); return im.resize((int(im.width*BAK_S), int(im.height*BAK_S)), Image.LANCZOS)
 _BK = _Bak()
-def baker_offset(t):
-    """le boulanger entre par la droite en glissant, repart de même (dx > 0 = hors champ à droite)"""
-    for a, b in BAK_ON:
-        if t < a-.6: return None
-        if a-.6 <= t and (b is None or t < b+.6):
-            dx = 700*(1-ease((t-a+.6)/.6)) if t < a else 0
-            if b is not None and t > b: dx = 700*ease((t-b)/.6)
-            return dx if dx < 699 else None
+def baker_state(t):
+    """(mode, décalage) : au fond, il monte de derrière le comptoir puis redescend ; à côté, il entre et sort par la droite"""
+    for mode, a, b in BAK_ON:
+        if t < a-.6 or (b is not None and t > b+.6): continue
+        if mode == 'fond':
+            if t < a: return 'fond', 450*(1-ease((t-a+.6)/.6))
+            if t > b: return 'fond', 450*ease((t-b)/.6)
+            return 'fond', 0
+        dx = 700*(1-ease((t-a+.6)/.6)) if t < a else 0
+        if b is not None and t > b: dx = 700*ease((t-b)/.6)
+        return ('cote', dx) if dx < 699 else None
     return None
 def baker(out, t):
-    dx = baker_offset(t)
-    if dx is None: return
-    im = _BK.get(int(t*24)); x = int(BAK_X+dx-im.width/2); y = int(BAK_FEET-BAK_FOOT_Y*BAK_S)
-    out.alpha_composite(im, (max(x, 0), y), (max(0, -x), 0)) if x < W else None
+    st = baker_state(t)
+    if st is None: return
+    mode, off = st; im = _BK.get(int(t*24))
+    if mode == 'fond':
+        im = im.resize((int(im.width*FOND_S/BAK_S), int(im.height*FOND_S/BAK_S)), Image.LANCZOS)
+        cpt = float(np.interp(t, CPT_T, CPT_Y)); x = int(FOND_X-im.width/2); y = int(cpt+70+off-BAK_FOOT_Y*FOND_S)
+        h = int(cpt)-y
+        if h <= 0: return
+        im = im.crop((0, 0, im.width, min(im.height, h)))
+    else:
+        x = int(BAK_X+off-im.width/2); y = int(BAK_FEET-BAK_FOOT_Y*BAK_S)
+    if x < W: out.alpha_composite(im, (max(x, 0), y), (max(0, -x), 0))
 
 SC = [(0.0, 6.5, b_rue1, 'rue'), (6.5, 12.0, b_rue2, 'rue'), (12.0, 25.3, b_action, 'fournil'), (25.3, 39.6, b_oblig, 'rue'),
       (39.6, 60.45, b_fonds, 'coffres'), (60.45, DUR, b_fin, 'fournil')]
@@ -320,8 +350,10 @@ def frame(t):
     i = max(j for j, s_ in enumerate(SC) if t >= s_[0] or j == 0); a, b, f, dec = SC[i]
     img = decor_c(dec, t)
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
+    st = baker_state(t)
+    if st and st[0] == 'fond': baker(cv, t)                             # au fond : derrière les accessoires de la scène
     s, c = surface(); f(cv, c, t, max(0.0, t-a)); cv.alpha_composite(to_img(s))
-    baker(cv, t)
+    if st and st[0] == 'cote': baker(cv, t)
     arr = np.asarray(cv.convert('RGB')).astype(np.float32)
     arr = coin_col(arr, t)
     fl = film(arr.copy(), t); arr = arr*.72+fl*.28

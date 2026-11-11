@@ -222,7 +222,7 @@ def twinkle(c, t, pts, r=22):
         u = .5+.5*math.sin(t*3.1+i*1.7)
         if u > .25: star(c, x, y, r*u)
 # ================= 1. le cube (hangar) =================
-CUBE_T = (0, 7.9); CUBE_L, CUBE_R, CUBE_TOP, CUBE_B = (270, 160), (850, 894), (730, 690), (1180, 1300)   # face avant du cube de verre (mesurée sur le décor)
+CUBE_T = (0, 7.9); CUBE_L, CUBE_R, CUBE_TOP, CUBE_B = (284, 176), (846, 890), (730, 690), (1180, 1300)   # face avant du cube de verre (mesurée sur le décor)
 def b_cube(cv, c, t, k):
     title(c, "TOUT L'OR JAMAIS EXTRAIT", t, .05, 250, 60)
     if t > 1.9: pop_text(c, f"219{NB}891 tonnes", 540, 335, 44, t, 1.95, YEL)

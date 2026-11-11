@@ -56,7 +56,7 @@ SW, CP, BI, PR = 'classique_danse_parle_swing', 'classique_danse_parle_compte', 
 MC = VeoCoin([(0.0, [QU, EN], 'voix'), (7.95, [EX, SW], 'voix'), (13.5, [EN, BI, SW], 'voix'), (21.65, [EX, CP], 'voix'),
               (33.7, [CP, EN, EX], 'voix'), (44.6, [CO, PR], 'voix'), (54.15, [EX, BI, CP], 'voix'), (66.8, [CO, PR, IN], 'voix'),
               (78.35, [QU, SW], 'voix'), (82.0, 'classique_danse_joie_silence', 'une')],
-             voix=VOICE, duree=DUR, x=300, pieds=FEET, largeur_piece=170, lisse=True, variete=2.0, silence_min=8)
+             voix=VOICE, duree=DUR, x=300, pieds=FEET, largeur_piece=170, lisse=True, variete=1.5, silence_min=7)
 def euro(v): return f"{int(round(v)):,}".replace(',', NB)+NB+"€"
 def count_to(v, u): return v*ease(u)
 def events(): return sorted([(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops)])

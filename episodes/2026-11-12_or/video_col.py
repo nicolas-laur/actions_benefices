@@ -23,8 +23,8 @@ def vignette():
     return np.clip(1-.55*np.clip(r-.55, 0, 1)**1.4*2.2, .3, 1)
 def film(img, t):
     f = int(t*24); rng = np.random.default_rng(7000+f)
-    dx, dy = 1.4*math.sin(f*1.7)+rng.normal(0, .5), 1.2*math.sin(f*1.13+1)+rng.normal(0, .5)           # l'image flotte dans le couloir
-    M = np.float32([[1, 0, dx], [0, 1, dy]]); img = cv2.warpAffine(img, M, (W, H), borderMode=cv2.BORDER_REFLECT)
+    dx, dy = round(1.4*math.sin(f*1.7)+rng.normal(0, .5)), round(1.2*math.sin(f*1.13+1)+rng.normal(0, .5))           # l'image flotte dans le couloir
+    img = np.roll(img, (dy, dx), axis=(0, 1))
     img = img*(1+rng.normal(0, .025))                                                                 # scintillement
     g = cv2.resize(rng.normal(0, 1, (H//2, W//2)).astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
     img = img+g[..., None]*9                                                                           # grain
@@ -41,13 +41,13 @@ def iris(img, u, cx=540, cy=1250):
     return img*m[..., None]
 
 # ================= décors Technicolor : lecture séquentielle, ralentie pour couvrir tout le passage, sans boucle ni retour arrière =================
-DECC = {n: f'{D}/decors/decor_{n}.mp4' for n in ('hangar_cube', 'globe', 'lydie', 'mine', 'reserves', 'comptoir')}
+DECC = {}                                                                     # décors interpolés en 60 i/s (decors_hd.py), un fichier par passage
 class _Reader:
     def __init__(self): self.name = None; self.cap = None; self.i = -1; self.f = None
     def get(self, name, i):
         if name != self.name or i < self.i:
             if self.cap: self.cap.release()
-            self.cap = cv2.VideoCapture(DECC[name]); self.name = name; self.i = -1; self.f = None
+            self.cap = cv2.VideoCapture(f'{D}/decors/hd/{name}.mp4'); self.name = name; self.i = -1; self.f = None
         while self.i < i:
             ok, f = self.cap.read()
             if not ok: break
@@ -62,14 +62,16 @@ def globe_t(t):   # globe : il tourne vite puis ralentit et s'arrête sur l'Euro
     return 2.0+6.0*(1-(1-clamp((t-7.95)/3.0))**3)
 def decor_c(name, t):
     a, b = next((a, b) for (a, b, d) in BLOCS if d == name and a <= t < b+.5)
-    n = nframes(name)
-    if name == 'globe': i = min(n-1, int(globe_t(t)*24))
-    else: sp = min(1.0, (n-1)/24/max(.1, b-a)); i = min(n-1, int(max(0, t-a)*sp*24))
-    f = _RD.get(name, i)
-    g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_CUBIC).astype(np.float32)
+    key = f'{name}_{a:.2f}'
+    i = int(round(globe_t(t)*60)) if name == 'globe' else int(round(max(0, t-a)*60))
+    f = _RD.get(key, i)
+    g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_LANCZOS4).astype(np.float32)
+    g = g+.6*(g-cv2.GaussianBlur(g, (0, 0), 1.3))                               # accentuation douce après l'agrandissement
     return np.clip((g-128)*1.06+130, 0, 255)
+MCX = [(0, 300), (7.95, 790), (33.7, 790), (44.6, 300), (54.15, 540), (66.8, 790), (78.35, 540)]
+def mcx(t): return [x for (a, x) in MCX if t >= a][-1]
 def coin_col(cv_rgb, t):
-    Y = V.FEET+V.MC.hop_dy(t); rgb_, al = V.MC.layer(t, V.MC.x, Y)
+    Y = V.FEET+V.MC.hop_dy(t); rgb_, al = V.MC.layer(t, mcx(t), Y)
     fx = V.MC.feet_x(al, Y)
     if fx is not None:
         m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), V.FEET-3), (95, 15), 0, 0, 360, .5, -1); cv_rgb *= (1-cv2.GaussianBlur(m, (0, 0), 9)[..., None])
@@ -220,21 +222,20 @@ def twinkle(c, t, pts, r=22):
         u = .5+.5*math.sin(t*3.1+i*1.7)
         if u > .25: star(c, x, y, r*u)
 # ================= 1. le cube (hangar) =================
-CUBE_T, CUBE_R, CUBE_B = (0, 4, 8), (790, 812, 852), (1092, 1179, 1258)   # bord droit et bas des lingots mesurés sur le décor (le travelling avance)
+CUBE_T = (0, 7.9); CUBE_L, CUBE_R, CUBE_TOP, CUBE_B = (270, 160), (850, 894), (730, 690), (1180, 1300)   # face avant du cube de verre (mesurée sur le décor)
 def b_cube(cv, c, t, k):
     title(c, "TOUT L'OR JAMAIS EXTRAIT", t, .05, 250, 60)
     if t > 1.9: pop_text(c, f"219{NB}891 tonnes", 540, 335, 44, t, 1.95, YEL)
-    xr = float(np.interp(t, CUBE_T, CUBE_R)); yb = float(np.interp(t, CUBE_T, CUBE_B)); yt = 430
-    if t > 3.4:                                                              # cote de 22 m le long de l'arête droite du cube
-        u = ent(t-3.4, .5); xc = xr+46; ym = (yt+yb)/2; h2 = (yb-yt)/2*u
-        c.set_line_width(5); col(c, YEL); c.move_to(xc, ym-h2); c.line_to(xc, ym+h2); c.stroke()
-        for yy in (ym-h2, ym+h2): c.move_to(xc-18, yy); c.line_to(xc+18, yy); c.stroke()
-        if t > 3.85: pop_text(c, f"22{NB}m", min(xc+90, 930), ym, 64, t, 3.9, YEL, rot=-.05)
+    L_, R_, T_, B_ = (float(np.interp(t, CUBE_T, v)) for v in (CUBE_L, CUBE_R, CUBE_TOP, CUBE_B))
+    if t > 3.4:                                                              # cote de 22 m le long de l'arête avant du haut
+        u = ent(t-3.4, .5); yc = T_-34; xm = (L_+R_)/2; w2 = (R_-L_)/2*u
+        c.set_line_width(5); col(c, YEL); c.move_to(xm-w2, yc); c.line_to(xm+w2, yc); c.stroke()
+        for xx in (xm-w2, xm+w2): c.move_to(xx, yc-16); c.line_to(xx, yc+16); c.stroke()
+        if t > 3.85: pop_text(c, f"22{NB}m", xm, yc-48, 60, t, 3.9, YEL)
     if t > 4.3:                                                              # un bonhomme de 1,80 m au pied du cube, pour l'échelle
-        hh = (yb-yt)/12.2; x = xr-80; a = ent(t-4.3, .3); c.save(); col(c, '1A1A22', .9*a)
+        hh = (B_-T_)/12.2; x = R_-70; yb = B_-6; a = ent(t-4.3, .3); c.save(); col(c, '1A1A22', .9*a)
         c.arc(x, yb-hh*.88, hh*.12, 0, 2*math.pi); c.fill(); rr(c, x-hh*.12, yb-hh*.75, hh*.24, hh*.42, hh*.08); c.fill()
         c.set_line_width(hh*.08); c.move_to(x-hh*.06, yb-hh*.35); c.line_to(x-hh*.08, yb); c.move_to(x+hh*.06, yb-hh*.35); c.line_to(x+hh*.08, yb); c.stroke(); c.restore()
-        paint(c, f"toi : 1,80{NB}m", x-10, yb+38, 24, a=a*(1-ent(t-5.2, .3)), fam='Limelight')
     if t > 5.3:
         pop_text(c, "RARE = PRÉCIEUX", 540, 420, 52, t, 5.4, YEL, rot=-.03)
         twinkle(c, t, [(380, 520), (700, 600), (520, 760), (760, 900), (430, 980)], 26*ent(t-5.3, .4))
@@ -242,7 +243,7 @@ def b_cube(cv, c, t, k):
 VARNA = (618, 552)
 def b_globe(cv, c, t, k):
     title(c, "LES PLUS VIEUX BIJOUX EN OR", t, 8.1, 250, 56, t1=12.9)
-    if t > 8.75: prop(c, 'bijoux_varna', 730, 1280, w=330, k=t-8.8, rot=-.04)
+    if t > 8.75: prop(c, 'bijoux_varna', 330, 1280, w=330, k=t-8.8, rot=-.04)
     if t > 10.9:                                                             # le point de Varna clignote
         x, y = VARNA; p = .5+.5*math.sin((t-10.9)*7); u = ent(t-10.9, .3)
         c.arc(x, y, (26+22*p)*u, 0, 2*math.pi); col(c, RED, .35*(1-p)+.1); c.fill()
@@ -448,10 +449,10 @@ def b_fin(cv, c, t, k):
     if t > 80.35: pop_text(c, "OU", 540, 335, 44, t, 80.4)
     title(c, "PLACEMENT QUI DORT ?", t, 80.65, 420, 62, CREAM)
     if t > 80.9:
-        prop(c, 'lingot_dort', 720, 1335, w=330, k=t-80.95, rot=.02*math.sin(t*1.3))
+        prop(c, 'lingot_dort', 225, 1370, w=280, k=t-80.95, rot=.02*math.sin(t*1.3))
         for i in range(3):                                                   # « z z z » qui montent
             kk = (t-81.2-i*.45) % 1.35
-            if t > 81.2+i*.45: paint(c, "z", 840+kk*40, 1210-kk*120, 30+i*8, a=clamp(1-kk/1.35)*clamp(kk*4))
+            if t > 81.2+i*.45: paint(c, "z", 300+kk*40, 1260-kk*120, 30+i*8, a=clamp(1-kk/1.35)*clamp(kk*4))
     if t > 82.0: paint(c, "Dis-le en commentaire", 540, 960, 36, a=ent(t-82.05, .3))
 SC = [(0.0, 7.95, b_cube, 'hangar_cube'), (7.95, 13.5, b_globe, 'globe'), (13.5, 21.65, b_cresus, 'lydie'), (21.65, 33.7, b_mine, 'mine'),
       (33.7, 44.6, b_reserves, 'reserves'), (44.6, 54.15, b_pari, 'comptoir'), (54.15, 66.8, b_chiffres, 'comptoir'), (66.8, 78.35, b_demain, 'comptoir'),
@@ -460,7 +461,7 @@ BLOCS = []
 for (a, b, f, d) in SC:
     if BLOCS and BLOCS[-1][2] == d and abs(BLOCS[-1][1]-a) < 1e-6: BLOCS[-1] = (BLOCS[-1][0], b, d)
     else: BLOCS.append((a, b, d))
-IRIS = [7.95, 21.65, 33.7, 44.6, 78.35]; IR = .42
+IRIS = [7.95, 21.65, 33.7, 44.6, 54.15, 66.8, 78.35]; IR = .42
 ZT, ZD = 13.5, .55                                                           # travelling dans le globe (Varna) puis ouverture sur la Lydie
 def zoomed(img, s, cx, cy, flash):
     M_ = np.float32([[s, 0, cx-s*cx], [0, s, cy-s*cy]]); out = cv2.warpAffine(img, M_, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)

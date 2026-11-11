@@ -1,6 +1,6 @@
 # Prompts Gemini : l'or (12/11/2026)
 
-5 nouveaux décors animés (vidéo 9:16, 8 s) et 8 accessoires sur fond vert. Le décor des coffres (`decor_coffres.mp4`) est repris de l'épisode du 11/11, où il n'apparaît plus depuis la coupe du fonds euros : rien à générer pour lui.
+6 nouveaux décors animés (vidéo 9:16, 8 s) et 8 accessoires sur fond vert. Repris volontairement de l'épisode du 11/11 : le certificat d'action et l'obligation (barrés à l'écran), pour le lien entre les deux vidéos.
 
 ## Décors (vidéo, format vertical 9:16, 8 s)
 
@@ -11,7 +11,8 @@ Common block (paste at the end of each décor prompt):
 2. decor_globe : "A big vintage 1930s cartoon world globe on a carved wooden stand, filling the upper two thirds of the frame, in a dim cozy study with a warm lamp. The globe rotates slowly from left to right, showing the Americas, then the Atlantic Ocean, then slows down smoothly and stops with Europe, the Black Sea and Turkey facing the camera in the center. Hand-painted map with cream land and teal oceans, no names written on it."
 3. decor_lydie : "The treasure hall of an ancient Lydian king around 550 BC: tall stone columns with gold capitals, purple and gold drapes, mountains of gold coins, golden vases and chests overflowing with treasure, warm torchlight flickering softly, a sunlit balcony opening onto an ancient city in the background. The camera slowly glides forward."
 4. decor_mine : "Inside a 1930s gold mine tunnel: wooden support beams, glowing oil lanterns hanging along the walls, mine cart rails disappearing into the depth, a mine cart full of gold ore in the middle distance, golden veins sparkling in the rock, a few pickaxes leaning against the wall. Gentle dust floating in the lantern light. The camera slowly moves forward along the rails."
-5. decor_comptoir : "A 1930s gold exchange office: a polished wooden counter with brass scales, a stock ticker machine with paper tape, a big blackboard with blank chalk columns on the back wall, green banker's lamps, tall windows with a city skyline at dusk. Calm, slightly mysterious atmosphere, dust in the light beams."
+5. decor_reserves : "The underground gold reserve of a 1930s central bank: a long low vault corridor with steel cages on both sides, each cage holding tall neat stacks of gold bars that glow under hanging industrial lamps, a heavy steel door open at the far end, cold blue stone walls contrasting with the warm gold. The camera slowly moves forward between the cages."
+6. decor_comptoir : "A 1930s gold exchange office: a polished wooden counter with brass scales, a stock ticker machine with paper tape, a big blackboard with blank chalk columns on the back wall, green banker's lamps, tall windows with a city skyline at dusk. Calm, slightly mysterious atmosphere, dust in the light beams."
 
 ## Accessoires (image fixe, fond vert uni #00FF00)
 
@@ -29,4 +30,4 @@ Common block (paste at the end of each prop prompt):
 
 ## Mister Coin
 
-Clips classiques existants (`classique_*`), pas de nouveau clip à générer. Caméo du boulanger (`boulanger_jongle.mp4`) dans la scène « ni propriétaire, ni prêteur », si Nicolas le valide.
+Clips classiques existants (`classique_*`), pas de nouveau clip à générer. Pas de boulanger dans cet épisode (décision du 11/11).

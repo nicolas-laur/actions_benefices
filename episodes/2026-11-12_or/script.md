@@ -28,8 +28,8 @@ Alors l'or : valeur refuge, ou placement qui dort ?
 2. Varna (7–13 s) : globe terrestre en rotation qui ralentit et s'arrête sur la mer Noire ; un point clignote sur Varna, « 4 500 av. J.-C. », bijoux qui apparaissent. Décor : globe.
 3. Crésus (13–22 s) : zoom caméra dans le point clignotant, ouverture sur le trésor de Sardes ; le roi Crésus, pluie de pièces à l'écran, « RICHE COMME CRÉSUS ». Décor : lydie.
 4. La mine (22–31 s) : mine d'or 1930 ; billet de dollar « 1971 » échangé contre un lingot, puis le cube qui ne grossit que d'une fine tranche « + 2 % par an » (panneau de verre). Décor : mine.
-5. Qui en a le plus (31–40 s) : salle des coffres ; classement en lingots empilés sur verre (États-Unis 8 133 t, Allemagne, Italie, France 2 437 t, drapeaux dessinés), tampon « BANQUES CENTRALES × 2 ». Décor : coffres (non utilisé dans la vidéo du 11/11).
-6. Ni propriétaire, ni prêteur (40–47 s) : un lingot posé seul sur le comptoir ; le certificat d'action et l'obligation de la vidéo d'hier passent, barrés ; caméo du boulanger avec ses croissants (dividende) face au lingot qui ne produit rien. Décor : comptoir de change.
+5. Qui en a le plus (31–40 s) : salle des coffres ; classement en lingots empilés sur verre (États-Unis 8 133 t, Allemagne, Italie, France 2 437 t, drapeaux dessinés), tampon « BANQUES CENTRALES × 2 ». Décor : reserves (nouveau ; la salle des coffres apparaît déjà dans la vidéo du 11/11).
+6. Ni propriétaire, ni prêteur (40–47 s) : un lingot posé seul sur le comptoir ; le certificat d'action et l'obligation de la vidéo d'hier passent et se font barrer d'une croix rouge, le lingot reste seul et ne produit rien. Pas de boulanger. Décor : comptoir de change.
 7. Les chiffres (47–57 s) : courbe en verre de l'once 2006–2026 en euros, puis barres 1,3 % contre 6,6 % par an. Décor : comptoir de change.
 8. Demain (57–66 s) : boule de cristal où apparaît la fourchette 4 800–5 600 €, puis « PRÉVISIONS ≠ PROMESSES » et « −20 % depuis le record ». Décor : comptoir de change.
 9. Question (66–70 s) : retour au cube dans le hangar, un lingot en bonnet de nuit qui ronfle ; « Valeur refuge ou placement qui dort ? ». Décor : hangar_cube.

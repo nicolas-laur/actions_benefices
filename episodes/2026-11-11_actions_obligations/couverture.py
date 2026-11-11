@@ -1,4 +1,4 @@
-"""Couverture actions / obligations, DA historique : fond noir, rubans de lumière dorés, certificat d'action et obligation en haut avec halo
+"""Couverture actions / obligations, fond : la rue devant la boulangerie (demande du 11/11), certificat d'action et obligation en haut avec halo
 (à la place d'un logo), nom + « PROPRIÉTAIRE OU PRÊTEUR », question, Mister Coin et le boulanger."""
 import cairo, math, numpy as np, sys, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
@@ -11,17 +11,13 @@ def still(src, n, dst):
     if not os.path.exists(dst):
         subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', src, '-vf', f'select=eq(n\\,{n})', '-vframes', '1', dst], check=True)
     return Image.open(dst).convert('RGB')
-def bg(c):
-    g = cairo.LinearGradient(0, 0, 0, H); g.add_color_stop_rgb(0, *hx('030405')[:3]); g.add_color_stop_rgb(.5, *hx('0A0704')[:3]); g.add_color_stop_rgb(1, *hx('1A1006')[:3]); c.set_source(g); c.paint()
-    lay = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H); k = cairo.Context(lay); k.set_operator(cairo.OPERATOR_ADD)
-    for (x, y, rx, ry, colr, a) in ((540, 1560, 1150, 70, 'D99A1E', .95), (600, 1650, 1100, 45, 'A8640A', .9), (470, 1480, 1000, 38, 'FFD98A', .55),
-                                    (640, 1760, 1200, 80, '3B2306', .6), (560, 1600, 700, 16, 'FFFFFF', .6), (430, 1420, 900, 24, 'FFE9C2', .3)):
-        k.save(); k.translate(x, y); k.rotate(-0.42+0.04*((x//10) % 3)); k.scale(rx, ry)
-        r = cairo.RadialGradient(0, 0, 0, 0, 0, 1); r.add_color_stop_rgba(0, *hx(colr, a)); r.add_color_stop_rgba(1, *hx(colr, 0)); k.set_source(r); k.arc(0, 0, 1, 0, 2*math.pi); k.fill(); k.restore()
-    lay.flush(); im = Image.frombuffer('RGBA', (W, H), bytes(lay.get_data()), 'raw', 'BGRa', lay.get_stride(), 1).filter(ImageFilter.GaussianBlur(28))
-    arr = np.asarray(im).astype(np.float32); fade = np.clip((np.arange(H)-700)/700, 0, 1)[:, None, None]; arr[..., :3] *= fade; arr[..., 3] *= fade[..., 0]
-    b = Image.fromarray(arr.astype(np.uint8), 'RGBA').tobytes('raw', 'BGRa'); src = cairo.ImageSurface.create_for_data(bytearray(b), cairo.FORMAT_ARGB32, W, H)
-    c.set_operator(cairo.OPERATOR_ADD); c.set_source_surface(src); c.paint(); c.set_operator(cairo.OPERATOR_OVER)
+def bg(c):   # décor de la rue (devant la boulangerie), assombri en haut pour la lisibilité des textes
+    d = still(f'{HERE}/decors/decor_rue.mp4', 0, f'{TMP}/rue_couv.png').resize((int(W*1.2), int(H*1.2)), Image.LANCZOS)
+    d = d.crop((20, 250, 20+W, 250+H))                                  # léger zoom : l'enseigne anglaise « for rent » sort du cadre
+    arr = np.asarray(d).astype(np.float32); y = np.arange(H)[:, None, None]
+    dark = np.interp(y, [0, 700, 1150, 1500, H], [.80, .62, .30, .05, .25])
+    arr *= 1-dark; b = Image.fromarray(arr.astype(np.uint8)).convert('RGBA').tobytes('raw', 'BGRa')
+    src = cairo.ImageSurface.create_for_data(bytearray(b), cairo.FORMAT_ARGB32, W, H); c.set_source_surface(src); c.paint()
 cards.bg = bg
 _put = cards.put
 def _q(c, s_, y, fam, size, *a, **k):

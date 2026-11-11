@@ -318,11 +318,14 @@ def crackle(d):   # four à bois : crépitements doux + souffle chaud du feu
     while tc < d-.1:
         m = int(.02*SR); u = tt(m); add(x, bp(rng.standard_normal(m), 1200, 6000)*np.exp(-u*220)*rng.uniform(.01, .04), tc); tc += rng.exponential(.18)
     return x
-RUE = lambda d: birds(d)+babble(d)*.35
-I = V.inv   # temps d'origine des scènes -> temps de la vidéo montée
-seg(0, I(12.0), RUE(I(12.0))); seg(I(25.3), I(39.6), RUE(I(39.6)-I(25.3)))
-seg(I(12.0), I(25.3), crackle(I(25.3)-I(12.0))); seg(I(60.45), DUR, crackle(DUR-I(60.45)))
-seg(I(39.6), I(60.45), hum(I(60.45)-I(39.6))*.8+ticktock(I(60.45)-I(39.6))*.6)
+def G(a, b, x): seg(a, b, x(b-a))
+G(0, 7.95, lambda d: hum(d)*.9)                                           # hangar : bourdonnement du projecteur
+G(7.95, 13.5, lambda d: ticktock(d)*.7)                                   # bureau au globe : pendule
+G(13.5, 21.65, lambda d: crackle(d)*.8+babble(d)*.25)                     # trésor de Lydie : torches, cour lointaine
+G(21.65, 33.7, lambda d: windy(d)*.5+crackle(d)*.3)                       # mine : courant d'air, lanternes
+G(33.7, 44.6, lambda d: hum(d))                                           # réserve souterraine
+G(44.6, 78.35, lambda d: ticktock(d)*.5+babble(d)*.2)                     # comptoir de change
+G(78.35, DUR, lambda d: hum(d)*.9)
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 sr_v, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 assert sr_v == SR, f'voice_full.wav doit être en {SR} Hz (trouvé {sr_v} Hz) : sinon la voix est accélérée et plus aiguë'

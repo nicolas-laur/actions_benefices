@@ -74,6 +74,27 @@ def coin_col(cv_rgb, t):
     if fx is not None:
         m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), V.FEET-3), (95, 15), 0, 0, 360, .5, -1); cv_rgb *= (1-cv2.GaussianBlur(m, (0, 0), 9)[..., None])
     return cv_rgb*(1-al[..., None])+rgb_.astype(np.float32)*al[..., None]
+# Mister Coin de dos qui marche (scènes 3 et 4, travelling dans le trésor puis dans la mine) : clip classique_dos_marche en boucle sur deux pas
+DOS = (13.5, 33.7); DOS_CLIP = f'{S.ROOT}/mister_coin/veo/classique_dos_marche.mp4'; DOS_L0, DOS_L1 = 61, 128; DOS_X = 540                    # de dos, il marche au milieu de l allée et des rails
+class _Dos:
+    def __init__(s): s.cap = None; s.i = -1; s.f = None
+    def get(s, n):
+        if s.cap is None or n < s.i: s.cap = cv2.VideoCapture(DOS_CLIP); s.i = -1
+        while s.i < n:
+            ok, fr = s.cap.read(); s.i += 1
+            if ok: s.f = fr
+        return s.f
+_DS = _Dos()
+def dos_col(cv_rgb, t):
+    n = 40+int((t-DOS[0])*24)
+    if n >= DOS_L1: n = DOS_L0+(n-DOS_L0) % (DOS_L1-DOS_L0)
+    rgb_, m = VC._key(_DS.get(n)[..., ::-1].copy()); sc = 170/314
+    rgb_ = cv2.resize(rgb_.astype(np.float32), None, fx=sc, fy=sc, interpolation=cv2.INTER_AREA); m = cv2.resize(m.astype(np.float32), None, fx=sc, fy=sc, interpolation=cv2.INTER_AREA)
+    x0, y0 = int(DOS_X-360*sc), int(V.FEET-1035*sc); h, w = m.shape
+    sh = np.zeros((H, W), np.float32); cv2.ellipse(sh, (DOS_X, V.FEET-3), (95, 15), 0, 0, 360, .5, -1); cv_rgb *= (1-cv2.GaussianBlur(sh, (0, 0), 9)[..., None])
+    ya, yb_, xa, xb = max(0, y0), min(H, y0+h), max(0, x0), min(W, x0+w)
+    mm = m[ya-y0:yb_-y0, xa-x0:xb-x0][..., None]; cv_rgb[ya:yb_, xa:xb] = cv_rgb[ya:yb_, xa:xb]*(1-mm)+rgb_[ya-y0:yb_-y0, xa-x0:xb-x0]*mm
+    return cv_rgb
 RED = 'B3161B'; CREAM = 'F6E7C1'; BROWN = '3B2412'; CHALK = 'F3F1E8'; SKY = '4361EE'
 # ================= accessoires Gemini (détourés, dossier props/) =================
 _PS = {}
@@ -454,7 +475,7 @@ def frame(t):
         u = ((t-(ZT-ZD))/ZD)**2; arr = zoomed(arr, 1+7*u, VARNA[0], VARNA[1], .85*u)
     elif ZT <= t < ZT+ZD:                                                    # la Lydie apparaît en reculant
         u = 1-ease((t-ZT)/ZD); arr = zoomed(arr, 1+.9*u, 540, 700, .85*u)
-    arr = coin_col(arr, t)
+    arr = dos_col(arr, t) if DOS[0] <= t < DOS[1] else coin_col(arr, t)
     fl = film(arr.copy(), t); arr = arr*.72+fl*.28
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
     s, c = surface(); cap_c(c, t); out.alpha_composite(to_img(s))
@@ -472,7 +493,7 @@ def cap_c(c, t):
             al = ease((t-a+.05)/.12)*(1-ease((t-(end-.12))/.12) if end-b > .1 or k+1 >= len(V.CAPS) else 1)
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al); return
 def events():
-    ev = V.events() + [(ta-IR, 'whoosh') for ta in IRIS] + [(ZT-ZD, 'riser'), (ZT, 'glint')]
+    ev = [e for e in V.events() if not (DOS[0]-.1 <= e[0] < DOS[1])] + [(ta-IR, 'whoosh') for ta in IRIS] + [(ZT-ZD, 'riser'), (ZT, 'glint')]
     ev += [(.05, 'thud'), (1.95, 'pop'), (3.4, 'swish'), (3.9, 'impact'), (4.3, 'pop'), (5.4, 'glint'),
            (8.1, 'thud'), (8.8, 'pop'), (10.95, 'tick'), (11.2, 'pop'), (12.45, 'impact'),
            (13.65, 'thud'), (14.35, 'glint'), (16.15, 'tadaa'), (20.3, 'impact'),

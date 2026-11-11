@@ -227,11 +227,11 @@ def b_cube(cv, c, t, k):
     title(c, "TOUT L'OR JAMAIS EXTRAIT", t, .05, 250, 60)
     if t > 1.9: pop_text(c, f"219{NB}891 tonnes", 540, 335, 44, t, 1.95, YEL)
     L_, R_, T_, B_ = (float(np.interp(t, CUBE_T, v)) for v in (CUBE_L, CUBE_R, CUBE_TOP, CUBE_B))
-    if t > 3.4:                                                              # cote de 22 m le long de l'arête avant du haut
-        u = ent(t-3.4, .5); yc = T_-34; xm = (L_+R_)/2; w2 = (R_-L_)/2*u
-        c.set_line_width(5); col(c, YEL); c.move_to(xm-w2, yc); c.line_to(xm+w2, yc); c.stroke()
-        for xx in (xm-w2, xm+w2): c.move_to(xx, yc-16); c.line_to(xx, yc+16); c.stroke()
-        if t > 3.85: pop_text(c, f"22{NB}m", xm, yc-48, 60, t, 3.9, YEL)
+    if t > 3.4:                                                              # cote de 22 m, verticale, le long de l'arête avant droite du cube
+        u = ent(t-3.4, .5); xc = R_+30; ym = (T_+B_)/2; h2 = (B_-T_)/2*u
+        c.set_line_width(5); col(c, YEL); c.move_to(xc, ym-h2); c.line_to(xc, ym+h2); c.stroke()
+        for yy in (ym-h2, ym+h2): c.move_to(xc-16, yy); c.line_to(xc+16, yy); c.stroke()
+        if t > 3.85: pop_text(c, f"22{NB}m", xc+40, T_+130, 50, t, 3.9, YEL, rot=-math.pi/2)
     if t > 4.3:                                                              # un bonhomme de 1,80 m au pied du cube, pour l'échelle
         hh = (B_-T_)/12.2; x = R_-70; yb = B_-6; a = ent(t-4.3, .3); c.save(); col(c, '1A1A22', .9*a)
         c.arc(x, yb-hh*.88, hh*.12, 0, 2*math.pi); c.fill(); rr(c, x-hh*.12, yb-hh*.75, hh*.24, hh*.42, hh*.08); c.fill()

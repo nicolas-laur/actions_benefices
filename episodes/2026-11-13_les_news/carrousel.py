@@ -164,7 +164,7 @@ def texte(cv, s_, cy, emo='💡', w=860, size=29, mood='or'):
     else: put_emoji(cv, emo, 540-w/2+50, cy, 30)
     return h
 NS = 9
-LOGOS = {'NVDA', 'US', 'ANTH', 'CRWV', 'FR', 'COST'}          # tuiles façon icône d'appli (Iconify : logos, simple-icons, flag ; Costco en tuile texte)
+LOGOS = {'NVDA', 'US', 'ANTH', 'CRWV', 'FR', 'COST', 'PROFIL'}          # tuiles façon icône d'appli (Iconify : logos, simple-icons, flag ; Costco en tuile texte)
 def pagination(c, i, n=9):
     """pas de points de défilement : les réseaux les affichent déjà (retour du 12/11)"""
     return
@@ -271,15 +271,21 @@ def s_ret(cv, c):
     bb = coin(cv, 'montre', 230, 1478, 230); bulle_pres(c, "Enregistre-le 📌"[:-2], bb, 30, .25)
     pagination(c, 7)
 def s_fin(cv, c):
-    glow_text(cv, "ET TOI,", 540, 330, 124, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.5)
-    glow_text(cv, "QUELLE NEWS", 540, 470, 96, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
-    glow_text(cv, "T'A MARQUÉ ?", 540, 590, 104, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
-    text(c, "Dis-le en commentaire", 540, 730, 'sb', 34, ICE, 'c', .85); put_emoji(cv, '👇', 540, 790, 52)
-    texte(cv, "Les marchés réagissent aux surprises : inflation, patrons, introductions en bourse. Garde le cap sur le long terme.", 920)
-    coin(cv, 'question', 540, 1330, 280)
-    c.push_group(); logo_symbol(c, 395, 1398, 40); c.pop_group_to_source(); c.paint()
-    text(c, "Actions_Benefices", 428, 1398, 'b', 28, WHITE, 'l')
-    text(c, "Contenu pédagogique, pas un conseil en investissement.", 540, 1462, 'sb', 20, ICE, 'c', .55)
+    glow_text(cv, "ET TOI,", 540, 320, 124, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.5)
+    glow_text(cv, "QUELLE NEWS", 540, 455, 96, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
+    glow_text(cv, "T'A MARQUÉ ?", 540, 570, 104, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
+    text(c, "Dis-le en commentaire", 540, 690, 'sb', 34, ICE, 'c', .85); put_emoji(cv, '👇', 540, 745, 48)
+    texte(cv, "Les marchés réagissent aux surprises : inflation, patrons, introductions en bourse. Garde le cap sur le long terme.", 855)
+    # appel à l'abonnement (retour du 12/11) : médaillon = vraie photo de profil de la chaîne
+    def dr(k, w, h):
+        text(k, "ABONNE-TOI", 210, 52, 'xb', 50, 'FFC93C', 'l', 1, 2)
+        text(k, "à Actions_Benefices", 212, 104, 'b', 30, WHITE, 'l')
+        text(k, "pour suivre l'actu finance et éco", 212, 146, 'sb', 27, ICE, 'l', .9)
+        text(k, "en un coup d'œil, chaque semaine", 212, 182, 'sb', 27, ICE, 'l', .9)
+    tp(cv, 860, 210, dr, 540, 1128, 'or', rx=.04)
+    logo(cv, 'PROFIL', 205, 1128, 150); put_emoji(cv, '🔔', 905, 1080, 52)
+    coin(cv, 'pouce', 540, 1432, 200)
+    text(c, "Contenu pédagogique, pas un conseil en investissement.", 540, 1475, 'sb', 20, ICE, 'c', .55)
 # chiffres de clôture du 12/11 (mis à jour le soir)
 NV_12, NV_12_SUB = "≈ −6 %", "avant l'ouverture"
 CAC_12, CAC_12_SUB = f"≈ 8{NB}390 pts", "+0,7 % en séance"

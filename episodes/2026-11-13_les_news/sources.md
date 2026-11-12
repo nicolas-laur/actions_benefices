@@ -1,6 +1,6 @@
 # Sources : carrousel « Les News » du 13/11/2026 (semaine du 9 au 13 novembre)
 
-Montants convertis au taux de référence BCE (1,1214 $ pour 1 € le 10/11/2026, à remplacer par celui du 12/11).
+Montants convertis au taux de référence BCE (1,1214 $ pour 1 € le 10/11/2026, dernier taux publié trouvé le 12/11 au soir).
 
 ## Nvidia
 - WSJ via BFM Bourse / Tradingsat (12/11) : le conseil s'apprêterait à évincer Jensen Huang ; action ≈ −6 % avant l'ouverture. https://www.tradingsat.com/cac-40-FR0003500008/actualites/cac-40-alors-que-nvidia-est-en-pleine-crise-avec-son-directeur-general-sur-le-point-de-prendre-la-porte-le-cac-40-grimpe-de-08-grace-au-luxe-1173653.html
@@ -8,7 +8,7 @@ Montants convertis au taux de référence BCE (1,1214 $ pour 1 € le 10/11/2026
 - Communiqué Nvidia (12/11) : démission de Jensen Huang (PDG et administrateur) avec effet immédiat ; Colette Kress, directrice financière, PDG par intérim ; Harvey C. Jones président du conseil ; résultats du T3 2027 le 17/11. https://nvidianews.nvidia.com/news/nvidia-announces-ceo-transition
 - Yahoo Finance (12/11) : liaison avec Kimberly Powell (NYT) et liaison avec Alice Huang, dirigeante de Megaspeed que le renseignement américain soupçonne d'espionner pour la Chine ; enquête indépendante du conseil. https://finance.yahoo.com/technology/article/nvidia-ceo-huang-resigns-amid-affair-scandals-board-names-cfo-colette-kress-interim-ceo-135801377.html
 - CNBC / CoinDesk (12/11) : action ≈ −10 % en séance. https://www.cnbc.com/2026/11/12/nvidia-nvda-jensen-huang-second-affair.html
-- Clôture du 12/11 : à compléter.
+- TradingKey / CNBC (12/11) : clôture −4,34 % à 166,19 $, après un plus bas vers 148,80 $ (≈ −14 %) à l'ouverture. https://www.tradingkey.com/analysis/stocks/us-stocks/262303336-us-stock-nvidia-ceo-jensen-huang-resigns-nasdaq-falls-tradingkey
 
 ## Inflation et taux
 - The National (10/11) : prix +0,4 % en octobre (sous-jacent +0,3 %), pas de taux annuel publié (shutdown d'octobre 2025) ; ≈ 90 % de probabilité d'une hausse de 0,25 point en décembre (CME) ; 10 ans à 5 %. https://www.thenationalnews.com/business/economy/2026/11/10/federal-reserve-inflation-interest-rates-december/
@@ -23,7 +23,13 @@ Montants convertis au taux de référence BCE (1,1214 $ pour 1 € le 10/11/2026
 - Kiplinger (11/11) : CoreWeave +24,7 %, Nasdaq +1,6 %, S&P 500 +1,3 %.
 
 ## Paris
-- BFM Bourse (12/11, en séance) : CAC 40 +0,74 % à 8 394 pts, LVMH +2 %, Hermès +1,9 %, Kering +1,5 % ; Burberry +9,4 % à Londres. Clôture : à compléter.
+- BFM Bourse (12/11, en séance) : CAC 40 +0,74 % à 8 394 pts, LVMH +2 %, Hermès +1,9 %, Kering +1,5 % ; Burberry +9,4 % à Londres.
+- Zonebourse (12/11, clôture) : CAC 40 +0,34 % à 8 361,36 pts, 4e hausse d'affilée ; TotalEnergies +1,59 %, Sanofi +1,58 %, Engie +1,53 %, Capgemini +2,10 %. https://www.zonebourse.com/actualite-bourse/cac-40-la-bourse-de-paris-a-progresse-les-resultats-d-entreprises-et-nvidia-ont-anime-la-seance-ce785ed8d18cf22d
+- BFM Bourse (12/11, clôture) : LVMH +0,5 %. https://www.tradingsat.com/cac-40-FR0003500008/actualites/cac-40-malgre-le-seisme-du-depart-de-jensen-huang-chez-nvidia-et-trump-qui-affirme-ne-pas-avoir-besoin-d-un-accord-avec-l-iran-le-cac-40-termine-encore-en-hausse-1173691.html
+
+## Or et change
+- or.fr (12/11, 12 h 34) : 3 560,41 € et 3 948,10 $ l'once.
+- Taux de référence BCE : 1,1214 $ pour 1 € (10/11/2026), dernier publié trouvé le 12/11 au soir ; sert aux conversions (Anthropic, Costco).
 
 ## Costco
 - Kiplinger (11/11) : dividende exceptionnel de 30 $ par action (≈ 13,3 Md$), rachat d'actions de 4 Md$, action +2 %.

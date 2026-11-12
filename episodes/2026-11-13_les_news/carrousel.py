@@ -20,7 +20,7 @@ def fmt(v, d=1): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',').replac
 
 
 # ---------- données (sources dans sources.md) ----------
-EURUSD = 1.1214                                          # taux de référence BCE du 10/11/2026 (à remplacer par celui du 12/11)
+EURUSD = 1.1214                                          # taux de référence BCE du 10/11/2026 (dernier publié trouvé le 12/11 au soir)
 def eur(x): return x/EURUSD
 def md(v): return f"{fmt(v, 1 if v < 100 else 0)}{NB}Md€" if v >= 1 else f"{fmt(v*1000, 0)}{NB}M€"
 TXT = {
@@ -32,7 +32,7 @@ TXT = {
  'ipo_lect': "Le grand test de l'appétit pour l'IA : 17 Md$ de chiffre d'affaires au 3e trimestre, mais 104 Md$ de pertes sur neuf mois.",
  'ia_fait': "Après une chute brutale la semaine d'avant, la tech rebondit : CoreWeave s'envole après ses résultats.",
  'ia_lect': "Le marché ne rejette pas l'IA, il trie : il récompense ceux qui montrent comment ils financent leurs investissements.",
- 'cac_fait': "Pendant que la tech américaine tangue, Paris monte, porté par le luxe.",
+ 'cac_fait': "Pendant que la tech américaine tangue, Paris monte pour la 4e séance d'affilée, porté par l'énergie, la santé et le luxe.",
  'cac_lect': "Taux en hausse : on quitte la croissance chère pour la valeur. C'est la rotation « growth » → « value ».",
  'cost_fait': "Costco reverse une partie de sa trésorerie à ses actionnaires, bien plus que prévu par les analystes.",
  'cost_lect': "Un dividende exceptionnel, c'est l'entreprise qui rend l'argent qu'elle n'a pas besoin d'investir.",
@@ -206,7 +206,7 @@ def growth_value(cv, c, y0):
     return y+hl
 # ---------- diapos ----------
 TOP = [("NVDA", "Nvidia : le PDG démissionne"), ("US", "L'inflation repart, la Fed sort l'arme des taux"), ("ANTH", "Anthropic : l'entrée en bourse record"),
-       ("CRWV", "Les montagnes russes de l'IA"), ("FR", "Paris tient bon grâce au luxe"), ("COST", "Bonus : le cadeau de Costco")]
+       ("CRWV", "Les montagnes russes de l'IA"), ("FR", "Paris tient bon, 4e hausse d'affilée"), ("COST", "Bonus : le cadeau de Costco")]
 def s_cover(cv, c):
     text(c, "SEMAINE DU 9 AU 13 NOVEMBRE 2026", 540, 240, 'sb', 27, ICE, 'c', .85, 4)
     glow_text(cv, "LES NEWS", 540, 360, 170, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
@@ -246,9 +246,9 @@ def s_ia(cv, c):
            ("NASDAQ, MERCREDI 11/11", "+1,6 %", None, None, GR)],
           'bleu', TXT['ia_lect'], 'rire', "Accroche-toi !", glow='35D6FF', tsize=86, emo='CRWV')
 def s_cac(cv, c):
-    sujet(cv, c, 5, 5, "BOURSE DE PARIS", "LE LUXE PORTE LE CAC 40", TXT['cac_fait'],
+    sujet(cv, c, 5, 5, "BOURSE DE PARIS", "PARIS TIENT BON", TXT['cac_fait'],
           [("CAC 40, JEUDI 12/11", CAC_12, CAC_12_SUB, None, GR),
-           ("LVMH / HERMÈS / BURBERRY", "+2 % / +1,9 % / +9,4 %", "jeudi 12/11", None, GR)],
+           ("TOTAL / SANOFI / LVMH", "+1,6 % / +1,6 % / +0,5 %", "jeudi 12/11, à la clôture", None, GR)],
           'vert', None, 'pouce', "Cocorico !", tsize=80, extra=growth_value, emo='FR')
 def s_cost(cv, c):
     sujet(cv, c, 6, "BONUS", "COSTCO", "LE CHÈQUE SURPRISE", TXT['cost_fait'],
@@ -258,7 +258,7 @@ def s_cost(cv, c):
           'vert', TXT['cost_lect'], 'joie', "Merci patron !", emo='COST')
 RET = [("NVDA", "Nvidia : Jensen Huang démissionne, l'action chute"), ("US", "Inflation : la Fed s'apprête à remonter ses taux"),
        ("ANTH", "Anthropic : la plus grosse entrée en bourse de l'histoire"), ("CRWV", "IA : le marché trie les gagnants"),
-       ("FR", "Paris : le luxe amortit le choc"), ("COST", "Costco : 30 $ par action en cadeau")]
+       ("FR", "Paris : la « valeur » amortit le choc"), ("COST", "Costco : 30 $ par action en cadeau")]
 def s_ret(cv, c):
     entete(cv, c, "EN BREF", "CETTE SEMAINE", "CE QU'IL FAUT RETENIR", size=78)
     def dr(k, w, h):
@@ -287,8 +287,8 @@ def s_fin(cv, c):
     coin(cv, 'pouce', 540, 1432, 200)
     text(c, "Contenu pédagogique, pas un conseil en investissement.", 540, 1475, 'sb', 20, ICE, 'c', .55)
 # chiffres de clôture du 12/11 (mis à jour le soir)
-NV_12, NV_12_SUB = "−10 %", "jour de la démission"
-CAC_12, CAC_12_SUB = f"≈ 8{NB}390 pts", "+0,7 % en séance"
+NV_12, NV_12_SUB = "−4,3 %", "à la clôture, après −14 % à l'ouverture"
+CAC_12, CAC_12_SUB = f"8{NB}361 pts", "+0,34 % à la clôture"
 OR_EUR = f"3{NB}560{NB}€ l'once"
 SLIDES = [s_cover, s_nvda, s_inf, s_ipo, s_ia, s_cac, s_cost, s_ret, s_fin]
 FONDS = ['couverture', 'nvidia', 'inflation', 'ipo', 'ia', 'paris', 'costco', 'couverture', 'couverture']

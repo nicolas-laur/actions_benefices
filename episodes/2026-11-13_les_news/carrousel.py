@@ -151,9 +151,12 @@ def texte(cv, s_, cy, emo='💡', w=860, size=29, mood='or'):
     def dr(k, w, h):
         rr(k, 18, 18, 6, h-36, 3); col(k, GD if mood == 'or' else CY, .9); k.fill()
         for i, l in enumerate(L): text(k, l, 84, 18+lh*i+lh/2, 'sb', size, WHITE, 'l', .96)
-    tp(cv, w, h, dr, 540, cy, mood, rx=.03, ry=0, bev=14); put_emoji(cv, emo, 540-w/2+50, cy, 30)
+    tp(cv, w, h, dr, 540, cy, mood, rx=.03, ry=0, bev=14)
+    if emo in LOGOS: logo(cv, emo, 540-w/2+50, cy, 44)
+    else: put_emoji(cv, emo, 540-w/2+50, cy, 30)
     return h
 NS = 9
+LOGOS = {'NVDA', 'US', 'ANTH', 'CRWV', 'FR', 'COST'}          # tuiles façon icône d'appli (Iconify : logos, simple-icons, flag ; Costco en tuile texte)
 def pagination(c, i, n=9):
     for k in range(n):
         x = 540+(k-(n-1)/2)*24; c.arc(x, 1478, 6 if k == i else 4.5, 0, 2*math.pi); col(c, WHITE, .95 if k == i else .3); c.fill()
@@ -168,12 +171,12 @@ def fond(name):
     return Image.fromarray(a.astype(np.uint8)).convert('RGBA')
 def entete(cv, c, num, sujet, titre, glow='FFB020', size=92, flag=None):
     text(c, f"{num} · {sujet}", 540, 232, 'xb', 26, GD2, 'c', .95, 4)
-    if flag: put_emoji(cv, flag, 540+tw(c, f"{num} · {sujet}", 'xb', 26, 4)/2+34, 230, 36)
+    if flag: logo(cv, flag, 540-tw(c, f"{num} · {sujet}", 'xb', 26, 4)/2-44, 230, 54)
     glow_text(cv, titre, 540, 320, size, top='FFFFFF', bottom='FFE3A0', glow=glow, ga=.55, reflect=False)
 GAP = 58                                                                     # espace entre deux cadres de verre (retour du 12/11)
 def hauteur(s_, size=29): k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); return int(len(wrap(k0, s_, 'sb', size, 720))*size*1.32+36)
 def sujet(cv, c, i, num, nom, titre, fait, rows, mood, lect, pose, bul, glow='FFB020', tsize=92, emo='📰', extra=None):
-    entete(cv, c, num, nom, titre, glow, tsize, flag=emo if emo != '📰' else None)
+    entete(cv, c, num, nom, titre, glow, tsize, flag=emo if emo in LOGOS else None)
     h = hauteur(fait); texte(cv, fait, 392+h/2, emo, mood='or'); kh = len(rows)*100+30; ky = 392+h+GAP+kh/2
     kpi(cv, rows, 540, ky, mood, h=kh); y = ky+kh/2+GAP
     if extra: y = extra(cv, c, y)+GAP
@@ -194,8 +197,8 @@ def growth_value(cv, c, y0):
     y = y0+h+GAP; hl = hauteur(TXT['cac_lect']); texte(cv, TXT['cac_lect'], y+hl/2, '💡')
     return y+hl
 # ---------- diapos ----------
-TOP = [("🤖", "Nvidia : le PDG sur la sellette"), ("🔥", "L'inflation repart, la Fed sort l'arme des taux"), ("🔔", "Anthropic : l'entrée en bourse record"),
-       ("🎢", "Les montagnes russes de l'IA"), ("🇫🇷", "Paris tient bon grâce au luxe"), ("🛒", "Bonus : le cadeau de Costco")]
+TOP = [("NVDA", "Nvidia : le PDG sur la sellette"), ("US", "L'inflation repart, la Fed sort l'arme des taux"), ("ANTH", "Anthropic : l'entrée en bourse record"),
+       ("CRWV", "Les montagnes russes de l'IA"), ("FR", "Paris tient bon grâce au luxe"), ("COST", "Bonus : le cadeau de Costco")]
 def s_cover(cv, c):
     text(c, "SEMAINE DU 9 AU 13 NOVEMBRE 2026", 540, 240, 'sb', 27, ICE, 'c', .85, 4)
     glow_text(cv, "LES NEWS", 540, 360, 170, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
@@ -205,7 +208,7 @@ def s_cover(cv, c):
             y = 50+j*86; text(k, s_, 110, y, 'xb', 31, WHITE, 'l', .97)
             if j: k.move_to(30, y-43); k.line_to(w-30, y-43); k.set_line_width(1.2); col(k, WHITE, .12); k.stroke()
     tp(cv, 880, 6*86+14, dr, 540, 600+(6*86+14)/2+20, 'or', rx=.04)
-    for j, (e, s_) in enumerate(TOP): put_emoji(cv, e, 540-440+62, 600+20+7+50+j*86, 44)
+    for j, (e, s_) in enumerate(TOP): logo(cv, e, 540-440+62, 600+20+7+50+j*86, 56)
     bb = coin(cv, 'question', 230, 1478, 250); bulle_pres(c, "Tu as tout suivi ?", bb, 30, .2)
     text(c, "SWIPE", 920, 1420, 'xb', 28, WHITE, 'r', .85, 4); put_emoji(cv, '👉', 965, 1418, 48)
 def s_nvda(cv, c):
@@ -213,41 +216,41 @@ def s_nvda(cv, c):
           [("L'ACTION, SEMAINE DU 2 AU 6/11", "−9,5 %", "enquête interne révélée", None, RD),
            ("L'ACTION, JEUDI 12/11", NV_12, NV_12_SUB, None, RD),
            ("ANALYSTES À L'ACHAT", "57 sur 62", "avant la crise", None, OR)],
-          'rouge', TXT['nvda_lect'], 'choc', "Sans son patron ?!", glow='FF5A3C')
+          'rouge', TXT['nvda_lect'], 'choc', "Sans son patron ?!", glow='FF5A3C', emo='NVDA')
 def s_inf(cv, c):
     sujet(cv, c, 2, 2, "INFLATION AUX ÉTATS-UNIS", "LA FED VA MONTER SES TAUX", TXT['inf_fait'],
           [("PRIX EN OCTOBRE (ÉTATS-UNIS)", "+0,4 %", "en un mois", None, RD),
            ("HAUSSE DES TAUX EN DÉCEMBRE", "90 %", "de probabilité environ, selon les marchés", None, OR),
            ("TAUX AMÉRICAIN À 10 ANS", "5 %", "le 10/11", None, OR),
            ("L'OR", f"< 4{NB}000 $", f"≈ {OR_EUR}", None, OR)],
-          'orange', TXT['inf_lect'], 'inquiet', "Ça chauffe…", tsize=78, emo='🇺🇸')
+          'orange', TXT['inf_lect'], 'inquiet', "Ça chauffe…", tsize=78, emo='US')
 def s_ipo(cv, c):
     sujet(cv, c, 3, 3, "ANTHROPIC", "L'ENTRÉE EN BOURSE RECORD", TXT['ipo_fait'],
           [("PRIX PAR ACTION", f"{fmt(eur(70), 0)} à {fmt(eur(78), 0)}{NB}€", "70 à 78 $", None, GD),
            ("VALORISATION", f"jusqu'à {fmt(eur(1404), 0)}{NB}Md€", f"1{NB}404 Md$", None, GD),
            ("ARGENT LEVÉ", f"{fmt(eur(57.75), 0)} à {fmt(eur(64.35), 0)}{NB}Md€", "le record : Aramco, 29,4 Md$ en 2019", None, GR),
            ("POUR LES PARTICULIERS", "jusqu'à 20 %", "des actions proposées", None, GD)],
-          'or', TXT['ipo_lect'], 'montre', "Le plus gros de l'histoire !", tsize=82)
+          'or', TXT['ipo_lect'], 'montre', "Le plus gros de l'histoire !", tsize=82, emo='ANTH')
 def s_ia(cv, c):
     sujet(cv, c, 4, 4, "TECH ET IA", "LES MONTAGNES RUSSES", TXT['ia_fait'],
           [("NASDAQ, JEUDI 5/11", "−5,5 %", "en correction", None, RD),
            ("COREWEAVE, MERCREDI 11/11", "+24,7 %", "après ses résultats", None, GR),
            ("NASDAQ, MERCREDI 11/11", "+1,6 %", None, None, GR)],
-          'bleu', TXT['ia_lect'], 'rire', "Accroche-toi !", glow='35D6FF', tsize=86)
+          'bleu', TXT['ia_lect'], 'rire', "Accroche-toi !", glow='35D6FF', tsize=86, emo='CRWV')
 def s_cac(cv, c):
     sujet(cv, c, 5, 5, "BOURSE DE PARIS", "LE LUXE PORTE LE CAC 40", TXT['cac_fait'],
           [("CAC 40, JEUDI 12/11", CAC_12, CAC_12_SUB, None, GR),
            ("LVMH / HERMÈS / BURBERRY", "+2 % / +1,9 % / +9,4 %", "jeudi 12/11", None, GR)],
-          'vert', None, 'pouce', "Cocorico !", tsize=80, extra=growth_value)
+          'vert', None, 'pouce', "Cocorico !", tsize=80, extra=growth_value, emo='FR')
 def s_cost(cv, c):
     sujet(cv, c, 6, "BONUS", "COSTCO", "LE CHÈQUE SURPRISE", TXT['cost_fait'],
           [("DIVIDENDE EXCEPTIONNEL", f"{fmt(eur(30), 1)}{NB}€", "par action (30 $)", None, GR),
            ("AU TOTAL", md(eur(13.3)), "13,3 Md$ reversés", None, GR),
            ("L'ACTION, MERCREDI 11/11", "+2 %", None, None, GR)],
-          'vert', TXT['cost_lect'], 'joie', "Merci patron !")
-RET = [("🤖", "Nvidia : la crise de gouvernance fait trembler la star de l'IA"), ("🔥", "Inflation : la Fed s'apprête à remonter ses taux"),
-       ("🔔", "Anthropic : la plus grosse entrée en bourse de l'histoire"), ("🎢", "IA : le marché trie les gagnants"),
-       ("🇫🇷", "Paris : le luxe amortit le choc"), ("🛒", "Costco : 30 $ par action en cadeau")]
+          'vert', TXT['cost_lect'], 'joie', "Merci patron !", emo='COST')
+RET = [("NVDA", "Nvidia : la crise de gouvernance fait trembler la star de l'IA"), ("US", "Inflation : la Fed s'apprête à remonter ses taux"),
+       ("ANTH", "Anthropic : la plus grosse entrée en bourse de l'histoire"), ("CRWV", "IA : le marché trie les gagnants"),
+       ("FR", "Paris : le luxe amortit le choc"), ("COST", "Costco : 30 $ par action en cadeau")]
 def s_ret(cv, c):
     entete(cv, c, "EN BREF", "CETTE SEMAINE", "CE QU'IL FAUT RETENIR", size=78)
     def dr(k, w, h):
@@ -256,7 +259,7 @@ def s_ret(cv, c):
             for m, l in enumerate(L): text(k, l, 110, y-(len(L)-1)*17+m*34, 'xb', 28, WHITE, 'l', .96)
             if j: k.move_to(30, y-56); k.line_to(w-30, y-56); k.set_line_width(1.2); col(k, WHITE, .12); k.stroke()
     tp(cv, 880, 6*112, dr, 540, 430+6*112/2, 'or', rx=.04)
-    for j, (e, s_) in enumerate(RET): put_emoji(cv, e, 540-440+62, 430+30+56+j*112-26+26, 44)
+    for j, (e, s_) in enumerate(RET): logo(cv, e, 540-440+62, 430+56+j*112, 60)
     bb = coin(cv, 'montre', 230, 1478, 230); bulle_pres(c, "Enregistre-le 📌"[:-2], bb, 30, .25)
     pagination(c, 7)
 def s_fin(cv, c):

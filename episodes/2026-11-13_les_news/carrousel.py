@@ -139,10 +139,18 @@ NS = 14
 def pagination(c, i, n=NS):
     for k in range(n):
         x = 540+(k-(n-1)/2)*24; c.arc(x, 1478, 6 if k == i else 4.5, 0, 2*math.pi); col(c, WHITE, .95 if k == i else .3); c.fill()
+@functools.lru_cache(maxsize=32)
+def logo_rond(key, size):
+    """tuile logo découpée en bulle ronde (retour du 12/11), suréchantillonnée pour un bord net"""
+    B = size*4; im = Image.open(f'{D}/logos/{key}.png').convert('RGBA'); k = B*1.06/max(im.size)             # léger zoom : le cercle mange les coins de la tuile
+    im = im.resize((round(im.width*k), round(im.height*k)), Image.LANCZOS); x0, y0 = (im.width-B)//2, (im.height-B)//2; im = im.crop((x0, y0, x0+B, y0+B))
+    m = Image.new('L', (B, B), 0); ImageDraw.Draw(m).ellipse((0, 0, B-1, B-1), fill=255); im.putalpha(Image.fromarray(np.minimum(np.asarray(im.getchannel('A')), np.asarray(m))))
+    ImageDraw.Draw(im).ellipse((2, 2, B-3, B-3), outline=(255, 255, 255, 170), width=max(4, B//48))
+    return im.resize((size, size), Image.LANCZOS)
 def logo(cv, key, cx, cy, size=96):
-    im = Image.open(f'{D}/logos/{key}.png').convert('RGBA'); k = size/max(im.size); im = im.resize((int(im.width*k), int(im.height*k)), Image.LANCZOS)
-    s, c = surface(); rr(c, cx-im.width/2+4, cy-im.height/2+8, im.width, im.height, im.width*.22); col(c, '000000', .35); c.fill()
-    cv.alpha_composite(to_img(s)); cv.alpha_composite(im, (int(cx-im.width/2), int(cy-im.height/2)))
+    im = logo_rond(key, int(size))
+    s, c = surface(); c.arc(cx+3, cy+6, size/2, 0, 2*math.pi); col(c, '000000', .35); c.fill()
+    cv.alpha_composite(to_img(s)); cv.alpha_composite(im, (int(cx-size/2), int(cy-size/2)))
 
 
 def texte(cv, s_, cy, emo='💡', w=860, size=29, mood='or'):

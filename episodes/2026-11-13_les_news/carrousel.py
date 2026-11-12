@@ -166,8 +166,8 @@ def texte(cv, s_, cy, emo='💡', w=860, size=29, mood='or'):
 NS = 9
 LOGOS = {'NVDA', 'US', 'ANTH', 'CRWV', 'FR', 'COST'}          # tuiles façon icône d'appli (Iconify : logos, simple-icons, flag ; Costco en tuile texte)
 def pagination(c, i, n=9):
-    for k in range(n):
-        x = 540+(k-(n-1)/2)*24; c.arc(x, 1478, 6 if k == i else 4.5, 0, 2*math.pi); col(c, WHITE, .95 if k == i else .3); c.fill()
+    """pas de points de défilement : les réseaux les affichent déjà (retour du 12/11)"""
+    return
 # ---------- fonds Gemini : recadrés en 1080×1920, assombris pour la lecture ----------
 @functools.lru_cache(maxsize=8)
 def fond(name):

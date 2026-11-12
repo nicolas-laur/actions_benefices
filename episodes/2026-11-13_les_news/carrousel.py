@@ -24,7 +24,7 @@ EURUSD = 1.1214                                          # taux de référence B
 def eur(x): return x/EURUSD
 def md(v): return f"{fmt(v, 1 if v < 100 else 0)}{NB}Md€" if v >= 1 else f"{fmt(v*1000, 0)}{NB}M€"
 TXT = {
- 'nvda_fait': "Selon le Wall Street Journal, le conseil veut évincer Jensen Huang, le fondateur. En cause : sa liaison avec une cadre de Megaspeed, client que Washington soupçonne d'espionner pour la Chine.",
+ 'nvda_fait': "Jensen Huang, fondateur et patron depuis 33 ans, a démissionné jeudi. En cause : sa liaison avec une cadre de Megaspeed, soupçonnée d'espionner pour la Chine. La directrice financière assure l'intérim.",
  'nvda_lect': "Le risque « homme clé » : quand un fondateur incarne l'entreprise, sa chute pèse sur l'action, même avec de bons comptes.",
  'inf_fait': "Les prix ont grimpé plus que prévu en octobre aux États-Unis, poussés par l'énergie et l'alimentation (guerre en Iran).",
  'inf_lect': "Guerre → pétrole → inflation → taux. Quand les taux montent, ce qui ne rapporte rien (or, bitcoin) et la tech souffrent.",
@@ -205,7 +205,7 @@ def growth_value(cv, c, y0):
     y = y0+h+GAP; hl = hauteur(TXT['cac_lect']); texte(cv, TXT['cac_lect'], y+hl/2, '💡')
     return y+hl
 # ---------- diapos ----------
-TOP = [("NVDA", "Nvidia : le PDG sur la sellette"), ("US", "L'inflation repart, la Fed sort l'arme des taux"), ("ANTH", "Anthropic : l'entrée en bourse record"),
+TOP = [("NVDA", "Nvidia : le PDG démissionne"), ("US", "L'inflation repart, la Fed sort l'arme des taux"), ("ANTH", "Anthropic : l'entrée en bourse record"),
        ("CRWV", "Les montagnes russes de l'IA"), ("FR", "Paris tient bon grâce au luxe"), ("COST", "Bonus : le cadeau de Costco")]
 def s_cover(cv, c):
     text(c, "SEMAINE DU 9 AU 13 NOVEMBRE 2026", 540, 240, 'sb', 27, ICE, 'c', .85, 4)
@@ -220,10 +220,10 @@ def s_cover(cv, c):
     bb = coin(cv, 'question', 230, 1478, 250); bulle_pres(c, "Tu as tout suivi ?", bb, 30, .2)
     text(c, "SWIPE", 920, 1420, 'xb', 28, WHITE, 'r', .85, 4); put_emoji(cv, '👉', 965, 1418, 48)
 def s_nvda(cv, c):
-    sujet(cv, c, 1, 1, "NVIDIA", "LE PDG SUR LA SELLETTE", TXT['nvda_fait'],
+    sujet(cv, c, 1, 1, "NVIDIA", "LE PDG DÉMISSIONNE", TXT['nvda_fait'],
           [("L'ACTION, SEMAINE DU 2 AU 6/11", "−9,5 %", "enquête interne révélée", None, RD),
            ("L'ACTION, JEUDI 12/11", NV_12, NV_12_SUB, None, RD),
-           ("ANALYSTES À L'ACHAT", "57 sur 62", "avant la crise", None, OR)],
+           ("PROCHAINS RÉSULTATS", "17 nov.", "premier test sans Huang", None, OR)],
           'rouge', TXT['nvda_lect'], 'choc', "Sans son patron ?!", glow='FF5A3C', emo='NVDA')
 def s_inf(cv, c):
     sujet(cv, c, 2, 2, "INFLATION AUX ÉTATS-UNIS", "LA FED VA MONTER SES TAUX", TXT['inf_fait'],
@@ -256,7 +256,7 @@ def s_cost(cv, c):
            ("AU TOTAL", md(eur(13.3)), "13,3 Md$ reversés", None, GR),
            ("L'ACTION, MERCREDI 11/11", "+2 %", None, None, GR)],
           'vert', TXT['cost_lect'], 'joie', "Merci patron !", emo='COST')
-RET = [("NVDA", "Nvidia : la crise de gouvernance fait trembler la star de l'IA"), ("US", "Inflation : la Fed s'apprête à remonter ses taux"),
+RET = [("NVDA", "Nvidia : Jensen Huang démissionne, l'action chute"), ("US", "Inflation : la Fed s'apprête à remonter ses taux"),
        ("ANTH", "Anthropic : la plus grosse entrée en bourse de l'histoire"), ("CRWV", "IA : le marché trie les gagnants"),
        ("FR", "Paris : le luxe amortit le choc"), ("COST", "Costco : 30 $ par action en cadeau")]
 def s_ret(cv, c):
@@ -287,7 +287,7 @@ def s_fin(cv, c):
     coin(cv, 'pouce', 540, 1432, 200)
     text(c, "Contenu pédagogique, pas un conseil en investissement.", 540, 1475, 'sb', 20, ICE, 'c', .55)
 # chiffres de clôture du 12/11 (mis à jour le soir)
-NV_12, NV_12_SUB = "≈ −6 %", "avant l'ouverture"
+NV_12, NV_12_SUB = "−10 %", "jour de la démission"
 CAC_12, CAC_12_SUB = f"≈ 8{NB}390 pts", "+0,7 % en séance"
 OR_EUR = f"3{NB}560{NB}€ l'once"
 SLIDES = [s_cover, s_nvda, s_inf, s_ipo, s_ia, s_cac, s_cost, s_ret, s_fin]

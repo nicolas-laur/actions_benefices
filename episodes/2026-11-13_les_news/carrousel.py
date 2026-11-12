@@ -24,7 +24,7 @@ EURUSD = 1.1214                                          # taux de référence B
 def eur(x): return x/EURUSD
 def md(v): return f"{fmt(v, 1 if v < 100 else 0)}{NB}Md€" if v >= 1 else f"{fmt(v*1000, 0)}{NB}M€"
 TXT = {
- 'nvda_fait': "Le conseil d'administration s'apprêterait à évincer Jensen Huang, le fondateur et PDG, selon le Wall Street Journal.",
+ 'nvda_fait': "Selon le Wall Street Journal, le conseil veut évincer Jensen Huang, le fondateur. En cause : sa liaison avec une cadre de Megaspeed, client que Washington soupçonne d'espionner pour la Chine.",
  'nvda_lect': "Le risque « homme clé » : quand un fondateur incarne l'entreprise, sa chute pèse sur l'action, même avec de bons comptes.",
  'inf_fait': "Les prix ont grimpé plus que prévu en octobre aux États-Unis, poussés par l'énergie et l'alimentation (guerre en Iran).",
  'inf_lect': "Guerre → pétrole → inflation → taux. Quand les taux montent, ce qui ne rapporte rien (or, bitcoin) et la tech souffrent.",
@@ -33,7 +33,7 @@ TXT = {
  'ia_fait': "Après une chute brutale la semaine d'avant, la tech rebondit : CoreWeave s'envole après ses résultats.",
  'ia_lect': "Le marché ne rejette pas l'IA, il trie : il récompense ceux qui montrent comment ils financent leurs investissements.",
  'cac_fait': "Pendant que la tech américaine tangue, Paris monte, porté par le luxe.",
- 'cac_lect': "Un indice moins dépendant de la tech américaine résiste mieux aux tempêtes de l'IA : c'est l'intérêt de diversifier.",
+ 'cac_lect': "Taux en hausse : on quitte la croissance chère pour la valeur. C'est la rotation « growth » → « value ».",
  'cost_fait': "Costco reverse une partie de sa trésorerie à ses actionnaires, bien plus que prévu par les analystes.",
  'cost_lect': "Un dividende exceptionnel, c'est l'entreprise qui rend l'argent qu'elle n'a pas besoin d'investir.",
 }
@@ -125,7 +125,7 @@ def kpi(cv, rows, cx, cy, mood, w=860, h=380):
             if dv:
                 pw = tw(k, dv, 'xb', 31)+40; rr(k, w-40-pw, y-27, pw, 54, 27); col(k, dcol, .18); k.fill_preserve(); k.set_line_width(2.5); col(k, dcol, .95); k.stroke()
                 text(k, dv, w-40-pw/2, y, 'xb', 31, dcol, 'c')
-    tp(cv, w, h, dr, cx, cy, mood, rx=.05, ry=.03, bev=30)
+    tp(cv, w, h, dr, cx, cy, mood, rx=.05, ry=.03, bev=20)
 def lecture(cv, key, cy, w=860, size=29):
     k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); L = wrap(k0, LECTURE[key], 'sb', size, w-140); lh = size*1.32; h = int(len(L)*lh+36)
     def dr(k, w, h):
@@ -147,11 +147,11 @@ def logo(cv, key, cx, cy, size=96):
 
 def texte(cv, s_, cy, emo='💡', w=860, size=29, mood='or'):
     k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); L = wrap(k0, s_, 'sb', size, w-140); lh = size*1.32; h = int(len(L)*lh+36)
-    assert len(L) <= 3, (s_, L)
+    assert len(L) <= 4, (s_, L)
     def dr(k, w, h):
         rr(k, 18, 18, 6, h-36, 3); col(k, GD if mood == 'or' else CY, .9); k.fill()
         for i, l in enumerate(L): text(k, l, 84, 18+lh*i+lh/2, 'sb', size, WHITE, 'l', .96)
-    tp(cv, w, h, dr, 540, cy, mood, rx=.03, ry=0, bev=20); put_emoji(cv, emo, 540-w/2+50, cy, 30)
+    tp(cv, w, h, dr, 540, cy, mood, rx=.03, ry=0, bev=14); put_emoji(cv, emo, 540-w/2+50, cy, 30)
     return h
 NS = 9
 def pagination(c, i, n=9):
@@ -166,17 +166,33 @@ def fond(name):
     dark = np.interp(y, [0, 200, 520, 1100, 1450, H], [.55, .45, .38, .38, .5, .7])
     a *= 1-dark
     return Image.fromarray(a.astype(np.uint8)).convert('RGBA')
-def entete(cv, c, num, sujet, titre, glow='FFB020', size=92):
+def entete(cv, c, num, sujet, titre, glow='FFB020', size=92, flag=None):
     text(c, f"{num} · {sujet}", 540, 232, 'xb', 26, GD2, 'c', .95, 4)
+    if flag: put_emoji(cv, flag, 540+tw(c, f"{num} · {sujet}", 'xb', 26, 4)/2+34, 230, 36)
     glow_text(cv, titre, 540, 320, size, top='FFFFFF', bottom='FFE3A0', glow=glow, ga=.55, reflect=False)
-def sujet(cv, c, i, num, nom, titre, fait, rows, mood, lect, pose, bul, glow='FFB020', tsize=92):
-    entete(cv, c, num, nom, titre, glow, tsize)
-    h = texte(cv, fait, 460, '📰', mood='or'); kh = len(rows)*100+30; ky = 460+h/2+36+kh/2
-    kpi(cv, rows, 540, ky, mood, h=kh)
-    k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); hl = len(wrap(k0, lect, 'sb', 29, 720))*29*1.32+36
-    texte(cv, lect, ky+kh/2+36+hl/2, '💡')
+GAP = 58                                                                     # espace entre deux cadres de verre (retour du 12/11)
+def hauteur(s_, size=29): k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); return int(len(wrap(k0, s_, 'sb', size, 720))*size*1.32+36)
+def sujet(cv, c, i, num, nom, titre, fait, rows, mood, lect, pose, bul, glow='FFB020', tsize=92, emo='📰', extra=None):
+    entete(cv, c, num, nom, titre, glow, tsize, flag=emo if emo != '📰' else None)
+    h = hauteur(fait); texte(cv, fait, 392+h/2, emo, mood='or'); kh = len(rows)*100+30; ky = 392+h+GAP+kh/2
+    kpi(cv, rows, 540, ky, mood, h=kh); y = ky+kh/2+GAP
+    if extra: y = extra(cv, c, y)+GAP
+    if lect: hl = hauteur(lect); texte(cv, lect, y+hl/2, '💡')
     bb = coin(cv, pose, 200, 1478, 200); bulle_pres(c, bul, bb, 30, .3)
     pagination(c, i)
+def growth_value(cv, c, y0):
+    """deux cadres côte à côte : GROWTH (croissance) et VALUE (valeur), puis la phrase de lecture"""
+    h = 236
+    def g(k, w, h):
+        text(k, "GROWTH", w/2, 38, 'a', 40, CY, 'c'); text(k, "la croissance", w/2, 76, 'sb', 23, ICE, 'c', .8)
+        for j, l in enumerate(("Tech, IA : on paie cher", "les bénéfices de demain.", "Souffre quand", "les taux montent.")): text(k, l, w/2, 122+j*31, 'sb', 23, WHITE if j < 2 else 'FF8A8A', 'c', .95)
+    def v(k, w, h):
+        text(k, "VALUE", w/2, 38, 'a', 40, GR, 'c'); text(k, "la valeur", w/2, 76, 'sb', 23, ICE, 'c', .8)
+        for j, l in enumerate(("Luxe, banques : bénéfices", "déjà là, prix plus sages.", "Résiste quand", "les taux montent.")): text(k, l, w/2, 122+j*31, 'sb', 23, WHITE if j < 2 else '9DF2B5', 'c', .95)
+    tp(cv, 400, h, g, 300, y0+h/2, 'bleu', rx=.04, ry=.10, bev=14); tp(cv, 400, h, v, 780, y0+h/2, 'vert', rx=.04, ry=-.10, bev=14)
+    put_emoji(cv, '🚀', 300-170, y0+38, 34); put_emoji(cv, '🏛️', 780-170, y0+38, 34)
+    y = y0+h+GAP; hl = hauteur(TXT['cac_lect']); texte(cv, TXT['cac_lect'], y+hl/2, '💡')
+    return y+hl
 # ---------- diapos ----------
 TOP = [("🤖", "Nvidia : le PDG sur la sellette"), ("🔥", "L'inflation repart, la Fed sort l'arme des taux"), ("🔔", "Anthropic : l'entrée en bourse record"),
        ("🎢", "Les montagnes russes de l'IA"), ("🇫🇷", "Paris tient bon grâce au luxe"), ("🛒", "Bonus : le cadeau de Costco")]
@@ -199,12 +215,12 @@ def s_nvda(cv, c):
            ("ANALYSTES À L'ACHAT", "57 sur 62", "avant la crise", None, OR)],
           'rouge', TXT['nvda_lect'], 'choc', "Sans son patron ?!", glow='FF5A3C')
 def s_inf(cv, c):
-    sujet(cv, c, 2, 2, "INFLATION ET TAUX", "LA FED VA MONTER SES TAUX", TXT['inf_fait'],
+    sujet(cv, c, 2, 2, "INFLATION AUX ÉTATS-UNIS", "LA FED VA MONTER SES TAUX", TXT['inf_fait'],
           [("PRIX EN OCTOBRE (ÉTATS-UNIS)", "+0,4 %", "en un mois", None, RD),
            ("HAUSSE DES TAUX EN DÉCEMBRE", "90 %", "de probabilité environ, selon les marchés", None, OR),
            ("TAUX AMÉRICAIN À 10 ANS", "5 %", "le 10/11", None, OR),
            ("L'OR", f"< 4{NB}000 $", f"≈ {OR_EUR}", None, OR)],
-          'orange', TXT['inf_lect'], 'inquiet', "Ça chauffe…", tsize=78)
+          'orange', TXT['inf_lect'], 'inquiet', "Ça chauffe…", tsize=78, emo='🇺🇸')
 def s_ipo(cv, c):
     sujet(cv, c, 3, 3, "ANTHROPIC", "L'ENTRÉE EN BOURSE RECORD", TXT['ipo_fait'],
           [("PRIX PAR ACTION", f"{fmt(eur(70), 0)} à {fmt(eur(78), 0)}{NB}€", "70 à 78 $", None, GD),
@@ -221,9 +237,8 @@ def s_ia(cv, c):
 def s_cac(cv, c):
     sujet(cv, c, 5, 5, "BOURSE DE PARIS", "LE LUXE PORTE LE CAC 40", TXT['cac_fait'],
           [("CAC 40, JEUDI 12/11", CAC_12, CAC_12_SUB, None, GR),
-           ("LVMH / HERMÈS", "+2 % / +1,9 %", "jeudi 12/11", None, GR),
-           ("BURBERRY (LONDRES)", "+9,4 %", "après ses ventes", None, GR)],
-          'vert', TXT['cac_lect'], 'pouce', "Cocorico !", tsize=80)
+           ("LVMH / HERMÈS / BURBERRY", "+2 % / +1,9 % / +9,4 %", "jeudi 12/11", None, GR)],
+          'vert', None, 'pouce', "Cocorico !", tsize=80, extra=growth_value)
 def s_cost(cv, c):
     sujet(cv, c, 6, "BONUS", "COSTCO", "LE CHÈQUE SURPRISE", TXT['cost_fait'],
           [("DIVIDENDE EXCEPTIONNEL", f"{fmt(eur(30), 1)}{NB}€", "par action (30 $)", None, GR),

@@ -1,13 +1,14 @@
 # Sources : carrousel « Les News » du 13/11/2026 (semaine du 9 au 13 novembre)
 
-Montants convertis au taux de référence BCE (1,1214 $ pour 1 € le 10/11/2026, dernier taux publié trouvé le 12/11 au soir).
+Montants convertis au taux de référence BCE (1,1081 $ pour 1 € le 12/11/2026).
 
 ## Nvidia
 - WSJ via BFM Bourse / Tradingsat (12/11) : le conseil s'apprêterait à évincer Jensen Huang ; action ≈ −6 % avant l'ouverture. https://www.tradingsat.com/cac-40-FR0003500008/actualites/cac-40-alors-que-nvidia-est-en-pleine-crise-avec-son-directeur-general-sur-le-point-de-prendre-la-porte-le-cac-40-grimpe-de-08-grace-au-luxe-1173653.html
 - Kiplinger (11/11) : −9,5 % la semaine précédente après l'ouverture d'une enquête interne ; 57 analystes sur 62 à l'achat (S&P Global). https://kiplinger.com/investing/stocks/nasdaq-adds-400-points-after-coreweave-earnings-stock-market-today
 - Communiqué Nvidia (12/11) : démission de Jensen Huang (PDG et administrateur) avec effet immédiat ; Colette Kress, directrice financière, PDG par intérim ; Harvey C. Jones président du conseil ; résultats du T3 2027 le 17/11. https://nvidianews.nvidia.com/news/nvidia-announces-ceo-transition
 - Yahoo Finance (12/11) : liaison avec Kimberly Powell (NYT) et liaison avec Alice Huang, dirigeante de Megaspeed que le renseignement américain soupçonne d'espionner pour la Chine ; enquête indépendante du conseil. https://finance.yahoo.com/technology/article/nvidia-ceo-huang-resigns-amid-affair-scandals-board-names-cfo-colette-kress-interim-ceo-135801377.html
-- CNBC / CoinDesk (12/11) : action ≈ −10 % en séance. https://www.cnbc.com/2026/11/12/nvidia-nvda-jensen-huang-second-affair.html
+- CNBC / CoinDesk (12/11) : action ≈ −10 % en séance.
+- Daily Caller (12/11) : Huang accepte de témoigner à huis clos devant la commission des affaires étrangères de la Chambre, avant Thanksgiving. https://dailycaller.com/2026/11/12/nvidia-jenson-huang-testify-house-foreign-affairs-committee/ https://www.cnbc.com/2026/11/12/nvidia-nvda-jensen-huang-second-affair.html
 - TradingKey / CNBC (12/11) : clôture −4,34 % à 166,19 $, après un plus bas vers 148,80 $ (≈ −14 %) à l'ouverture. https://www.tradingkey.com/analysis/stocks/us-stocks/262303336-us-stock-nvidia-ceo-jensen-huang-resigns-nasdaq-falls-tradingkey
 
 ## Inflation et taux
@@ -29,7 +30,7 @@ Montants convertis au taux de référence BCE (1,1214 $ pour 1 € le 10/11/2026
 
 ## Or et change
 - or.fr (12/11, 12 h 34) : 3 560,41 € et 3 948,10 $ l'once.
-- Taux de référence BCE : 1,1214 $ pour 1 € (10/11/2026), dernier publié trouvé le 12/11 au soir ; sert aux conversions (Anthropic, Costco).
+- Taux de référence BCE : 1,1081 $ pour 1 € (12/11/2026) ; sert aux conversions (Anthropic, Costco, or). https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html
 
 ## Costco
 - Kiplinger (11/11) : dividende exceptionnel de 30 $ par action (≈ 13,3 Md$), rachat d'actions de 4 Md$, action +2 %.

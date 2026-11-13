@@ -20,11 +20,11 @@ def fmt(v, d=1): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',').replac
 
 
 # ---------- données (sources dans sources.md) ----------
-EURUSD = 1.1214                                          # taux de référence BCE du 10/11/2026 (dernier publié trouvé le 12/11 au soir)
+EURUSD = 1.1081                                          # taux de référence BCE du 12/11/2026
 def eur(x): return x/EURUSD
 def md(v): return f"{fmt(v, 1 if v < 100 else 0)}{NB}Md€" if v >= 1 else f"{fmt(v*1000, 0)}{NB}M€"
 TXT = {
- 'nvda_fait': "Jensen Huang, fondateur et patron depuis 33 ans, a démissionné jeudi. En cause : sa liaison avec une cadre de Megaspeed, soupçonnée d'espionner pour la Chine. La directrice financière assure l'intérim.",
+ 'nvda_fait': "Jensen Huang, fondateur et patron depuis 33 ans, a démissionné jeudi. En cause : sa liaison avec une cadre de Megaspeed, soupçonnée d'espionner pour la Chine. Il va témoigner devant le Congrès.",
  'nvda_lect': "Le risque « homme clé » : quand un fondateur incarne l'entreprise, sa chute pèse sur l'action, même avec de bons comptes.",
  'inf_fait': "Les prix ont grimpé plus que prévu en octobre aux États-Unis, poussés par l'énergie et l'alimentation (guerre en Iran).",
  'inf_lect': "Guerre → pétrole → inflation → taux. Quand les taux montent, ce qui ne rapporte rien (or, bitcoin) et la tech souffrent.",
@@ -171,7 +171,11 @@ def pagination(c, i, n=9):
 # ---------- fonds Gemini : recadrés en 1080×1920, assombris pour la lecture ----------
 @functools.lru_cache(maxsize=8)
 def fond(name):
-    im = Image.open(f'{D}/fonds/fond_{name}.jpg').convert('RGB'); k = max(W/im.width, H/im.height)
+    im = Image.open(f'{D}/fonds/fond_{name}.jpg').convert('RGB')
+    sd = np.asarray(im.convert('L'), np.float32).std(1); y1 = len(sd)
+    while y1 > 0 and sd[y1-1] < 6: y1 -= 1                 # bande unie laissée par Gemini en bas de certaines images : on la retire
+    if name == 'costco': y1 = min(y1, 1900)                # sol noyé de brume sous 1900 : il délavait le bas de la diapo
+    im = im.crop((0, 0, im.width, y1)); k = max(W/im.width, H/im.height)
     im = im.resize((round(im.width*k), round(im.height*k)), Image.LANCZOS); x0 = (im.width-W)//2; im = im.crop((x0, 0, x0+W, H))
     a = np.asarray(im, np.float32); y = np.arange(H)[:, None, None]
     dark = np.interp(y, [0, 200, 520, 1100, 1450, H], [.55, .45, .38, .38, .5, .7])
@@ -223,7 +227,7 @@ def s_nvda(cv, c):
     sujet(cv, c, 1, 1, "NVIDIA", "LE PDG DÉMISSIONNE", TXT['nvda_fait'],
           [("L'ACTION, SEMAINE DU 2 AU 6/11", "−9,5 %", "enquête interne révélée", None, RD),
            ("L'ACTION, JEUDI 12/11", NV_12, NV_12_SUB, None, RD),
-           ("PROCHAINS RÉSULTATS", "17 nov.", "premier test sans Huang", None, OR)],
+           ("PROCHAINS RÉSULTATS", "17 nov.", "1er test pour la PDG par intérim", None, OR)],
           'rouge', TXT['nvda_lect'], 'choc', "Sans son patron ?!", glow='FF5A3C', emo='NVDA')
 def s_inf(cv, c):
     sujet(cv, c, 2, 2, "INFLATION AUX ÉTATS-UNIS", "LA FED VA MONTER SES TAUX", TXT['inf_fait'],

@@ -319,13 +319,14 @@ def crackle(d):   # four à bois : crépitements doux + souffle chaud du feu
         m = int(.02*SR); u = tt(m); add(x, bp(rng.standard_normal(m), 1200, 6000)*np.exp(-u*220)*rng.uniform(.01, .04), tc); tc += rng.exponential(.18)
     return x
 def G(a, b, x): seg(a, b, x(b-a))
-G(0, 7.95, lambda d: hum(d)*.9)                                           # hangar : bourdonnement du projecteur
-G(7.95, 13.5, lambda d: ticktock(d)*.7)                                   # bureau au globe : pendule
-G(13.5, 21.65, lambda d: crackle(d)*.8+babble(d)*.25)                     # trésor de Lydie : torches, cour lointaine
-G(21.65, 33.7, lambda d: windy(d)*.5+crackle(d)*.3)                       # mine : courant d'air, lanternes
-G(33.7, 44.6, lambda d: hum(d))                                           # réserve souterraine
-G(44.6, 78.35, lambda d: ticktock(d)*.5+babble(d)*.2)                     # comptoir de change
-G(78.35, DUR, lambda d: hum(d)*.9)
+import video_col as VC2
+_B = VC2.BLOCS
+G(_B[0][0], _B[0][1], lambda d: hum(d)*.5)                               # rayons : léger souffle
+G(_B[1][0], _B[1][1], lambda d: ticktock(d)*.7+birds(d)*.4)              # chambre : pendule, oiseaux dehors
+G(_B[2][0], _B[2][1], lambda d: birds(d)+windy(d)*.25)                   # jardin du haricot
+G(_B[3][0], _B[3][1], lambda d: babble(d)*.35+hum(d)*.6)                 # gare : voyageurs, train
+G(_B[4][0], _B[4][1], lambda d: ticktock(d)*.5+babble(d)*.25)            # hall de banque
+G(_B[5][0], DUR, lambda d: birds(d)*.9+windy(d)*.2)                      # haricot géant au coucher du soleil
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 sr_v, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 assert sr_v == SR, f'voice_full.wav doit être en {SR} Hz (trouvé {sr_v} Hz) : sinon la voix est accélérée et plus aiguë'
@@ -345,6 +346,9 @@ voL, voR = v, v
 ascale = .8*rms(v)/max(1e-6, rms(amb))*.12
 brL = brR = np.zeros(N); bscale = 0.0
 mixL = voL+fL*fscale+amb*ascale+brL*bscale; mixR = voR+fR*fscale+amb*ascale+brR*bscale
+sr_w, wo = wavfile.read(V.D+'/sons/cute_wow.wav'); wo = wo.astype(np.float32)/32768
+if wo.ndim > 1: wo = wo.mean(1)
+wo *= .8*abs(v).max()/max(1e-6, abs(wo).max()); i0 = int(V.WOW*SR); mixL[i0:i0+len(wo)] += wo[:N-i0]; mixR[i0:i0+len(wo)] += wo[:N-i0]
 st = np.stack([mixL, mixR], 1)[:int(DUR*SR)]; st = np.tanh(st*1.05)/np.tanh(1.05); st *= .9/abs(st).max()
 wavfile.write(V.D+'/mix.wav', SR, (st*32767).astype(np.int16))
 sx = st.copy()

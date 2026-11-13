@@ -219,7 +219,7 @@ def closeup(arr, t):
     sc = W/rgb_.shape[1]*.96; rgb_ = cv2.resize(rgb_.astype(np.float32), None, fx=sc, fy=sc, interpolation=cv2.INTER_CUBIC)
     m = cv2.resize(m.astype(np.float32), None, fx=sc, fy=sc, interpolation=cv2.INTER_CUBIC)
     pulse = 1+.025*math.sin(u*18)*math.exp(-u*2)                               # petit tremblement d'émerveillement
-    h, w = m.shape; x0 = int(W/2-w/2); y0 = int(H*.60-h/2*pulse)
+    h, w = m.shape; x0 = int(W/2-w/2); y0 = int(530-(pulse-1)*400)                 # le bas de la pièce sort du cadre : on ne voit pas qu'il n'a pas de jambes
     out = arr.copy(); ya, yb, xa, xb = max(0, y0), min(H, y0+h), max(0, x0), min(W, x0+w)
     mm = m[ya-y0:yb-y0, xa-x0:xb-x0][..., None]; out[ya:yb, xa:xb] = out[ya:yb, xa:xb]*(1-mm)+rgb_[ya-y0:yb-y0, xa-x0:xb-x0]*mm
     return out
@@ -373,8 +373,8 @@ def frame(t):
     fl = film(arr.copy(), t); arr = arr*.72+fl*.28
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
     if gp and t > V.WOW:
-        s, c = surface(); pop_text(c, "WOW !", 540, 250, 130, t, V.WOW+.05, YEL, rot=-.08); out.alpha_composite(to_img(s))
-    s, c = surface(); cap_c(c, t); out.alpha_composite(to_img(s))
+        s, c = surface(); pop_text(c, "WOW !", 540, 420, 140, t, V.WOW+.05, YEL, rot=-.08); out.alpha_composite(to_img(s))
+    if not gp: s, c = surface(); cap_c(c, t); out.alpha_composite(to_img(s))
     if t > tm(61.7): S.put_emoji(out, '👇', 860, int(930+8*math.sin(t*5)), 46)
     arr = np.asarray(out.convert('RGB')).astype(np.float32); u = 0
     for ta in IRIS:

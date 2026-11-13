@@ -312,13 +312,12 @@ def b_gare(cv, c, t, k):
     xs = (190, 470, 815); hs = (170, 250, 380)
     for i, (age, m, ta, tb) in enumerate(((25, 402, tm(24.55), tm(24.6)), (35, 850, tm(24.9), tm(26.6)), (45, 1959, tm(30.05), tm(31.05)))):
         if t < ta: continue
-        x = xs[i]; base = 900
-        paint(c, f"{age} ANS", x, base-hs[i]-70, 40, CREAM if i < 2 else PINK, a=ent(t-ta, .3), fam='Alfa Slab One')
+        x = xs[i]; base = 830
         prop(c, 'tirelire', x, base-hs[i]/2, h=hs[i], k=t-ta)
-        if t > tb: pop_text(c, euro(m), x, base+50, 46 if i < 2 else 54, t, tb, YEL if i < 2 else PINK)
-        if t > tb+.15: paint(c, "par mois", x, base+100, 28, a=ent(t-tb-.15, .3))
-    if t > tm(28.55): pop_text(c, "× 2,1", 470, 480, 54, t, tm(28.6), YEL, rot=-.06)
-    if t > tm(33.4): pop_text(c, "× 4,9", 815, 400, 66, t, tm(33.45), PINK, rot=-.06)
+        if t > tb: pop_text(c, euro(m) if i < 2 else euro(m), x, base+50, 46 if i < 2 else 54, t, tb, YEL if i < 2 else PINK)
+        if t > ta+.2: paint(c, f"dès {age} ans", x, base+102, 32, CREAM if i < 2 else PINK, a=ent(t-ta-.2, .3))
+    if t > tm(28.55): pop_text(c, "× 2,1", 470, 520, 54, t, tm(28.6), YEL, rot=-.06)
+    if t > tm(33.4): pop_text(c, "× 4,9", 815, 390, 66, t, tm(33.45), PINK, rot=-.06)
     if t > tm(35.0):
         title(c, "10 ANS D'ATTENTE", t, tm(35.05), 230, 70)
         title(c, "= L'EFFORT × 2", t, tm(36.6), 320, 70, YEL)

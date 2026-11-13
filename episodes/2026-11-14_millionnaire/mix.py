@@ -348,7 +348,7 @@ brL = brR = np.zeros(N); bscale = 0.0
 mixL = voL+fL*fscale+amb*ascale+brL*bscale; mixR = voR+fR*fscale+amb*ascale+brR*bscale
 sr_w, wo = wavfile.read(V.D+'/sons/cute_wow.wav'); wo = wo.astype(np.float32)/32768
 if wo.ndim > 1: wo = wo.mean(1)
-wo *= .8*abs(v).max()/max(1e-6, abs(wo).max()); i0 = int(V.WOW*SR); mixL[i0:i0+len(wo)] += wo[:N-i0]; mixR[i0:i0+len(wo)] += wo[:N-i0]
+wo *= .8*abs(v).max()/max(1e-6, abs(wo).max()); i0 = int(V.WOW*SR); kf = int((V.GP[1]-.15-V.WOW)*SR); wo = wo[:kf+int(.3*SR)]; wo[kf:] *= np.linspace(1, 0, len(wo)-kf); mixL[i0:i0+len(wo)] += wo[:N-i0]; mixR[i0:i0+len(wo)] += wo[:N-i0]
 st = np.stack([mixL, mixR], 1)[:int(DUR*SR)]; st = np.tanh(st*1.05)/np.tanh(1.05); st *= .9/abs(st).max()
 wavfile.write(V.D+'/mix.wav', SR, (st*32767).astype(np.int16))
 sx = st.copy()

@@ -47,9 +47,9 @@ def _key(a):
     return a, al
 
 class VeoCoin:
-    def __init__(self, planning, voix=None, x=500, pieds=1725, largeur_piece=220, dossier=V, duree=None, lisse=False, variete=8.0, silence_min=10):
+    def __init__(self, planning, voix=None, x=500, pieds=1725, largeur_piece=220, dossier=V, duree=None, lisse=False, variete=8.0, silence_min=10, coupe_silence=False):
         """planning : (t0, clip, mode) ; mode 'une' (joué une fois) ou 'voix' (il parle quand la voix parle, se tait dans les silences)"""
-        self.lisse = lisse; self.variete, self.silence_min = variete, silence_min      # variete : secondes minimum entre deux changements de clip « pour varier » (mode lisse)
+        self.lisse = lisse; self.variete, self.silence_min = variete, silence_min; self.coupe_silence = coupe_silence      # coupe_silence : dans un silence, petit saut vers une pose muette au lieu de rejouer des images où il parle      # variete : secondes minimum entre deux changements de clip « pour varier » (mode lisse)
         self.plan = sorted(planning); self.x, self.feet, self.cw, self.dir = x, pieds, largeur_piece, dossier
         self.speak = None
         if voix:
@@ -179,6 +179,13 @@ class VeoCoin:
             s = i+S0; talk = sp[i]; al = allowed[i]
             new_run = i == 0 or sp[i-1] != talk
             # 1) changement de clip pendant un saut
+            if pend is None and hop_cool <= 24*3-12 and self.coupe_silence and not talk and new_run and i > 0:
+                L = 0
+                while i+L < len(sp) and not sp[i+L]: L += 1
+                a_, b_ = info[cur][1]
+                if L >= 12 and not (a_ <= p <= b_) and min(abs(p-a_), abs(p-b_)) > 10:
+                    nm_ = cur if cur in al else min(al, key=lambda n: last_clip[n])
+                    pend = (nm_, i+4); hops.append(s); hop_cool = 24*3
             if pend is None and hop_cool <= 0:
                 need = cur not in al
                 soon = any(al != allowed[j] for j in range(i, min(len(allowed), i+int(24*min(4, self.variete*.5)))))

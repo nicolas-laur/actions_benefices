@@ -23,8 +23,7 @@ def vignette():
     return np.clip(1-.55*np.clip(r-.55, 0, 1)**1.4*2.2, .3, 1)
 def film(img, t):
     f = int(t*24); rng = np.random.default_rng(7000+f)
-    dx, dy = round(1.4*math.sin(f*1.7)+rng.normal(0, .5)), round(1.2*math.sin(f*1.13+1)+rng.normal(0, .5))           # l'image flotte dans le couloir
-    img = np.roll(img, (dy, dx), axis=(0, 1))
+                                                                                                   # pas de flottement de l'image (il saccadait à 24 i/s)
     img = img*(1+rng.normal(0, .025))                                                                 # scintillement
     g = cv2.resize(rng.normal(0, 1, (H//2, W//2)).astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
     img = img+g[..., None]*9                                                                           # grain
@@ -67,7 +66,7 @@ def decor_c(name, t):
         cap = cv2.VideoCapture(f'{D}/decors/decor_{name}.mp4'); n = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)); sp = min(1.0, (n-1)/24/max(.1, b-a))
         cap.set(cv2.CAP_PROP_POS_FRAMES, min(n-1, int(max(0, t-a)*sp*24))); ok, f = cap.read(); cap.release()
     g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_LANCZOS4).astype(np.float32)
-    g = g+.6*(g-cv2.GaussianBlur(g, (0, 0), 1.3))                               # accentuation douce après l'agrandissement
+    g = g+.2*(g-cv2.GaussianBlur(g, (0, 0), 1.0))                               # légère accentuation (décors déjà agrandis par Real-ESRGAN)
     return np.clip((g-128)*1.06+130, 0, 255)
 MCX = []
 def mcx(t): return [x for (a, x) in MCX if t >= a][-1]
@@ -225,19 +224,17 @@ def closeup(arr, t):
     return out
 # ================= 1. accroche (rayons) =================
 def b_hook(cv, c, t, k):
-    title(c, "COMMENT DEVENIR", t, .05, 230, 66, t1=V.GP[0])
-    title(c, "MILLIONNAIRE ?", t, .45, 320, 88, YEL, t1=V.GP[0])
-    if t > 1.95 and t < V.GP[0]:                                               # le chiffre tombe
-        pop_text(c, f"402{NB}€", 540, 560, 190, t, 2.0, YEL, rot=-.03)
-        pop_text(c, "PAR MOIS", 540, 720, 64, t, 2.45, CREAM)
-    if t >= V.GP[1]:                                                           # après le gros plan
-        pop_text(c, f"402{NB}€ / MOIS", 540, 250, 76, t, V.GP[1]+.02, YEL)
-        if t > tm(5.4): pop_text(c, "=", 540, 380, 70, t, tm(5.45))
-        if t > tm(5.6):
-            pop_text(c, f"1{NB}000{NB}000{NB}€", 540, 520, 104, t, tm(5.65), YEL, rot=-.02)
-            prop(c, 'pluie_pieces', 180, 760, h=300, k=t-tm(5.7), rot=-.15+.05*math.sin(t*2), shadow=False)
-            prop(c, 'pluie_pieces', 900, 760, h=300, k=t-tm(5.8), rot=.2+.05*math.sin(t*2.3), shadow=False)
-            twinkle(c, t, [(250, 420), (840, 430), (540, 650)], 24)
+    title(c, "COMMENT DEVENIR", t, .05, 230, 66)
+    title(c, "MILLIONNAIRE ?", t, .45, 320, 88, YEL)
+    if t > 1.95:                                                               # le chiffre tombe
+        pop_text(c, f"402{NB}€", 540, 520, 180, t, 2.0, YEL, rot=-.03)
+        pop_text(c, "PAR MOIS", 540, 665, 60, t, 2.45, CREAM)
+    if t > 4.85: pop_text(c, "=", 540, 755, 64, t, 4.9)
+    if t > 5.05:                                                               # « … pour devenir millionnaire »
+        pop_text(c, f"1{NB}000{NB}000{NB}€", 540, 860, 96, t, 5.1, YEL, rot=-.02)
+        prop(c, 'pluie_pieces', 165, 700, h=280, k=t-5.15, rot=-.15+.05*math.sin(t*2), shadow=False)
+        prop(c, 'pluie_pieces', 915, 700, h=280, k=t-5.25, rot=.2+.05*math.sin(t*2.3), shadow=False)
+        twinkle(c, t, [(250, 420), (840, 430), (540, 960)], 24)
 # ================= 2. commencer à 25 ans (chambre) =================
 CAL = (611, 1022, 900)                                                       # zone vierge de la page de calendrier (coordonnées de l'accessoire)
 def calendar(c, x, y, h, t, k, label, sub=None, tear=None):
@@ -358,7 +355,7 @@ def b_fin(cv, c, t, k):
         title(c, "TU AS COMMENCÉ", t, tm(60.0), 330, 56, CREAM)
         title(c, "À QUEL ÂGE ?", t, tm(60.6), 420, 76, YEL)
     if t > tm(61.6): paint(c, "Dis-le en commentaire", 540, 930, 36, a=ent(t-tm(61.65), .3))
-SC = [(0.0, tm(6.0), b_hook, 'rayons'), (tm(6.0), tm(10.45), b_chambre, 'chambre'), (tm(10.45), tm(24.45), b_haricot, 'haricot_pousse'),
+SC = [(0.0, V.GP[1], b_hook, 'rayons'), (V.GP[1], tm(10.45), b_chambre, 'chambre'), (tm(10.45), tm(24.45), b_haricot, 'haricot_pousse'),
       (tm(24.45), tm(38.45), b_gare, 'gare'), (tm(38.45), tm(53.45), b_banque, 'banque'), (tm(53.45), DUR, b_fin, 'haricot_geant')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
 IRIS = [s_[0] for s_ in SC[1:]]; IR = .42
@@ -391,8 +388,8 @@ def cap_c(c, t):
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al); return
 def events():
     ev = [e for e in V.events() if not (V.GP[0]-.1 <= e[0] < V.GP[1]+.1)] + [(ta-IR, 'whoosh') for ta in IRIS]
-    ev += [(.05, 'thud'), (.45, 'impact'), (2.0, 'impact'), (2.45, 'pop'), (V.GP[0], 'swish'), (V.GP[1], 'swish'), (V.GP[1]+.02, 'pop'),
-           (tm(5.45), 'pop'), (tm(5.65), 'tadaa'), (tm(5.7), 'coins'),
+    ev += [(.05, 'thud'), (.45, 'impact'), (2.0, 'impact'), (2.45, 'pop'), (V.GP[0], 'swish'),
+           (4.9, 'pop'), (5.1, 'tadaa'), (5.15, 'coins'),
            (tm(6.1), 'thud'), (tm(6.4), 'pop'), (tm(7.05), 'pop')] + [(tm(7.4)+i*.38+.5, 'coin') for i in range(8)]
     ev += [(tm(8.95)+.1+i*.13, 'tick') for i in range(18)] + [(tm(11.5), 'tadaa')]
     ev += [(tm(10.5), 'impact'), (tm(12.95), 'swish'), (tm(13.15), 'fill1'), (tm(15.05), 'thud'), (tm(15.6), 'swish'), (tm(15.8), 'fill0'), (tm(18.6), 'fill2'), (tm(20.2), 'glint'),

@@ -1,6 +1,6 @@
 """Vidéo « Combien placer par mois pour devenir millionnaire ? » (cartoon 1930 en Technicolor) : calage de la voix, sous-titres,
 plan des clips de Mister Coin. Le rendu est dans video_col.py.
-La voix brute (voix/voice_brut.wav, phrase « 193 000 € » réenregistrée dans voix/voice_brut_corrige.wav) reçoit deux silences ajoutés : 1,5 s après « par mois » (gros plan aux yeux en étoiles + « wow »)
+La voix brute (voix/voice_brut.wav, phrase « 193 000 € » réenregistrée dans voix/voice_brut_corrige.wav) reçoit deux silences ajoutés : 1,5 s après l'introduction « … pour devenir millionnaire » (gros plan aux yeux en étoiles + « wow »)
 et 1 s après « Presque cinq fois plus » (réaction de Mister Coin). voice_full.wav est la voix montée."""
 import os, sys, math
 D = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, D)
@@ -8,12 +8,12 @@ import scenes as S
 from scenes import ease, clamp, GD, GR, RD, OR, CY, NB
 from veo_coin import VeoCoin
 FPS = 60; VOICE = f'{D}/voice_full.wav'
-INS = [(3.35, 1.5), (15.1, .974), (34.6, 1.0)]           # décalages par rapport à la voix brute d'origine (temps, durée) : silence du gros plan,
+INS = [(5.95, 1.5), (15.1, .974), (34.6, 1.0)]           # décalages par rapport à la voix brute d'origine (temps, durée) : silence du gros plan,
                                                          # phrase « 193 000 € » réenregistrée (0,97 s plus longue), silence après « 5 fois plus »
 def tm(t): return t+sum(d for (a, d) in INS if t > a)   # temps de la voix brute -> temps de la vidéo
 DUR = 67.0; S.DUR = DUR
-GP = (3.30, 4.72)                                        # gros plan aux yeux en étoiles (coupe franche aller et retour)
-WOW = 3.40                                               # le « wow » démarre quand les étoiles s'allument
+GP = (5.92, 7.6)                                         # gros plan aux yeux en étoiles après l'introduction (coupe franche, puis iris vers la chambre)
+WOW = 6.02                                               # le « wow » démarre quand les étoiles s'allument
 E = '€'
 SRC = [((0.04, 1.63), "Comment devenir [millionnaire] ?", GD),
     ((2.00, 3.33), f"[402{NB}€] par mois.", GD),
@@ -56,9 +56,9 @@ FEET = 1650
 EN, EX, QU, IN, CO = 'classique_parle_enthousiaste', 'classique_parle_explique', 'classique_parle_question', 'classique_parle_inquiet', 'classique_parle_confidence'
 SW, CP, BI, PR = 'classique_danse_parle_swing', 'classique_danse_parle_compte', 'classique_danse_parle_billets', 'classique_danse_parle_prudent'
 # scènes : rayons 0-7,5 | chambre 7,5-11,95 | haricot 11,95-25,95 | gare 25,95-39,95 | banque 39,95-54,95 | haricot géant 54,95-fin
-MC = VeoCoin([(0.0, [QU], 'voix'), (4.72, [EN], 'voix'), (7.5, [EX, SW], 'voix'), (11.95, [EN, BI, CP], 'voix'),
-              (25.95, [EX, CP], 'voix'), (35.9, [IN, PR], 'voix'),
-              (39.95, [EX, CO, PR], 'voix'), (54.95, [EN, SW], 'voix'), (64.3, 'classique_danse_joie_silence', 'une')],
-             voix=VOICE, duree=DUR, x=540, pieds=FEET, largeur_piece=170, lisse=True, variete=1.5, silence_min=7)
+MC = VeoCoin([(0.0, [QU, EN], 'voix'), (7.6, [EX, SW], 'voix'), (tm(10.45), [EN, BI, CP], 'voix'),
+              (tm(24.45), [EX, CP], 'voix'), (tm(34.5), [IN, PR], 'voix'),
+              (tm(38.45), [EX, CO, PR], 'voix'), (tm(53.45), [EN, SW], 'voix'), (tm(61.75), 'classique_danse_joie_silence', 'une')],
+             voix=VOICE, duree=DUR, x=540, pieds=FEET, largeur_piece=170, lisse=True, variete=1.5, silence_min=7, coupe_silence=True)
 def euro(v): return f"{int(round(v)):,}".replace(',', NB)+NB+"€"
 def events(): return sorted([(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops)])

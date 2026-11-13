@@ -38,3 +38,11 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 ## Avant chaque rendu
 Toujours envoyer des maquettes (images clés de chaque scène) à Nicolas et attendre sa validation avant de lancer le rendu complet d'une vidéo (demandé le 05/11).
 Générer des aperçus (`python3 video.py png …`), vérifier une image par scène (texte lisible, mains dans le cadre, bulles accrochées), puis `python3 render.py episodes/<dossier>`.
+
+## Décors générés : affinage systématique (validé par Nicolas le 13/11)
+Toute vidéo à décors générés (Gemini / Veo, 720×1280) passe par trois étapes avant le rendu, dans cet ordre :
+1. `python3 sr_decors.py` : agrandissement Real-ESRGAN ×4 (modèle `lib/sr/realesr_animevideov3.onnx`, onnxruntime, sans PyTorch) puis ramené en 1080×1920, uniquement sur les images utilisées ; sortie `decors/sr/`.
+2. `python3 decors_hd.py` : ralenti à la vitesse du passage puis interpolé en 60 i/s (minterpolate) ; sortie `decors/hd/`.
+3. `VIDEO=video_col.py python3 render.py episodes/<dossier> --budget 7000 --workers 1`.
+Les deux scripts sont dans `episodes/2026-11-14_millionnaire/` : les copier dans le nouvel épisode (ils lisent `BLOCS` de `video_col.py`). Compter environ 6 s par image sur la machine à 2 processeurs, soit à peu près 2 h pour six décors : lancer en tâche de fond avec le délai maximal ; en cas d'arrêt, relancer, chaque étape reprend où elle s'était arrêtée. Prévenir Nicolas de ce délai pour qu'il dépose les décors tôt. `APERCU=1` utilise les décors d'origine pour les maquettes.
+Effet pellicule : pas d'ondulation de toute l'image, scintillement léger (0,010).

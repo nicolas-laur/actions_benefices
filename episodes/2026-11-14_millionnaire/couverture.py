@@ -1,5 +1,5 @@
-"""Couverture « millionnaire » : haricot magique en pièces d'or au coucher du soleil (assombri en haut), pluie de pièces et tirelire en haut
-avec halo, titre + « AVEC 402 € PAR MOIS », question, Mister Coin à côté d'une tirelire."""
+"""Couverture « millionnaire » : haricot magique en pièces d'or au coucher du soleil (assombri en haut), titre + « AVEC 402 € PAR MOIS ? »,
+question, Mister Coin en gros plan aux yeux en étoiles en bas (comme dans la vidéo)."""
 import cairo, math, numpy as np, sys, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin')
@@ -26,6 +26,7 @@ def _q(c, s_, y, fam, size, *a, **k):
     return _put(c, s_, y, fam, size, *a, **k)
 cards.put = _q
 import veo_coin as VC
+GP_N, GP_W, GP_Y = int(os.environ.get('GP_N', 55)), int(os.environ.get('GP_W', 740)), int(os.environ.get('GP_Y', 1110))
 for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_logo.png')):
     path = f'{HERE}/{name}'; cards.card("MILLIONNAIRE", slot, path, sub=("AVEC 402 € PAR MOIS ?",))
     if slot: continue
@@ -34,21 +35,15 @@ for slot, name in ((False, 'couverture.png'), (True, 'couverture_emplacement_log
         a, m = VC._key(np.asarray(still(src, n, dst)))
         ch = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGBA"); ch.putalpha(Image.fromarray((m*255).astype(np.uint8))); ch = ch.crop(ch.getbbox())
         return ch.resize((int(ch.width*h/ch.height), h), Image.LANCZOS)
-    feet = 1770
-    for ch, cx in ((cut(f'{ROOT}/mister_coin/veo/classique_parle_enthousiaste.mp4', 40, f'{TMP}/coin_couv.png', 520), 400),):
-        sh = Image.new('L', (W, H), 0); ImageDraw.Draw(sh).ellipse((cx-ch.width*.35, feet-16, cx+ch.width*.35, feet+14), fill=170)
-        im.paste((0, 0, 0, 255), (0, 0), sh.filter(ImageFilter.GaussianBlur(14)))
-        im.alpha_composite(ch, (int(cx-ch.width/2), feet-ch.height))
-    ld = Image.open(f'{HERE}/props/tirelire.png').convert('RGBA'); ld = ld.resize((int(ld.width*330/ld.height), 330), Image.LANCZOS); im.alpha_composite(ld, (760-ld.width//2, feet-ld.height+12))
-    def prop(n, w):
-        p = Image.open(f'{HERE}/props/{n}.png').convert('RGBA'); p = p.crop(p.getbbox()); return p.resize((w, int(p.height*w/p.width)), Image.LANCZOS)
-    for p, cx, rot in ((prop('pluie_pieces', 300), 300, -8), (prop('billet', 380), 770, 6)):
-        if p.width == 380:                                                         # le billet porte le million
-            dr = ImageDraw.Draw(p); from PIL import ImageFont; ft = ImageFont.truetype("/root/.fonts/AlfaSlabOne-Regular.ttf", 42); tx = "1 000 000 €"
-            bb = dr.textbbox((0, 0), tx, font=ft); dr.text(((p.width-bb[2])/2, (p.height-bb[3])/2-6), tx, font=ft, fill=(59, 36, 18))
-        p = p.rotate(rot, expand=True, resample=Image.BICUBIC)
-        gl = Image.new('RGBA', (p.width+200, p.height+200), 0); gl.alpha_composite(p, (100, 100)); a_ = gl.getchannel('A').filter(ImageFilter.GaussianBlur(34))
-        halo = Image.new('RGBA', gl.size, (255, 200, 110, 0)); halo.putalpha(a_.point(lambda v: int(v*.85)))
-        cy = 450; im.alpha_composite(halo, (cx-gl.width//2, cy-gl.height//2)); im.alpha_composite(p, (cx-p.width//2, cy-p.height//2))
+    # Mister Coin en gros plan, les yeux en étoiles (image du gros plan de la vidéo), le bas de la pièce sort du cadre
+    a_, m_ = VC._key(np.asarray(still(f'{HERE}/coin/gros_plan_etoiles.mp4', GP_N, f'{TMP}/coin_etoiles_couv.png')))
+    ch = Image.fromarray(np.clip(a_, 0, 255).astype(np.uint8)).convert("RGBA"); ch.putalpha(Image.fromarray((m_*255).astype(np.uint8)))
+    ch = ch.resize((GP_W, int(ch.height*GP_W/ch.width)), Image.LANCZOS)
+    fx = np.clip(np.minimum(np.arange(GP_W), GP_W-1-np.arange(GP_W))/90, 0, 1)**1.5   # bords gauche et droit du clip fondus : pas de coupe nette
+    ch.putalpha(Image.fromarray((np.asarray(ch.getchannel('A')).astype(np.float32)*fx[None, :]).astype(np.uint8)))
+    top = ch.getchannel('A').getbbox()[1]; x0 = (W-ch.width)//2; y0 = GP_Y-top
+    gl = Image.new('RGBA', (W, H), 0); gl.alpha_composite(ch, (x0, y0)) if y0 >= 0 else gl.alpha_composite(ch.crop((0, -y0, ch.width, ch.height)), (x0, 0))
+    halo = Image.new('RGBA', (W, H), (255, 200, 110, 0)); halo.putalpha(gl.getchannel('A').filter(ImageFilter.GaussianBlur(40)).point(lambda v: int(v*.6)))
+    im.alpha_composite(halo); im.alpha_composite(gl)
     im.convert('RGB').save(path)
 print('ok')

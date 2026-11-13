@@ -269,13 +269,14 @@ def b_chambre(cv, c, t, k):
 def counter_glass(cv, t, t0, a=1.0):
     k = t-t0
     def d(kk, w, h):
-        v = 1e6*inout((t-t0-.2)/1.4)
+        v = 1e6*inout((t-t0-.2)/1.6)
         S.text(kk, euro(v), w/2, h/2-8, 'a', 92, S.GD, 'c', ent(k, .3))
         S.text(kk, "à 65 ans, avec 402 € par mois dès 25 ans", w/2, h-34, 'sb', 24, S.ICE, 'c', .8*ent(k-.3, .3))
     S.tp(cv, 860, 230, d, 540, 470+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=26)
 def split_glass(cv, t, t0):
     """barre empilée : ce que tu as versé (bleu) contre les intérêts composés (or)"""
     k = t-t0
+    if k <= 0: return
     def d(kk, w, h):
         x0, x1 = 70, w-70; y = 150; bh = 130; L = x1-x0
         u1 = inout((t-t0-.2)/.8); u2 = inout((t-tm(18.6))/1.4)
@@ -294,7 +295,7 @@ def b_haricot(cv, c, t, k):
     t0 = tm(10.5)
     title(c, f"7{NB}% PAR AN", t, t0, 230, 84, YEL, t1=tm(14.95))
     if t > tm(12.0) and t < tm(15.2): paint(c, "en moyenne, hypothèse non garantie", 540, 320, 30, a=fade(t, tm(12.0), tm(14.95)), fam='Limelight')
-    if tm(14.2) < t < tm(15.3): counter_glass(cv, t, tm(14.25)) if t < tm(14.95) else _fade(cv, lambda x: counter_glass(x, t, tm(14.25)), 1-ent(t-tm(14.95), .3))
+    if tm(12.9) < t < tm(15.05): counter_glass(cv, t, tm(12.95)) if t < tm(14.75) else _fade(cv, lambda x: counter_glass(x, t, tm(12.95)), 1-ent(t-tm(14.75), .3))
     if t > tm(15.0):
         title(c, "LE PLUS FOU", t, tm(15.05), 230, 74, t1=tm(21.4))
         split_glass(cv, t, tm(15.6))
@@ -394,7 +395,7 @@ def events():
            (tm(5.45), 'pop'), (tm(5.65), 'tadaa'), (tm(5.7), 'coins'),
            (tm(6.1), 'thud'), (tm(6.4), 'pop'), (tm(7.05), 'pop')] + [(tm(7.4)+i*.38+.5, 'coin') for i in range(8)]
     ev += [(tm(8.95)+.1+i*.13, 'tick') for i in range(18)] + [(tm(11.5), 'tadaa')]
-    ev += [(tm(10.5), 'impact'), (tm(14.25), 'swish'), (tm(14.45), 'fill1'), (tm(15.05), 'thud'), (tm(15.6), 'swish'), (tm(15.8), 'fill0'), (tm(18.6), 'fill2'), (tm(20.2), 'glint'),
+    ev += [(tm(10.5), 'impact'), (tm(12.95), 'swish'), (tm(13.15), 'fill1'), (tm(15.05), 'thud'), (tm(15.6), 'swish'), (tm(15.8), 'fill0'), (tm(18.6), 'fill2'), (tm(20.2), 'glint'),
            (tm(21.55), 'thud'), (tm(22.4), 'impact')]
     ev += [(tm(24.55), 'thud'), (tm(24.6), 'pop'), (tm(24.9), 'pop'), (tm(26.6), 'pop'), (tm(28.6), 'impact'), (tm(30.05), 'bonk'), (tm(31.05), 'pop'), (tm(33.45), 'crash'),
            (tm(35.05), 'thud'), (tm(36.6), 'impact')]

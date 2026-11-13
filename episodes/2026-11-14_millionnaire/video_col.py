@@ -24,7 +24,7 @@ def vignette():
 def film(img, t):
     f = int(t*24); rng = np.random.default_rng(7000+f)
                                                                                                    # pas de flottement de l'image (il saccadait à 24 i/s)
-    img = img*(1+rng.normal(0, .025))                                                                 # scintillement
+    img = img*(1+rng.normal(0, .010))                                                                 # scintillement
     g = cv2.resize(rng.normal(0, 1, (H//2, W//2)).astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
     img = img+g[..., None]*9                                                                           # grain
     for _ in range(rng.integers(2, 7)):                                                                # poussières
@@ -364,7 +364,8 @@ def frame(t):
     i = max(j for j, s_ in enumerate(SC) if t >= s_[0] or j == 0); a, b, f, dec = SC[i]
     img = decor_c(dec, t)
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
-    s, c = surface(); f(cv, c, t, max(0.0, t-a)); cv.alpha_composite(to_img(s))
+    gp = V.GP[0] <= t < V.GP[1]
+    if not gp: s, c = surface(); f(cv, c, t, max(0.0, t-a)); cv.alpha_composite(to_img(s))       # gros plan : rien que les rayons, Mister Coin et le « WOW »
     arr = np.asarray(cv.convert('RGB')).astype(np.float32)
     gp = V.GP[0] <= t < V.GP[1]
     arr = closeup(arr, t) if gp else coin_col(arr, t)

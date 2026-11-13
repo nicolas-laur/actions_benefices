@@ -274,6 +274,10 @@ def split_glass(cv, t, t0):
     """barre empilée : ce que tu as versé (bleu) contre les intérêts composés (or)"""
     k = t-t0
     if k <= 0: return
+    if k < .35: return _fade(cv, lambda x: _split_glass(x, t, t0), ent(k, .35))
+    _split_glass(cv, t, t0)
+def _split_glass(cv, t, t0):
+    k = t-t0
     def d(kk, w, h):
         x0, x1 = 70, w-70; y = 150; bh = 130; L = x1-x0
         u1 = inout((t-t0-.2)/.8); u2 = inout((t-tm(18.6))/1.4)

@@ -39,6 +39,9 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 Toujours envoyer des maquettes (images clés de chaque scène) à Nicolas et attendre sa validation avant de lancer le rendu complet d'une vidéo (demandé le 05/11).
 Générer des aperçus (`python3 video.py png …`), vérifier une image par scène (texte lisible, mains dans le cadre, bulles accrochées), puis `python3 render.py episodes/<dossier>`.
 
+## Police « façon GTA » (choisie le 14/11 pour l'épisode Take-Two / GTA 6)
+`fonts/PassionOne-Black.ttf` (licence libre OFL, `fonts/OFL_PassionOne.txt`) : minuscules très grasses, texte blanc, contour violet-noir épais, ombre portée, sur dégradé coucher de soleil rose-orange vers violet. Remplace Pricedown (police d'origine de GTA), dont la licence gratuite interdit l'usage sur serveurs et services cloud. Pas de flèche « → » dans la police : utiliser un autre glyphe ou la dessiner. Ne jamais reproduire le logo GTA, ses personnages ni ses visuels officiels.
+
 ## Décors générés : affinage systématique (validé par Nicolas le 13/11)
 Toute vidéo à décors générés (Gemini / Veo, 720×1280) passe par trois étapes avant le rendu, dans cet ordre :
 1. `python3 sr_decors.py` : agrandissement Real-ESRGAN ×4 (modèle `lib/sr/realesr_animevideov3.onnx`, onnxruntime, sans PyTorch) puis ramené en 1080×1920, uniquement sur les images utilisées ; sortie `decors/sr/`.

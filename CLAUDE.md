@@ -39,8 +39,11 @@ Langue : français, tutoiement, prose structurée, peu de gras, pas de tirets ca
 Toujours envoyer des maquettes (images clés de chaque scène) à Nicolas et attendre sa validation avant de lancer le rendu complet d'une vidéo (demandé le 05/11).
 Générer des aperçus (`python3 video.py png …`), vérifier une image par scène (texte lisible, mains dans le cadre, bulles accrochées), puis `python3 render.py episodes/<dossier>`.
 
-## Police « façon GTA » (choisie le 14/11 pour l'épisode Take-Two / GTA 6)
-`fonts/PassionOne-Black.ttf` (licence libre OFL, `fonts/OFL_PassionOne.txt`) : minuscules très grasses, texte blanc, contour violet-noir épais, ombre portée, sur dégradé coucher de soleil rose-orange vers violet. Remplace Pricedown (police d'origine de GTA), dont la licence gratuite interdit l'usage sur serveurs et services cloud. Pas de flèche « → » dans la police : utiliser un autre glyphe ou la dessiner. Ne jamais reproduire le logo GTA, ses personnages ni ses visuels officiels.
+## DA « façon GTA 6 » (validée par Nicolas le 14/11, épisode Take-Two du 19/11, à produire le mercredi 18)
+- Polices (licence libre OFL, fichiers et licences dans `fonts/`) : titres en `ArchivoBlack-Regular.ttf`, minuscules, blanc, contour violet-noir (25, 8, 35) d'environ 6–7 px, ombre portée floue ; chiffres et montants en `BigShouldersDisplay-Black.ttf` (haute et condensée, rappelle Pricedown), jaune doré (255, 214, 90), même contour. Aperçu de référence : `fonts/apercu_da_gta.jpg`. Pas de flèche dans les polices : la dessiner (polygone, même couleur et contour).
+- Pricedown (police historique de GTA) écartée : sa licence gratuite interdit l'usage sur serveurs et services cloud. Passion One écartée (trop enfantine).
+- Ambiance : dégradé coucher de soleil rose-orange (255, 150, 110) vers violet (90, 40, 140), palmiers, néons, front de mer, voitures de sport ; grille de cases de BD aux bords violet foncé façon écran de chargement, avec nos propres scènes ; Mister Coin en chemise hawaïenne et lunettes de soleil. Format 60 s.
+- Logo Take-Two autorisé par Nicolas. Jamais de logo GTA, de « VI » géant, de personnages (Lucia, Jason…) ni de visuels officiels de Rockstar.
 
 ## Décors générés : affinage systématique (validé par Nicolas le 13/11)
 Toute vidéo à décors générés (Gemini / Veo, 720×1280) passe par trois étapes avant le rendu, dans cet ordre :

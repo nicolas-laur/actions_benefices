@@ -34,21 +34,43 @@ def _person(i, gold=False, P=128):
     d.arc([cx-8*S, 36*S, cx+8*S, 48*S], 20, 160, fill=OUT, width=3*S)
     return im.crop((10*S, 6*S, 118*S, 114*S)).resize((P, P), Image.LANCZOS)          # personnage plus grand dans sa case : foule dense
 MIPS = {}
+VEO = os.path.join(D, '..', '..', 'mister_coin', 'veo')
+FOULE = [('classique_choc', 96, 0), ('classique_parle_triste', 72, 0), ('classique_parle_inquiet', 120, 1), ('classique_facepalm', 120, 0),
+         ('classique_parle_triste', 144, 1), ('classique_choc', 120, 1), ('classique_parle_inquiet', 168, 0), ('classique_facepalm', 192, 1),
+         ('classique_parle_triste', 192, 0), ('classique_parle_inquiet', 120, 0), ('classique_choc', 96, 1), ('classique_parle_triste', 72, 1),
+         ('classique_facepalm', 192, 0), ('classique_parle_triste', 144, 0), ('classique_parle_inquiet', 168, 1), ('classique_facepalm', 120, 1)]
+RIRE = ('classique_rire', 72, 168)                                   # TOI : Mister Coin qui rit (images jouées en boucle)
+def _coin(clip, n, flip, P, sad=True):
+    """Mister Coin détouré (clip Veo, image n), cadré dans un carré P × P ; la foule est un peu ternie, TOI garde ses couleurs."""
+    import sys; sys.path.insert(0, os.path.join(D, '..', '..', 'mister_coin'))
+    import veo_coin as VCo
+    cap = cv2.VideoCapture(os.path.join(VEO, clip+'.mp4')); cap.set(cv2.CAP_PROP_POS_FRAMES, n); ok, fr = cap.read(); cap.release()
+    h, w = fr.shape[:2]; sd = int(h*.62); x0 = (w-sd)//2; y0 = int(h*.21)
+    fr = fr[y0:y0+sd, x0:x0+sd, ::-1]; a, al = VCo._key(fr)
+    if flip: a, al = a[:, ::-1], al[:, ::-1]
+    if sad: g = a.mean(2, keepdims=True); a = (a*.7+g*.3)*.86
+    a = cv2.resize(np.ascontiguousarray(a), (P, P), interpolation=cv2.INTER_AREA); al = cv2.resize(np.ascontiguousarray(al), (P, P), interpolation=cv2.INTER_AREA)
+    return a, al                                                     # RGB float, alpha 0-1
+def _mips(t):
+    m = [t]
+    while m[-1].shape[0] > 1: m.append(cv2.resize(m[-1], (max(1, m[-1].shape[1]//2),)*2, interpolation=cv2.INTER_AREA))
+    return m
 def _build():
     q = C//G; cell = np.zeros((C, C, 3), np.float32); cell[:] = GROUND[::-1]
-    for j in range(G*G):
-        p = np.asarray(_person(j, False, q)).astype(np.float32); a = p[..., 3:]/255
-        y, x = (j//G)*q, (j % G)*q; cell[y:y+q, x:x+q] = cell[y:y+q, x:x+q]*(1-a)+p[..., [2, 1, 0]]*a
-    j = (int(TY) % G)*G+int(TX) % G; p = np.asarray(_person(j, True, C)).astype(np.float32)
-    gold = np.dstack([p[..., [2, 1, 0]]*p[..., 3:]/255, p[..., 3:]/255])
-    for k, t in (('n', cell), ('g', gold)):
-        m = [t]
-        while m[-1].shape[0] > 1: m.append(cv2.resize(m[-1], (max(1, m[-1].shape[1]//2),)*2, interpolation=cv2.INTER_AREA))
-        MIPS[k] = m
+    for j, (clip, n, fl) in enumerate(FOULE):
+        a, al = _coin(clip, n, fl, q); al = al[..., None]
+        y, x = (j//G)*q, (j % G)*q; cell[y:y+q, x:x+q] = cell[y:y+q, x:x+q]*(1-al)+a[..., ::-1]*al
+    MIPS['n'] = _mips(cell)
+    MIPS['g'] = []
+    for n in range(RIRE[1], RIRE[2], 2):
+        a, al = _coin(RIRE[0], n, False, C, sad=False); al = al[..., None]
+        yy, xx = np.mgrid[:C, :C]; e = np.minimum(np.minimum(xx, C-1-xx), np.minimum(yy, C-1-yy)); blob = np.clip((e-C*.01)/(C*.04), 0, 1)[..., None]   # case entière : cache le Mister Coin qu'il remplace
+        rgb = a[..., ::-1]*al+np.float32(GROUND[::-1])*(1-al)*blob; A = np.maximum(al, blob)
+        MIPS['g'].append(_mips(np.dstack([rgb, A]).astype(np.float32)))
 def camera(u):
     """Paramètres de caméra le long de la plongée."""
     e = ease(u); e2 = ease(min(1, u*1.25))
-    dist = math.exp(math.log(75)+(math.log(4.2)-math.log(75))*e)       # distance à TOI (en personnages)
+    dist = math.exp(math.log(75)+(math.log(2.7)-math.log(75))*e)       # distance à TOI (en personnages)
     pitch = math.radians(36+(90-36)*e2)                                      # vue rasante -> verticale
     yaw = math.radians(28*(1-e)+6*math.sin(u*2.2))                           # légère rotation
     return dist, pitch, yaw
@@ -58,7 +80,7 @@ def _basis(pitch, yaw):
     right = np.array([math.cos(yaw), math.sin(yaw), 0.])
     down = np.cross(right, fwd); down /= np.linalg.norm(down)        # bas de l'écran = vers la caméra au sol
     return fwd, right, down
-def frame(u, W=1080, H=1920, cy=None, sub=0.):
+def frame(u, W=1080, H=1920, cy=None, sub=0., ta=0.):
     if not MIPS: _build()
     cy = H*.47 if cy is None else cy; cx = W/2; f = W*1.05
     dist, pitch, yaw = camera(u)
@@ -97,7 +119,7 @@ def frame(u, W=1080, H=1920, cy=None, sub=0.):
     p0 = ground(cx, cy); p1 = ground(cx+1, cy); lg = max(0., math.log2(max(1e-6, np.hypot(*(p1-p0))*C)))
     g = 0
     for li, wgt in ((int(lg), 1-(lg-int(lg))), (int(lg)+1, lg-int(lg))):
-        t = MIPS['g'][min(li, len(MIPS['g'])-1)]; r = t.shape[0]
+        mg = MIPS['g'][int(ta*12) % len(MIPS['g'])]; t = mg[min(li, len(mg)-1)]; r = t.shape[0]
         M = np.array([[r, 0, -r*int(TX)], [0, r, -r*int(TY)], [0, 0, 1.]])@Hs
         g = g+wgt*cv2.warpPerspective(t, M, (W, H), flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
     # carte de distance au sol (basse résolution) : brume + projecteur
@@ -106,12 +128,12 @@ def frame(u, W=1080, H=1920, cy=None, sub=0.):
     ok = (A[2, 0]*xs+A[2, 1]*ys+A[2, 2]) < -1e-9
     gx, gy = v[0]/np.where(ok, v[2], 1), v[1]/np.where(ok, v[2], 1)
     rdist = np.hypot(gx-T[0], gy-T[1]); depth = np.where(ok, np.hypot(gx-cam[0], gy-cam[1]), 1e9)
-    spot = np.where(ok, .72+1.1*np.exp(-(rdist/max(2.2, dist*.05))**2), 0)
+    spot = np.where(ok, .72+.75*np.exp(-(rdist/max(2.2, dist*.05))**2), 0)
     fog = np.where(ok, 1-np.exp(-depth/(dist*4+250)), 1)
     spot = cv2.resize(spot.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)[..., None]
     fog = cv2.resize(fog.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)[..., None]
+    if isinstance(g, np.ndarray): img = img*(1-g[..., 3:])+g[..., :3]
     img = img*spot
-    if isinstance(g, np.ndarray): img = img*(1-g[..., 3:])+g[..., :3]*(.6+.4*spot)
     img = img*(1-fog)+HAZE[::-1]*fog*.9
     # ciel (au-dessus de l'horizon) : velours sombre et faisceaux lents
     sky = ~valid
@@ -127,7 +149,8 @@ def frame(u, W=1080, H=1920, cy=None, sub=0.):
     beam = cv2.resize(beam, (W, H))[..., None]; img = img+beam*np.float32([255, 230, 170])[::-1]*.18
     # halo doré autour de TOI
     if isinstance(g, np.ndarray):
-        ga = cv2.GaussianBlur(g[..., 3], (0, 0), 18)[..., None]; img = img+ga*np.float32([255, 200, 80])[::-1]*.55
+        szg = abs(1/np.hypot(*(ground(cx+1, cy)-ground(cx, cy)))); vy_, vx_ = np.ogrid[:H, :W]
+        ga = np.exp(-(((vx_-cx)/(szg*.55))**2+((vy_-cy)/(szg*.6))**2)).astype(np.float32)[..., None]; img = img+ga*np.float32([255, 205, 110])[::-1]*.22
     # vignettage
     vy, vx = np.ogrid[:H, :W]; vg = 1-.45*(((vx-W/2)/(W*.75))**2+((vy-H*.5)/(H*.7))**2)
     img = img*np.clip(vg, .45, 1)[..., None]

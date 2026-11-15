@@ -292,7 +292,7 @@ def crowd(t):
     zs, ze = V.ZOOM; u0, u1 = zs+.1, 21.9
     acc = 0
     for kk in (-.25, .25):
-        im, pos = ZF.frame(clamp((t+kk/FPS-u0)/(u1-u0)), W, H, cy=640); acc = acc+im/2
+        im, pos = ZF.frame(clamp((t+kk/FPS-u0)/(u1-u0)), W, H, cy=640, ta=t); acc = acc+im/2
     return acc[..., ::-1].copy(), pos
 def crowd_text(c, t, pos):
     zs, ze = V.ZOOM; u = (t-(zs+.1))/(21.9-(zs+.1))

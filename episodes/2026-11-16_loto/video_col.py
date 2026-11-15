@@ -270,11 +270,11 @@ def b_tabac(cv, c, t, k):
         if t > 3.7: twinkle(c, t, [(700, 450), (900, 480)], 22)
     if 5.0 <= t < 12.6:
         a = 1-ent(t-12.35, .25) if t > 12.35 else 1
-        prop(c, 'grille_loto', 330, 500, h=360, k=t-5.05, rot=-.06, a=a)
-        if t > 6.1: pop_text(c, f"2,20{NB}€", 770, 420, 110, t, 6.15, YEL, rot=-.04, a=a)
-        if t > 10.85: pop_text(c, "× 3", 770, 560, 80, t, 10.85, PINK, rot=.08, a=a)
+        prop(c, 'grille_loto', 330, 450, h=320, k=t-5.05, rot=-.06, a=a)
+        if t > 6.1: pop_text(c, f"2,20{NB}€", 770, 400, 110, t, 6.15, YEL, rot=-.04, a=a)
+        if t > 10.85: pop_text(c, "× 3", 770, 535, 80, t, 10.85, PINK, rot=.08, a=a)
         for i, (lab, ta) in enumerate((("LUNDI", 8.63), ("MERCREDI", 9.2), ("SAMEDI", 10.23))):
-            if t > ta: plate(c, 200+i*340, 735, 290, 70, ent(t-ta, .2)*a); pop_text(c, lab, 200+i*340, 735, 44, t, ta, CREAM, rot=(-.05, .03, -.04)[i], a=a)
+            if t > ta: plate(c, 200+i*340, 680, 290, 70, ent(t-ta, .2)*a); pop_text(c, lab, 200+i*340, 680, 44, t, ta, CREAM, rot=(-.05, .03, -.04)[i], a=a)
         if t > 11.2: pop_text(c, f"= 6,60{NB}€ / SEMAINE", 540, 250, 62, t, 11.2, YEL, a=a)
     if t > 12.66:
         title(c, "DE 25 À 65 ANS", t, 12.7, 250, 72)

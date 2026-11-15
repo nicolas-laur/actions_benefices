@@ -39,7 +39,7 @@ Et toi, tu joues au Loto ?
 2. Le coût (5–14 s), même décor : « 2,20 € » × 3 tirages → « 6,60 € / semaine », compteur qui monte de 25 à 65 ans jusqu'à « 13 728 € ».
 3. Les chances (14–25 s), scène de tirage : boules qui tournent, « 1 sur 19 068 840 », puis « 40 ans de jeu = 1 chance sur 3 000 ». Mister Coin choqué dans le silence.
 4. Ce que reverse la FDJ (25–33 s), même scène : jauge de 100 € dont 54,35 € reviennent aux joueurs ; « −6 267 € en moyenne ».
-5. Le placement (33–45 s), haricot magique en pièces d'or (décor de « millionnaire », déjà affiné) : « 28,60 € / mois à 7 % », compteur jusqu'à « 71 086 € », barre versé / gains (13 728 € / 57 358 €).
+5. Le placement (33–45 s), machine à sous inversée 1930 en laiton dont les rouages font tomber des pièces de plus en plus vite : « 28,60 € / mois à 7 % », compteur jusqu'à « 71 086 € », barre versé / gains (13 728 € / 57 358 €).
 6. Face-à-face (45–55 s) : deux colonnes « LOTO −6 267 € » contre « PLACEMENT +57 358 € ».
-7. Fin (55–65 s), haricot géant au coucher du soleil : « Et toi, tu joues au Loto ? » 👇
+7. Fin (55–65 s), pommier aux fruits en pièces d'or dans un verger au coucher du soleil : « Et toi, tu joues au Loto ? » 👇
 Mentions : « Hypothèse de 7 % par an non garantie, avant frais et impôts. Taux de retour aux joueurs du Loto depuis le 4 mai 2026. »

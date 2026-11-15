@@ -1,6 +1,6 @@
 # Prompts Gemini : le Loto toute ta vie contre la même somme placée (16/11/2026)
 
-2 nouveaux décors (les 2 autres sont repris de « millionnaire », déjà affinés : decor_haricot_pousse et decor_haricot_geant) et 3 nouveaux accessoires (tirelire, billet et pluie de pièces sont repris). Noms entre crochets = noms de fichier à me renvoyer.
+4 nouveaux décors (pas de reprise des haricots de « millionnaire », trop récents) et 3 nouveaux accessoires (tirelire, billet et pluie de pièces sont repris). Noms entre crochets = noms de fichier à me renvoyer.
 
 ## Décors (vidéo, format vertical 9:16, 8 s)
 
@@ -9,6 +9,9 @@ Bloc commun (à coller à la fin de chaque prompt de décor) :
 
 1. [decor_tabac] (accroche et coût) : "A cozy 1930s corner tobacco and newspaper shop interior: a wooden counter with a brass cash register, shelves of colorful boxes and jars, a rack of newspapers, warm hanging lamps, a big shop window with a sunny street outside. The center of the frame above the counter stays open and empty (objects will be added there). Dust floating in the light. The camera slowly pushes in."
 2. [decor_tirage] (chances et ce que reverse la FDJ) : "A glamorous 1930s lottery draw stage: red velvet curtains, warm spotlights sweeping slowly, and in the center a big transparent glass sphere on a brass stand where dozens of plain white balls tumble and swirl continuously. Art deco gold ornaments around the stage. The balls carry no numbers. Static camera, smooth continuous motion of the balls and lights."
+
+3. [decor_machine] (le placement) : "A big gleaming 1930s brass money machine in a cozy workshop: an upside-down slot machine whose gears, cogs and little pistons turn by themselves, and shiny gold coins drop out of its chute into a growing pile on the floor, slowly at first then faster and faster. Warm lamp light, steam puffing gently from small pipes. The machine stands in the upper middle of the frame. Static camera, smooth continuous mechanical motion."
+4. [decor_verger] (fin, question finale) : "A peaceful 1930s orchard at golden sunset, rolling green hills, a wooden fence and a small farmhouse in the distance. In the center, a beautiful round apple tree whose fruits are shiny gold coins gently glinting and swaying in the breeze, a few leaves drifting down. Pink and golden clouds. The camera slowly pushes in. Peaceful and rewarding."
 
 ## Accessoires (image fixe, fond vert uni #00FF00)
 

@@ -213,15 +213,23 @@ def plate(c, x, y, w, h, a):
     if a <= 0: return
     rr(c, x-w/2, y-h/2, w, h, h/2); c.set_source_rgba(.13, .06, .16, .6*a); c.fill()
 # ================= panneaux de verre (compteurs, jauges) =================
-def glass_counter(cv, t, t0, v1, t_a, t_b, sub, cy=780, w=860, h=230, colr=None, a=1.0):
+def glass_counter(cv, t, t0, v1, t_a, t_b, sub, cy=780, w=860, h=230, colr=None, a=1.0, t1=None):
     k = t-t0
     if k <= 0: return
+    if t1 and t > t1-.3:
+        return _fade(cv, lambda x: glass_counter(x, t, t0, v1, t_a, t_b, sub, cy, w, h, colr, a), 1-ent(t-(t1-.3), .3))
     def d(kk, ww, hh):
         v = v1*inout((t-t_a)/max(.01, t_b-t_a))
         S.text(kk, euro(v), ww/2, hh/2-14, 'a', 92, colr or S.GD, 'c', ent(k, .3))
         S.text(kk, sub, ww/2, hh-34, 'sb', 26, S.ICE, 'c', .85*ent(k-.3, .3))
     S.tp(cv, w, h, d, 540, cy+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=26)
-def glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None):
+def glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None, t1=None):
+    """apparition en fondu sur 0,35 s, disparition en fondu sur 0,3 s avant t1"""
+    a = ent(t-t0, .35)*(1-ent(t-(t1-.3), .3) if t1 else 1)
+    if t-t0 <= 0 or a <= 0: return
+    if a < .999: return _fade(cv, lambda x: _glass_bar(x, t, t0, parts, cy, w, h, note), a)
+    _glass_bar(cv, t, t0, parts, cy, w, h, note)
+def _glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None):
     """barre empilée : parts = [(fraction, couleur haute, couleur basse, texte haut, sous-texte, t_apparition, côté)]"""
     k = t-t0
     if k <= 0: return
@@ -288,7 +296,7 @@ def b_tirage(cv, c, t, k):
             title(c, f"SUR 100{NB}€ JOUÉS", t, 27.15, 250, 72, CREAM, t1=31.9)
             glass_bar(cv, t, 27.6, [(.5435, 'FFE27A', 'B97A12', f"54{NB}€", "reversés aux gagnants", 28.6, 'l'),
                                     (.4565, 'C9C2D6', '6E6680', f"46{NB}€", "gardés", 30.4, 'r')], cy=640,
-                      note="taux de retour aux joueurs du Loto : 54,35 % depuis le 4 mai 2026")
+                      note="taux de retour aux joueurs du Loto : 54,35 % depuis le 4 mai 2026", t1=32.0)
         if t >= 32.0:
             title(c, "EN MOYENNE", t, 32.05, 250, 76, CREAM)
             prop(c, "ticket_froisse", 540, 520, h=300, k=t-32.2, rot=-.1+.04*math.sin(t*3))
@@ -316,8 +324,8 @@ def b_machine(cv, c, t, k):
         title(c, "CES 6,60 € ?", t, 36.3, 320, 76, YEL, t1=38.95)
         if t > 38.2: pop_text(c, f"7{NB}% PAR AN", 540, 820, 72, t, 38.25, MINT, rot=-.04, a=1-ent(t-38.95, .25) if t > 38.95 else 1)
     if 39.0 <= t < 42.0:
-        title(c, "À 65 ANS", t, 39.05, 250, 80, YEL)
-        glass_counter(cv, t, 39.3, 71086, 39.5, 40.9, "28,60 € par mois pendant 40 ans, à 7 %", cy=700)
+        title(c, "À 65 ANS", t, 39.05, 250, 80, YEL, t1=41.95)
+        glass_counter(cv, t, 39.3, 71086, 39.5, 40.9, "28,60 € par mois pendant 40 ans, à 7 %", cy=700, t1=42.0)
     if t >= 42.0:
         title(c, "TU N'AS VERSÉ QUE", t, 42.05, 250, 64, CREAM)
         glass_bar(cv, t, 42.3, [(13728/71086, '7FB2FF', '2E4FA8', f"13{NB}728{NB}€", "versés", 42.9, 'l'),

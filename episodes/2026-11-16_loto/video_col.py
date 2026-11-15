@@ -208,6 +208,10 @@ def twinkle(c, t, pts, r=22):
 def _fade(cv, f, a):
     tmp = cv.copy(); f(tmp); cv.paste(Image.blend(cv.convert('RGBA'), tmp.convert('RGBA'), clamp(a)))
 
+def plate(c, x, y, w, h, a):
+    """pastille sombre derrière un texte posé sur un décor chargé (lisibilité)"""
+    if a <= 0: return
+    rr(c, x-w/2, y-h/2, w, h, h/2); c.set_source_rgba(.13, .06, .16, .6*a); c.fill()
 # ================= panneaux de verre (compteurs, jauges) =================
 def glass_counter(cv, t, t0, v1, t_a, t_b, sub, cy=780, w=860, h=230, colr=None, a=1.0):
     k = t-t0
@@ -257,7 +261,7 @@ def b_tabac(cv, c, t, k):
         if t > 6.1: pop_text(c, f"2,20{NB}€", 540, 300, 120, t, 6.15, YEL, rot=-.04, a=a*(1-ent(t-10.95, .25)))
         for i, (lab, ta) in enumerate((("LUNDI", 8.63), ("MERCREDI", 9.2), ("SAMEDI", 10.23))):
             if t > ta: pop_text(c, lab, 220+i*320, 880, 44, t, ta, CREAM, rot=(-.05, .03, -.04)[i], a=a)
-        if t > 10.85: pop_text(c, "× 3", 870, 470, 80, t, 10.85, PINK, rot=.08, a=a)
+        if t > 10.85: pop_text(c, "× 3", 870, 640, 80, t, 10.85, PINK, rot=.08, a=a)
     if t > 10.8 and t < 12.7:
         pop_text(c, f"= 6,60{NB}€ / SEMAINE", 540, 300 if t < 12.35 else 300, 60, t, 11.2, YEL, a=1-ent(t-12.4, .25) if t > 12.4 else 1) if t > 11.2 else None
     if t > 12.66:
@@ -275,9 +279,11 @@ def b_tirage(cv, c, t, k):
         if t < 27.0:
             a = 1-ent(t-26.8, .25) if t > 26.8 else 1
             title(c, "40 ANS DE JEU", t, ze+.05, 250, 76, CREAM, t1=26.8)
-            if t > 23.3: pop_text(c, f"6{NB}240 GRILLES", 540, 360, 52, t, 23.3, CREAM, a=a)
-            if t > 24.55: pop_text(c, f"1 CHANCE SUR 3{NB}000", 540, 620, 78, t, 24.6, PINK, rot=-.04, a=a)
-            if t > 25.7: paint(c, "de gagner le jackpot une seule fois", 540, 735, 40, a=ent(t-25.7, .3)*a)
+            if t > 23.3: plate(c, 540, 372, 420, 80, ent(t-23.3, .2)*a); pop_text(c, f"6{NB}240 GRILLES", 540, 372, 52, t, 23.3, CREAM, a=a)
+            if t > 24.55:
+                plate(c, 540, 660, 940, 230, ent(t-24.55, .2)*a)
+                pop_text(c, f"1 CHANCE SUR 3{NB}000", 540, 625, 78, t, 24.6, PINK, rot=-.03, a=a)
+            if t > 25.7: paint(c, "de gagner le jackpot une seule fois", 540, 718, 40, a=ent(t-25.7, .3)*a)
         if 27.0 <= t < 32.0:
             title(c, f"SUR 100{NB}€ JOUÉS", t, 27.15, 250, 72, CREAM, t1=31.9)
             glass_bar(cv, t, 27.6, [(.5435, 'FFE27A', 'B97A12', f"54{NB}€", "reversés aux gagnants", 28.6, 'l'),
@@ -285,8 +291,8 @@ def b_tirage(cv, c, t, k):
                       note="taux de retour aux joueurs du Loto : 54,35 % depuis le 4 mai 2026")
         if t >= 32.0:
             title(c, "EN MOYENNE", t, 32.05, 250, 76, CREAM)
-            prop(c, 'ticket_froisse', 540, 560, h=360, k=t-32.2, rot=-.1+.04*math.sin(t*3))
-            if t > 33.6: pop_text(c, f"− 6{NB}267{NB}€", 540, 850, 104, t, 33.65, PINK, rot=-.04)
+            prop(c, "ticket_froisse", 540, 520, h=300, k=t-32.2, rot=-.1+.04*math.sin(t*3))
+            if t > 33.6: plate(c, 540, 850, 620, 150, ent(t-33.6, .2)); pop_text(c, f"− 6{NB}267{NB}€", 540, 850, 104, t, 33.65, PINK, rot=-.04)
 def crowd(t):
     """plongée : image de la foule (RGB float), flou de mouvement par 2 sous-images"""
     zs, ze = V.ZOOM; u0, u1 = zs+.1, 21.9
@@ -300,10 +306,9 @@ def crowd_text(c, t, pos):
     if a1 > 0: paint(c, f"19{NB}068{NB}840 JOUEURS", 540, 260, 70, CREAM, a=a1)
     if u > .9:
         x, y, sz = pos; r = sz*.62
-        pop_text(c, "TOI", x, y-r-60, 96, t, zs+.1+.92*(21.9-zs-.1), YEL, rot=-.04)
-        if u > .98:
-            pop_text(c, "1 CHANCE", 540, 230, 64, t, zs+.1+.99*(21.9-zs-.1), CREAM)
-            pop_text(c, f"SUR 19{NB}068{NB}840", 540, 320, 64, t, zs+.1+.99*(21.9-zs-.1)+.15, PINK)
+        t0 = zs+.1+.92*(21.9-zs-.1); ty = y-r-60
+        rr(c, x-130, ty-66, 260, 132, 48); c.set_source_rgba(.13, .06, .16, .62*ent(t-t0, .25)); c.fill()      # pastille sombre : TOI lisible sur la foule
+        pop_text(c, "TOI", x, ty, 96, t, t0, YEL, rot=-.04)   # « une sur 19 millions » est déjà dans le sous-titre : pas d'autre texte
 # ================= 3. le placement (machine à sous inversée) =================
 def b_machine(cv, c, t, k):
     if t < 39.0:
@@ -324,13 +329,13 @@ def b_verger(cv, c, t, k):
         a = 1-ent(t-52.8, .25) if t > 52.8 else 1
         paint(c, "LE LOTO", 280, 260, 64, PINK, a=ent(t-46.1, .3)*a)
         prop(c, 'ticket_froisse', 280, 520, h=330, k=t-46.2, rot=-.08+.03*math.sin(t*2.5), a=a)
-        if t > 46.7: pop_text(c, f"− 6{NB}267{NB}€", 280, 760, 66, t, 46.75, PINK, a=a)
-        if t > 47.1: paint(c, "un rêve à 1 sur 19 millions", 280, 840, 28, a=ent(t-47.1, .3)*a, fam='Limelight')
+        if t > 46.7: plate(c, 280, 790, 470, 170, ent(t-46.7, .2)*a); pop_text(c, f"− 6{NB}267{NB}€", 280, 760, 66, t, 46.75, PINK, a=a)
+        if t > 47.1: paint(c, "un rêve", 280, 832, 34, a=ent(t-47.1, .3)*a)
         if t > 49.1:
             paint(c, "LE PLACEMENT", 800, 260, 56, MINT, a=ent(t-49.1, .3)*a)
             prop(c, 'tirelire', 800, 530, w=330, k=t-49.2, a=a)
-            if t > 49.7: pop_text(c, f"+ 57{NB}358{NB}€", 800, 760, 66, t, 49.75, YEL, a=a)
-            if t > 51.0: paint(c, "il travaille pour toi", 800, 840, 28, a=ent(t-51.0, .3)*a, fam='Limelight')
+            if t > 49.7: plate(c, 800, 790, 470, 170, ent(t-49.7, .2)*a); pop_text(c, f"+ 57{NB}358{NB}€", 800, 760, 66, t, 49.75, YEL, a=a)
+            if t > 51.0: paint(c, "il travaille pour toi", 800, 832, 34, a=ent(t-51.0, .3)*a)
             twinkle(c, t, [(700, 420), (920, 470)], 20)
     if 53.0 <= t < 57.0:
         a = 1-ent(t-56.8, .25) if t > 56.8 else 1
@@ -341,7 +346,7 @@ def b_verger(cv, c, t, k):
     if t >= 57.0:
         title(c, "ET TOI,", t, 57.05, 250, 80)
         title(c, "TU JOUES AU LOTO ?", t, 57.75, 350, 72, YEL)
-    if t > 59.0: paint(c, "Dis-le en commentaire", 500, 470, 44, a=ent(t-59.05, .3))
+    if t > 59.0: plate(c, 540, 470, 640, 90, ent(t-59.05, .3)); paint(c, "Dis-le en commentaire", 500, 470, 44, a=ent(t-59.05, .3))
 SC = [(0.0, 16.4, b_tabac, 'tabac'), (16.4, 34.6, b_tirage, 'tirage'), (34.6, 46.0, b_machine, 'machine'), (46.0, DUR, b_verger, 'verger')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
 IRIS = [s_[0] for s_ in SC[1:]]+list(V.ZOOM); IR = .42

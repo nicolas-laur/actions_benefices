@@ -75,11 +75,15 @@ def _newsmask():
     m = np.zeros((H, W), np.float32); cv2.rectangle(m, (0, 760), (320, 1920), 1, -1); return cv2.GaussianBlur(m, (0, 0), 30)
 MCX = []
 def mcx(t): return [x for (a, x) in MCX if t >= a][-1]
+def feet(t):
+    """hauteur des pieds : debout sur le comptoir du tabac (qui descend avec le travelling), au sol ailleurs"""
+    if t < SC[1][0]: return int(np.interp(t, (0, 8, 16.4), (1320, 1395, 1495)))
+    return V.FEET
 def coin_col(cv_rgb, t):
-    Y = V.FEET+V.MC.hop_dy(t); rgb_, al = V.MC.layer(t, mcx(t), Y)
+    F = feet(t); Y = F+V.MC.hop_dy(t); rgb_, al = V.MC.layer(t, mcx(t), Y)
     fx = V.MC.feet_x(al, Y)
     if fx is not None:
-        m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), V.FEET-3), (95, 15), 0, 0, 360, .5, -1); cv_rgb *= (1-cv2.GaussianBlur(m, (0, 0), 9)[..., None])
+        m = np.zeros((H, W), np.float32); cv2.ellipse(m, (int(fx), F-3), (95, 15), 0, 0, 360, .5, -1); cv_rgb *= (1-cv2.GaussianBlur(m, (0, 0), 9)[..., None])
     return cv_rgb*(1-al[..., None])+rgb_.astype(np.float32)*al[..., None]
 RED = 'B3161B'; CREAM = 'F6E7C1'; BROWN = '3B2412'; CHALK = 'F3F1E8'; SKY = '4361EE'
 # ================= accessoires Gemini (détourés, dossier props/) =================
@@ -255,34 +259,36 @@ def ball(c, x, y, r, num, k=1.0, rot=0.0):
     ink(c, num, 0, -18, 330, BROWN, maxw=400); c.restore()
 # ================= 1. accroche et coût (bureau de tabac) =================
 def b_tabac(cv, c, t, k):
+    """Mister Coin est debout sur le comptoir (pieds vers y 1320-1495) : sous-titres remontés à y 820, objets entre 200 et 760"""
     if t < 5.0:
         a = 1-ent(t-4.75, .25) if t > 4.75 else 1
         title(c, "LE LOTO", t, .1, 230, 92, YEL, t1=4.75)
         title(c, "OU LE PLACEMENT ?", t, 2.15, 330, 66, CREAM, t1=4.75)
-        prop(c, 'grille_loto', 290, 660, h=380, k=t-.45, rot=-.12+.03*math.sin(t*2), a=a)
-        if t > 1.9: pop_text(c, "VS", 540, 660, 90, t, 1.95, PINK, rot=-.08, a=a)
-        if t > 2.25: prop(c, 'tirelire', 790, 680, w=330, k=t-2.3, a=a)
-        if t > 3.7: twinkle(c, t, [(700, 520), (900, 560)], 22)
+        prop(c, 'grille_loto', 290, 560, h=310, k=t-.45, rot=-.12+.03*math.sin(t*2), a=a)
+        if t > 1.9: pop_text(c, "VS", 540, 560, 90, t, 1.95, PINK, rot=-.08, a=a)
+        if t > 2.25: prop(c, 'tirelire', 790, 575, w=290, k=t-2.3, a=a)
+        if t > 3.7: twinkle(c, t, [(700, 450), (900, 480)], 22)
     if 5.0 <= t < 12.6:
         a = 1-ent(t-12.35, .25) if t > 12.35 else 1
-        prop(c, 'grille_loto', 540, 600, h=430, k=t-5.05, rot=-.06, a=a)
-        if t > 6.1: pop_text(c, f"2,20{NB}€", 540, 300, 120, t, 6.15, YEL, rot=-.04, a=a*(1-ent(t-10.95, .25)))
+        prop(c, 'grille_loto', 330, 500, h=360, k=t-5.05, rot=-.06, a=a)
+        if t > 6.1: pop_text(c, f"2,20{NB}€", 770, 420, 110, t, 6.15, YEL, rot=-.04, a=a)
+        if t > 10.85: pop_text(c, "× 3", 770, 560, 80, t, 10.85, PINK, rot=.08, a=a)
         for i, (lab, ta) in enumerate((("LUNDI", 8.63), ("MERCREDI", 9.2), ("SAMEDI", 10.23))):
-            if t > ta: pop_text(c, lab, 220+i*320, 880, 44, t, ta, CREAM, rot=(-.05, .03, -.04)[i], a=a)
-        if t > 10.85: pop_text(c, "× 3", 870, 640, 80, t, 10.85, PINK, rot=.08, a=a)
-    if t > 10.8 and t < 12.7:
-        pop_text(c, f"= 6,60{NB}€ / SEMAINE", 540, 300 if t < 12.35 else 300, 60, t, 11.2, YEL, a=1-ent(t-12.4, .25) if t > 12.4 else 1) if t > 11.2 else None
+            if t > ta: plate(c, 200+i*340, 735, 290, 70, ent(t-ta, .2)*a); pop_text(c, lab, 200+i*340, 735, 44, t, ta, CREAM, rot=(-.05, .03, -.04)[i], a=a)
+        if t > 11.2: pop_text(c, f"= 6,60{NB}€ / SEMAINE", 540, 250, 62, t, 11.2, YEL, a=a)
     if t > 12.66:
         title(c, "DE 25 À 65 ANS", t, 12.7, 250, 72)
-        glass_counter(cv, t, 13.3, 13728, 13.6, 15.6, "6 240 grilles en 40 ans", cy=640)
-        if t > 15.4: prop(c, 'pluie_pieces', 540, 900, h=200, k=t-15.45, rot=.1*math.sin(t*2), shadow=False)
+        glass_counter(cv, t, 13.3, 13728, 13.6, 15.6, "6 240 grilles en 40 ans", cy=560)
 # ================= 2. les chances (scène de tirage + plongée dans la foule) =================
 def b_tirage(cv, c, t, k):
     zs, ze = V.ZOOM
     if t < zs:
         title(c, "LE JACKPOT ?", t, 16.5, 250, 84, YEL)
-        for i, (x, y, n, ta) in enumerate(((300, 620, "7", 16.8), (540, 560, "19", 17.1), (780, 640, "42", 17.4))):
-            if t > ta: ball(c, x, y+12*math.sin(t*2.4+i), 95, n, k=t-ta, rot=.15*math.sin(t*1.3+i))
+        for i, (n, ta) in enumerate((("7", 16.7), ("13", 16.95), ("19", 17.2), ("28", 17.45), ("42", 17.7))):     # 5 boules blanches
+            x = 150+i*195; y = 470+(25 if i % 2 else 0)
+            if t > ta: ball(c, x, y+10*math.sin(t*2.4+i), 82, n, k=t-ta, rot=.15*math.sin(t*1.3+i))
+        for i, ta in enumerate((17.95, 18.2)):                                                                     # 2 boules rouges, Mister Coin qui rit
+            if t > ta: prop(c, 'boule_rouge', 380+i*320, 680+10*math.sin(t*2.1+i), h=190, k=t-ta, rot=.12*math.sin(t*1.5+i), shadow=False)
     if t > ze:
         if t < 27.0:
             a = 1-ent(t-26.8, .25) if t > 26.8 else 1
@@ -385,15 +391,16 @@ def cap_c(c, t):
         nxt = V.CAPS[k+1][0] if k+1 < len(V.CAPS) else DUR; end = min(nxt, b+.45)
         if a-.05 <= t < end:
             al = ease((t-a+.05)/.12)*(1-ease((t-(end-.12))/.12) if end-b > .1 or k+1 >= len(V.CAPS) else 1)
-            S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al); return
+            S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al, y=820 if t < SC[1][0] else 1060); return
 def events():
     zs, ze = V.ZOOM
     ev = [e for e in V.events()] + [(ta-IR, 'whoosh') for ta in IRIS]
     ev += [(.1, 'impact'), (.5, 'pop'), (1.95, 'bonk'), (2.15, 'thud'), (2.3, 'pop'), (5.05, 'pop'), (6.15, 'impact'), (8.63, 'pop'), (9.2, 'pop'), (10.23, 'pop'),
-           (10.85, 'bonk'), (11.2, 'coin'), (12.7, 'thud'), (13.3, 'swish'), (13.6, 'fill1'), (15.45, 'coins')]
-    ev += [(16.5, 'impact'), (16.8, 'pop'), (17.1, 'pop'), (17.4, 'pop'), (zs+.15, 'riser'), (zs+.1+.92*(21.9-zs-.1), 'tadaa'), (ze+.05, 'thud'), (23.3, 'pop'), (24.6, 'crash'),
+           (10.85, 'bonk'), (11.2, 'coin'), (12.7, 'thud'), (13.3, 'swish'), (13.6, 'fill1'), (15.6, 'coins')]
+    ev += [(16.5, 'impact'), (16.7, 'pop'), (16.95, 'pop'), (17.2, 'pop'), (17.45, 'pop'), (17.7, 'pop'), (17.95, 'bonk'), (18.2, 'bonk'), (zs+.15, 'riser'), (zs+.1+.92*(21.9-zs-.1), 'tadaa'), (ze+.05, 'thud'), (23.3, 'pop'), (24.6, 'crash'),
            (27.15, 'thud'), (27.6, 'swish'), (28.6, 'fill1'), (30.4, 'pop'), (32.05, 'thud'), (32.2, 'pop'), (33.65, 'bonk')]
     ev += [(34.7, 'thud'), (36.3, 'impact'), (38.25, 'pop'), (39.05, 'impact'), (39.3, 'swish'), (39.5, 'fill2'), (40.9, 'coins'), (42.05, 'thud'), (42.3, 'swish'), (42.9, 'fill0'), (44.3, 'fill2'), (44.6, 'glint')]
+    ev += [(37.6+i*.42, 'coin') for i in range(5)]+[(39.6+i*.32, 'coins' if i % 2 else 'coin') for i in range(5)]+[(41.4+i*.55, 'coin') for i in range(8)]   # pièces qui tombent de la machine
     ev += [(46.2, 'pop'), (46.75, 'bonk'), (49.2, 'pop'), (49.75, 'tadaa'), (53.1, 'thud'), (54.35, 'pop'), (55.4, 'pop'), (55.95, 'impact'), (57.05, 'thud'), (57.75, 'impact')]
     return sorted(ev)
 def main():

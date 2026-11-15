@@ -7,7 +7,7 @@ import os, math, numpy as np, cv2
 from PIL import Image, ImageDraw
 D = os.path.dirname(os.path.abspath(__file__))
 TX, TY = 2911.0, 1733.0
-G, C = 4, 512                     # motif de 4 × 4 personnages, texture de 512 px
+G, C, CG = 8, 2048, 512           # motif de 8 × 8 Mister Coin (placés et dimensionnés au hasard : pas d'effet papier peint), texture 2048 px ; TOI en 512 px
 OUT = (55, 32, 24)
 SHIRTS = [(226, 87, 76), (46, 150, 150), (232, 182, 64), (110, 150, 205), (120, 170, 90), (200, 110, 160), (240, 140, 70), (90, 110, 170)]
 SKINS = [(247, 214, 182), (230, 184, 140), (190, 135, 95), (140, 95, 65)]
@@ -56,16 +56,21 @@ def _mips(t):
     while m[-1].shape[0] > 1: m.append(cv2.resize(m[-1], (max(1, m[-1].shape[1]//2),)*2, interpolation=cv2.INTER_AREA))
     return m
 def _build():
-    q = C//G; cell = np.zeros((C, C, 3), np.float32); cell[:] = GROUND[::-1]
-    for j, (clip, n, fl) in enumerate(FOULE):
-        a, al = _coin(clip, n, fl, q); al = al[..., None]
-        y, x = (j//G)*q, (j % G)*q; cell[y:y+q, x:x+q] = cell[y:y+q, x:x+q]*(1-al)+a[..., ::-1]*al
+    q = C//G; cell = np.zeros((C, C, 3), np.float32); cell[:] = GROUND[::-1]; rng = np.random.default_rng(7); cache = {}
+    tj = (int(TY) % G)*G+int(TX) % G
+    for j in range(G*G):
+        clip, n, fl = FOULE[rng.integers(len(FOULE))]; fl = int(rng.integers(2)); sc = rng.uniform(.8, 1.0)
+        P = int(q*sc); key = (clip, n, fl, P)
+        if key not in cache: cache[key] = _coin(clip, n, fl, P)
+        a, al = cache[key]; al = al[..., None]
+        if j == tj: continue                                         # case de TOI laissée vide (TOI y est dessiné à part)
+        ox = int(rng.uniform(0, q-P)); oy = int(rng.uniform(0, q-P))
+        y, x = (j//G)*q+oy, (j % G)*q+ox; cell[y:y+P, x:x+P] = cell[y:y+P, x:x+P]*(1-al)+a[..., ::-1]*al
     MIPS['n'] = _mips(cell)
     MIPS['g'] = []
     for n in range(RIRE[1], RIRE[2], 2):
-        a, al = _coin(RIRE[0], n, False, C, sad=False); al = al[..., None]
-        yy, xx = np.mgrid[:C, :C]; e = np.minimum(np.minimum(xx, C-1-xx), np.minimum(yy, C-1-yy)); blob = np.clip((e-C*.01)/(C*.04), 0, 1)[..., None]   # case entière : cache le Mister Coin qu'il remplace
-        rgb = a[..., ::-1]*al+np.float32(GROUND[::-1])*(1-al)*blob; A = np.maximum(al, blob)
+        a, al = _coin(RIRE[0], n, False, CG, sad=False); al = al[..., None]
+        rgb = a[..., ::-1]*al; A = al
         MIPS['g'].append(_mips(np.dstack([rgb, A]).astype(np.float32)))
 def camera(u):
     """Paramètres de caméra le long de la plongée."""
@@ -116,7 +121,7 @@ def frame(u, W=1080, H=1920, cy=None, sub=0., ta=0.):
                 band = band+wgt*cv2.warpPerspective(t, M, (W, y2-y), flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_WRAP)
             img[y:y2] = band; y = y2
     # TOI en doré (un seul personnage)
-    p0 = ground(cx, cy); p1 = ground(cx+1, cy); lg = max(0., math.log2(max(1e-6, np.hypot(*(p1-p0))*C)))
+    p0 = ground(cx, cy); p1 = ground(cx+1, cy); lg = max(0., math.log2(max(1e-6, np.hypot(*(p1-p0))*CG)))
     g = 0
     for li, wgt in ((int(lg), 1-(lg-int(lg))), (int(lg)+1, lg-int(lg))):
         mg = MIPS['g'][int(ta*12) % len(MIPS['g'])]; t = mg[min(li, len(mg)-1)]; r = t.shape[0]
@@ -128,8 +133,16 @@ def frame(u, W=1080, H=1920, cy=None, sub=0., ta=0.):
     ok = (A[2, 0]*xs+A[2, 1]*ys+A[2, 2]) < -1e-9
     gx, gy = v[0]/np.where(ok, v[2], 1), v[1]/np.where(ok, v[2], 1)
     rdist = np.hypot(gx-T[0], gy-T[1]); depth = np.where(ok, np.hypot(gx-cam[0], gy-cam[1]), 1e9)
-    spot = np.where(ok, .72+.75*np.exp(-(rdist/max(2.2, dist*.05))**2), 0)
-    fog = np.where(ok, 1-np.exp(-depth/(dist*4+250)), 1)
+    # projecteurs : trois faisceaux balaient la foule (comme un tirage qui cherche son gagnant), puis convergent sur TOI
+    wr = 1-ease((u-.35)/.3) if u > .35 else 1.; wt = ease((u-.45)/.35)
+    spot = .62+.75*wt*np.exp(-(rdist/max(2.2, dist*.05))**2)
+    SP = []
+    for i in range(3):
+        ph = i*2.1; rr_ = dist*(.55+.15*i)*(1-ease(u/.75))
+        sx_ = T[0]+rr_*math.cos(u*7+ph); sy_ = T[1]-dist*.25+rr_*.6*math.sin(u*5.3+ph*1.7)
+        SP.append((sx_, sy_)); spot = spot+.85*wr*np.exp(-(np.hypot(gx-sx_, gy-sy_)/max(2.5, dist*.09))**2)
+    spot = np.where(ok, spot, 0)
+    fog = np.where(ok, 1-np.exp(-depth/(dist*6+350)), 1)
     spot = cv2.resize(spot.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)[..., None]
     fog = cv2.resize(fog.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)[..., None]
     if isinstance(g, np.ndarray): img = img*(1-g[..., 3:])+g[..., :3]
@@ -141,12 +154,18 @@ def frame(u, W=1080, H=1920, cy=None, sub=0., ta=0.):
         hy = int(np.where(sky)[0].max())+1; yy2 = np.linspace(0, 1, hy)[:, None, None]
         top = np.float32([30, 14, 40])[::-1]; bot = np.float32([120, 80, 125])[::-1]
         img[:hy] = top*(1-yy2**1.6)+bot*yy2**1.6
-    # faisceau du projecteur vers TOI
-    Pt = A@np.array([cx, cy, 1.]); tx_, ty_ = cx, cy
-    beam = np.zeros((H//4, W//4), np.float32); bw = max(6., 140/ max(1., dist**.35))
-    pts = np.array([[tx_/4-bw/4, ty_/4], [tx_/4+bw/4, ty_/4], [W/8+60, -10], [W/8-60, -10]], np.int32)
-    cv2.fillConvexPoly(beam, pts, 1.); beam = cv2.GaussianBlur(beam, (0, 0), 6)
-    beam = cv2.resize(beam, (W, H))[..., None]; img = img+beam*np.float32([255, 230, 170])[::-1]*.18
+    # faisceaux des projecteurs (depuis le haut de l'image vers chaque tache de lumière)
+    Hinv = np.linalg.inv(Hs); bw = max(6., 140/max(1., dist**.35))
+    beams = [((cx, cy), .2*max(wt, .25))]
+    for i, (sx_, sy_) in enumerate(SP):
+        v_ = Hinv@np.array([sx_, sy_, 1.])
+        if v_[2] != 0: beams.append(((v_[0]/v_[2], v_[1]/v_[2]), .22*wr))
+    for (bx_, by_), ba in beams:
+        if ba <= .005 or not (-W < bx_ < 2*W and -H < by_ < 2*H): continue
+        beam = np.zeros((H//4, W//4), np.float32); top_x = W/8+(bx_/4-W/8)*.35
+        pts = np.array([[bx_/4-bw/4, by_/4], [bx_/4+bw/4, by_/4], [top_x+50, -10], [top_x-50, -10]], np.int32)
+        cv2.fillConvexPoly(beam, pts, 1.); beam = cv2.GaussianBlur(beam, (0, 0), 6)
+        img = img+cv2.resize(beam, (W, H))[..., None]*np.float32([255, 230, 170])[::-1]*ba
     # halo doré autour de TOI
     if isinstance(g, np.ndarray):
         szg = abs(1/np.hypot(*(ground(cx+1, cy)-ground(cx, cy)))); vy_, vx_ = np.ogrid[:H, :W]

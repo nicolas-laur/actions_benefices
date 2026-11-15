@@ -287,8 +287,7 @@ def b_tirage(cv, c, t, k):
         for i, (n, ta) in enumerate((("7", 16.7), ("13", 16.95), ("19", 17.2), ("28", 17.45), ("42", 17.7))):     # 5 boules blanches
             x = 150+i*195; y = 470+(25 if i % 2 else 0)
             if t > ta: ball(c, x, y+10*math.sin(t*2.4+i), 82, n, k=t-ta, rot=.15*math.sin(t*1.3+i))
-        for i, ta in enumerate((17.95, 18.2)):                                                                     # 2 boules rouges, Mister Coin qui rit
-            if t > ta: prop(c, 'boule_rouge', 380+i*320, 680+10*math.sin(t*2.1+i), h=190, k=t-ta, rot=.12*math.sin(t*1.5+i), shadow=False)
+        if t > 17.95: prop(c, 'boule_rouge', 540, 680+10*math.sin(t*2.1), h=200, k=t-17.95, rot=.12*math.sin(t*1.5), shadow=False)   # le numéro chance (une seule boule, comme au vrai Loto)
     if t > ze:
         if t < 27.0:
             a = 1-ent(t-26.8, .25) if t > 26.8 else 1
@@ -397,7 +396,7 @@ def events():
     ev = [e for e in V.events()] + [(ta-IR, 'whoosh') for ta in IRIS]
     ev += [(.1, 'impact'), (.5, 'pop'), (1.95, 'bonk'), (2.15, 'thud'), (2.3, 'pop'), (5.05, 'pop'), (6.15, 'impact'), (8.63, 'pop'), (9.2, 'pop'), (10.23, 'pop'),
            (10.85, 'bonk'), (11.2, 'coin'), (12.7, 'thud'), (13.3, 'swish'), (13.6, 'fill1'), (15.6, 'coins')]
-    ev += [(16.5, 'impact'), (16.7, 'pop'), (16.95, 'pop'), (17.2, 'pop'), (17.45, 'pop'), (17.7, 'pop'), (17.95, 'bonk'), (18.2, 'bonk'), (zs+.15, 'riser'), (zs+.1+.92*(21.9-zs-.1), 'tadaa'), (ze+.05, 'thud'), (23.3, 'pop'), (24.6, 'crash'),
+    ev += [(16.5, 'impact'), (16.7, 'pop'), (16.95, 'pop'), (17.2, 'pop'), (17.45, 'pop'), (17.7, 'pop'), (17.95, 'bonk'), (zs+.15, 'riser'), (zs+.1+.92*(21.9-zs-.1), 'tadaa'), (ze+.05, 'thud'), (23.3, 'pop'), (24.6, 'crash'),
            (27.15, 'thud'), (27.6, 'swish'), (28.6, 'fill1'), (30.4, 'pop'), (32.05, 'thud'), (32.2, 'pop'), (33.65, 'bonk')]
     ev += [(34.7, 'thud'), (36.3, 'impact'), (38.25, 'pop'), (39.05, 'impact'), (39.3, 'swish'), (39.5, 'fill2'), (40.9, 'coins'), (42.05, 'thud'), (42.3, 'swish'), (42.9, 'fill0'), (44.3, 'fill2'), (44.6, 'glint')]
     ev += [(37.6+i*.42, 'coin') for i in range(5)]+[(39.6+i*.32, 'coins' if i % 2 else 'coin') for i in range(5)]+[(41.4+i*.55, 'coin') for i in range(8)]   # pièces qui tombent de la machine

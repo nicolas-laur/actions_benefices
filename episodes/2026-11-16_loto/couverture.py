@@ -46,5 +46,5 @@ hh = 640; ch = ch.resize((int(ch.width*hh/ch.height), hh), Image.LANCZOS)
 x0, y0 = (W-ch.width)//2, 1240
 halo = Image.new('RGBA', (W, H), (255, 200, 110, 0)); gl = Image.new('RGBA', (W, H), 0); gl.alpha_composite(ch, (x0, y0))
 halo.putalpha(gl.getchannel('A').filter(ImageFilter.GaussianBlur(45)).point(lambda v: int(v*.7))); im.alpha_composite(halo); im.alpha_composite(gl)
-ball('boule_rouge', 250, 1760, 170, None, -10); ball('boule_rouge', 830, 1770, 170, None, 12)
+ball('boule_rouge', 840, 1700, 180, None, 10)
 im.convert('RGB').save(path); print('ok')

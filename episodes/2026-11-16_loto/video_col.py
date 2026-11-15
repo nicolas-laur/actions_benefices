@@ -11,7 +11,7 @@ import video as V
 import veo_coin as VC
 import zoom_foule as ZF
 from scenes import surface, to_img, rr, col, W, H, clamp, ease, rgb, NB
-FPS = 60; DUR = V.DUR; VOICE = V.VOICE; euro, tm = V.euro, V.tm
+FPS = 60; DUR = V.DUR_RAW; HK = V.HK; DUR_TOTAL = V.DUR; VOICE = V.VOICE; euro, tm = V.euro, V.tm
 def inout(x): x = clamp(x); return x*x*(3-2*x)
 def lerp(a, b, u): return a+(b-a)*u
 def ent(k, d=.45): return ease(k/d)
@@ -225,7 +225,7 @@ def glass_counter(cv, t, t0, v1, t_a, t_b, sub, cy=780, w=860, h=230, colr=None,
     def d(kk, ww, hh):
         v = v1*inout((t-t_a)/max(.01, t_b-t_a))
         S.text(kk, euro(v), ww/2, hh/2-14, 'a', 92, colr or S.GD, 'c', ent(k, .3))
-        S.text(kk, sub, ww/2, hh-34, 'sb', 26, S.ICE, 'c', .85*ent(k-.3, .3))
+        S.text(kk, sub, ww/2, hh-36, 'sb', 34, S.ICE, 'c', .9*ent(k-.3, .3))
     S.tp(cv, w, h, d, 540, cy+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=26)
 def glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None, t1=None):
     """apparition en fondu sur 0,35 s, disparition en fondu sur 0,3 s avant t1"""
@@ -247,9 +247,9 @@ def _glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None):
                 kk.set_source(g); kk.fill()
             if t > ta:
                 tx = x0+8 if side == 'l' else x1-8
-                S.text(kk, lab, tx, y-46, 'a', 50, c0, side, ent(t-ta-.1, .3)); S.text(kk, sub, tx, y+bh+40, 'sb', 28, S.ICE, side, .85*ent(t-ta-.2, .3))
+                S.text(kk, lab, tx, y-46, 'a', 50, c0, side, ent(t-ta-.1, .3)); S.text(kk, sub, tx, y+bh+44, 'sb', 34, S.ICE, side, .9*ent(t-ta-.2, .3))
             x += L*fr
-        if note: S.text(kk, note, ww/2, hh-22, 'sb', 22, S.ICE, 'c', .7*ent(k-.6, .3))
+        if note: S.text(kk, note, ww/2, hh-24, 'sb', 28, S.ICE, 'c', .8*ent(k-.6, .3))
     S.tp(cv, w, h, d, 540, cy+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=30)
 def ball(c, x, y, r, num, k=1.0, rot=0.0):
     """boule de loto avec son numéro peint dans la pastille"""
@@ -301,7 +301,7 @@ def b_tirage(cv, c, t, k):
             title(c, f"SUR 100{NB}€ MISÉS AU LOTO", t, 27.15, 250, 62, CREAM, t1=31.9)
             glass_bar(cv, t, 27.6, [(.5435, 'FFE27A', 'B97A12', f"54{NB}€", "reviennent aux gagnants", 28.6, 'l'),
                                     (.4565, 'C9C2D6', '6E6680', f"46{NB}€", "gardés par l'État et la FDJ", 30.4, 'r')], cy=640,
-                      note="taux de retour aux joueurs du Loto : 54,35 % depuis le 4 mai 2026", t1=32.0)
+                      t1=32.0)
             if 30.9 < t < 32.0:                                     # les 46 € s'envolent : ils ne reviennent jamais aux joueurs
                 for i in range(12):
                     u = (t-30.9-((i*5) % 12)*.05)/.85
@@ -317,18 +317,18 @@ def b_tirage(cv, c, t, k):
             if t > 33.6: plate(c, 540, 850, 620, 150, ent(t-33.6, .2)); pop_text(c, f"− 6{NB}267{NB}€", 540, 850, 104, t, 33.65, PINK, rot=-.04)
 def crowd(t):
     """plongée : image de la foule (RGB float), flou de mouvement par 2 sous-images"""
-    zs, ze = V.ZOOM; u0, u1 = zs+.1, 21.9
+    zs, ze = V.ZOOM; u0, u1 = zs+.05, 21.5
     acc = 0
     for kk in (-.25, .25):
-        im, pos = ZF.frame(clamp((t+kk/FPS-u0)/(u1-u0)), W, H, cy=640, ta=t); acc = acc+im/2
+        im, pos = ZF.frame(.3+.7*clamp((t+kk/FPS-u0)/(u1-u0)), W, H, cy=640, ta=t); acc = acc+im/2
     return acc[..., ::-1].copy(), pos
 def crowd_text(c, t, pos):
-    zs, ze = V.ZOOM; u = (t-(zs+.1))/(21.9-(zs+.1))
+    zs, ze = V.ZOOM; u = (t-(zs+.05))/(21.5-(zs+.05))
     a1 = ent(t-zs-.15, .3)*(1-ent(u-.5, .15))
     if a1 > 0: paint(c, f"19{NB}068{NB}840 JOUEURS", 540, 260, 70, CREAM, a=a1)
     if u > .9:
         x, y, sz = pos; r = sz*.62
-        t0 = zs+.1+.92*(21.9-zs-.1); ty = y-r-60
+        t0 = zs+.05+.92*(21.5-zs-.05); ty = y-r-60
         rr(c, x-130, ty-66, 260, 132, 48); c.set_source_rgba(.13, .06, .16, .62*ent(t-t0, .25)); c.fill()      # pastille sombre : TOI lisible sur la foule
         pop_text(c, "TOI", x, ty, 96, t, t0, YEL, rot=-.04)   # « une sur 19 millions » est déjà dans le sous-titre : pas d'autre texte
 # ================= 3. le placement (machine à sous inversée) =================
@@ -339,12 +339,11 @@ def b_machine(cv, c, t, k):
         if t > 38.2: pop_text(c, f"7{NB}% PAR AN", 540, 820, 72, t, 38.25, MINT, rot=-.04, a=1-ent(t-38.95, .25) if t > 38.95 else 1)
     if 39.0 <= t < 42.0:
         title(c, "À 65 ANS", t, 39.05, 250, 80, YEL, t1=41.95)
-        glass_counter(cv, t, 39.3, 71086, 39.5, 40.9, "28,60 € par mois pendant 40 ans, à 7 %", cy=700, t1=42.0)
+        glass_counter(cv, t, 39.3, 71086, 39.5, 40.9, "28,60 € par mois, 40 ans, à 7 %", cy=830, w=700, h=210, t1=42.0)
     if t >= 42.0:
         title(c, "TU N'AS VERSÉ QUE", t, 42.05, 250, 64, CREAM)
         glass_bar(cv, t, 42.3, [(13728/71086, '7FB2FF', '2E4FA8', f"13{NB}728{NB}€", "versés", 42.9, 'l'),
-                                (57358/71086, 'FFE27A', 'B97A12', f"+ 57{NB}358{NB}€", "intérêts composés", 44.3, 'r')], cy=700,
-                  note="hypothèse de 7 % par an non garantie, avant frais et impôts")
+                                (57358/71086, 'FFE27A', 'B97A12', f"+ 57{NB}358{NB}€", "intérêts composés", 44.3, 'r')], cy=800, h=340)
 # ================= 4. face-à-face et question (verger) =================
 def b_verger(cv, c, t, k):
     if t < 53.0:
@@ -368,12 +367,13 @@ def b_verger(cv, c, t, k):
     if t >= 57.0:
         title(c, "ET TOI,", t, 57.05, 250, 80)
         title(c, "TU JOUES AU LOTO ?", t, 57.75, 350, 72, YEL)
-    if t > 59.0: plate(c, 540, 470, 640, 90, ent(t-59.05, .3)); paint(c, "Dis-le en commentaire", 500, 470, 44, a=ent(t-59.05, .3))
+    if t > 59.0: plate(c, 540, 470, 760, 104, ent(t-59.05, .3)); paint(c, "Dis-le en commentaire", 500, 470, 54, a=ent(t-59.05, .3))
 SC = [(0.0, 16.4, b_tabac, 'tabac'), (16.4, 34.6, b_tirage, 'tirage'), (34.6, 46.0, b_machine, 'machine'), (46.0, DUR, b_verger, 'verger')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
+BLOCS_MIX = [(a+HK, b+HK, d) for (a, b, d) in BLOCS]                 # ligne de temps finale (après l'accroche), pour le mixage
 IRIS = [s_[0] for s_ in SC[1:]]+list(V.ZOOM); IR = .42
-MCX = [(0, 540), (SC[1][0], 540), (SC[2][0], 540), (SC[3][0], 540)]
-def frame(t):
+MCX = [(0, 540), (SC[1][0], 540), (SC[2][0], 250), (SC[3][0], 540)]
+def raw(t):
     i = max(j for j, s_ in enumerate(SC) if t >= s_[0] or j == 0); a, b, f, dec = SC[i]
     zs, ze = V.ZOOM; inz = zs <= t < ze
     if inz: img, pos = crowd(t)
@@ -383,16 +383,37 @@ def frame(t):
     if inz: crowd_text(c, t, pos)
     else: f(cv, c, t, max(0.0, t-a))
     cv.alpha_composite(to_img(s))
-    arr = coin_col(np.asarray(cv.convert('RGB')).astype(np.float32), t)
+    arr = np.asarray(cv.convert('RGB')).astype(np.float32)
+    if not inz: arr = coin_col(arr, t)
     fl = film(arr.copy(), t); arr = arr*.72+fl*.28
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
     s, c = surface(); cap_c(c, t); out.alpha_composite(to_img(s))
     if t > 59.05: S.put_emoji(out, "👇", 900, int(470+8*math.sin(t*5)), 60)
-    arr = np.asarray(out.convert('RGB')).astype(np.float32); u = 0
+    return np.asarray(out.convert('RGB')).astype(np.float32)
+XF = .3                                                       # fondu enchaîné aux changements de décor (plus d'iris qui ferme au noir)
+def raw_x(t):
     for ta in IRIS:
-        if ta-IR <= t < ta: u = inout((t-(ta-IR))/IR)
-        elif ta <= t < ta+IR: u = 1-inout((t-ta)/IR)
-    if u > 0: arr = iris(arr, u)
+        if ta-XF/2 <= t < ta+XF/2:
+            k = inout((t-(ta-XF/2))/XF); return raw(min(t, ta-1/FPS))*(1-k)+raw(max(t, ta))*k
+    return raw(t)
+def hook(t):
+    """accroche (0 à HK) : la fin de la plongée, le Mister Coin qui rit sous le projecteur, et la question"""
+    im, pos = ZF.frame(.55+.45*inout(t/max(.1, HK-.6)), W, H, cy=900, ta=t+10); img = im[..., ::-1]
+    cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA'); s, c = surface()
+    plate(c, 540, 330, 1000, 330, ent(t-.05, .2))
+    pop_text(c, "PEUT-ON VRAIMENT", 540, 230, 66, t, .1, CREAM)
+    pop_text(c, "DEVENIR RICHE", 540, 330, 92, t, .45, YEL, rot=-.03)
+    pop_text(c, "EN JOUANT AU LOTO ?", 540, 435, 70, t, .9, CREAM)
+    cv.alpha_composite(to_img(s)); arr = np.asarray(cv.convert('RGB')).astype(np.float32)
+    fl = film(arr.copy(), t); arr = arr*.72+fl*.28
+    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
+    s, c = surface(); S.caption(c, "[Peut-on vraiment] devenir riche en jouant au [Loto]{NB}?".replace('{NB}', NB), a=ent(t-.1, .12)); out.alpha_composite(to_img(s))
+    return np.asarray(out.convert('RGB')).astype(np.float32)
+def frame(t):
+    if t < HK-XF/2: arr = hook(t)
+    elif t < HK+XF/2:
+        k = inout((t-(HK-XF/2))/XF); arr = hook(min(t, HK-1/FPS))*(1-k)+raw_x(max(0, t-HK))*k
+    else: arr = raw_x(t-HK)
     return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
 def cap_c(c, t):
     for k, (a, b, s_, hl) in enumerate(V.CAPS):
@@ -401,18 +422,20 @@ def cap_c(c, t):
             al = ease((t-a+.05)/.12)*(1-ease((t-(end-.12))/.12) if end-b > .1 or k+1 >= len(V.CAPS) else 1)
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al, y=820 if t < SC[1][0] else 1060); return
 def events():
+    return sorted([(.1, 'impact'), (.45, 'pop'), (.9, 'tadaa')]+[(a+HK, n) for (a, n) in _events()])
+def _events():
     zs, ze = V.ZOOM
-    ev = [e for e in V.events()] + [(ta-IR, 'whoosh') for ta in IRIS]
+    ev = [e for e in V.events()] + [(ta-XF/2, 'whoosh') for ta in IRIS]
     ev += [(.1, 'impact'), (.5, 'pop'), (1.95, 'bonk'), (2.15, 'thud'), (2.3, 'pop'), (5.05, 'pop'), (6.15, 'impact'), (8.63, 'pop'), (9.2, 'pop'), (10.23, 'pop'),
            (10.85, 'bonk'), (11.2, 'coin'), (12.7, 'thud'), (13.3, 'swish'), (13.6, 'fill1'), (15.6, 'coins')]
-    ev += [(16.5, 'impact'), (16.7, 'pop'), (16.95, 'pop'), (17.2, 'pop'), (17.45, 'pop'), (17.7, 'pop'), (17.95, 'bonk'), (zs+.15, 'riser'), (zs+.1+.92*(21.9-zs-.1), 'tadaa'), (ze+.05, 'thud'), (23.3, 'pop'), (24.6, 'crash'),
+    ev += [(16.5, 'impact'), (16.7, 'pop'), (16.95, 'pop'), (17.2, 'pop'), (17.45, 'pop'), (17.7, 'pop'), (17.95, 'bonk'), (zs+.15, 'riser'), (zs+.05+.92*(21.5-zs-.05), 'tadaa'), (ze+.05, 'thud'), (23.3, 'pop'), (24.6, 'crash'),
            (27.15, 'thud'), (27.6, 'swish'), (28.6, 'fill1'), (30.4, 'pop'), (30.95, 'whoosh'), (32.05, 'thud'), (32.2, 'pop'), (33.65, 'bonk')]
     ev += [(34.7, 'thud'), (36.3, 'impact'), (38.25, 'pop'), (39.05, 'impact'), (39.3, 'swish'), (39.5, 'fill2'), (40.9, 'coins'), (42.05, 'thud'), (42.3, 'swish'), (42.9, 'fill0'), (44.3, 'fill2'), (44.6, 'glint')]
     ev += [(37.6+i*.42, 'coin') for i in range(5)]+[(39.6+i*.32, 'coins' if i % 2 else 'coin') for i in range(5)]+[(41.4+i*.55, 'coin') for i in range(8)]   # pièces qui tombent de la machine
     ev += [(46.2, 'pop'), (46.75, 'bonk'), (49.2, 'pop'), (49.75, 'tadaa'), (53.1, 'thud'), (54.35, 'pop'), (55.4, 'pop'), (55.95, 'impact'), (57.05, 'thud'), (57.75, 'impact')]
     return sorted(ev)
 def main():
-    if sys.argv[1] == 'info': print(DUR); return
+    if sys.argv[1] == 'info': print(DUR_TOTAL); return
     if sys.argv[1] == 'png':
         os.makedirs(f'{D}/prev', exist_ok=True)
         for ts in sys.argv[2:]: frame(float(ts)).convert('RGB').save(f'{D}/prev/c_{ts}.png')
@@ -420,6 +443,6 @@ def main():
     out, a_, b_ = sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                            '-c:v', 'libx264', '-preset', 'medium', '-crf', '11', '-pix_fmt', 'yuv420p', out], stdin=subprocess.PIPE)
-    for k in range(a_, min(b_, int(DUR*FPS))): ff.stdin.write(frame(k/FPS).convert('RGB').tobytes())
-    ff.stdin.close(); ff.wait(); print('done', int(DUR*FPS))
+    for k in range(a_, min(b_, int(DUR_TOTAL*FPS))): ff.stdin.write(frame(k/FPS).convert('RGB').tobytes())
+    ff.stdin.close(); ff.wait(); print('done', int(DUR_TOTAL*FPS))
 if __name__ == '__main__': main()

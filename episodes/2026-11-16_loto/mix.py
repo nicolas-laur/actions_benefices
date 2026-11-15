@@ -320,7 +320,8 @@ def crackle(d):   # four à bois : crépitements doux + souffle chaud du feu
     return x
 def G(a, b, x): seg(a, b, x(b-a))
 import video_col as VC2
-_B = VC2.BLOCS
+_B = VC2.BLOCS_MIX
+G(0, _B[0][0], lambda d: babble(d)*.45+hum(d)*.5)                          # accroche : public du tirage
 G(_B[0][0], _B[0][1], lambda d: babble(d)*.3+ticktock(d)*.5)            # bureau de tabac : clients, pendule
 G(_B[1][0], _B[1][1], lambda d: babble(d)*.45+hum(d)*.5)                 # scène de tirage : public
 G(_B[2][0], _B[2][1], lambda d: crackle(d)*.3+ticktock(d)*.6)            # atelier de la machine

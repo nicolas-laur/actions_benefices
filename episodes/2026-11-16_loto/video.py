@@ -9,13 +9,20 @@ FPS = 60; VOICE = f'{D}/voice_full.wav'; VOICE_RAW = f'{D}/voix/voice_orig.wav'
 import wave
 def _d(p):
     with wave.open(p) as w: return w.getnframes()/w.getframerate()
-HK = round(_d(VOICE)-_d(VOICE_RAW), 4)                   # durée de l'accroche ajoutée devant (voix_accroche.py) : tout le reste est décalé d'autant
+import json
+_J = json.load(open(f'{D}/voix/accroche.json')); HA, HB, CUT = _J['A'], _J['B'], _J['CUT']
+# ligne de temps : 0-HA ouverture sur la foule (« S'enrichir en jouant au Loto ? Vraiment ? ») ; HA-HB scène d'ouverture du tabac (temps d'origine 0-CUT,
+# étirés) sous « Jouer au Loto toute ta vie… qui finit le plus riche ? » ; après HB, la voix d'origine à partir de CUT
+def to_raw(T): return None if T < HA else (T-HA)*CUT/(HB-HA) if T < HB else T-HB+CUT
+def from_raw(t): return HA+t*(HB-HA)/CUT if t < CUT else t-CUT+HB
 def tm(t): return t
-DUR_RAW = 60.4; DUR = HK+DUR_RAW; S.DUR = DUR_RAW
+DUR_RAW = 60.4; DUR = HB+DUR_RAW-CUT; S.DUR = DUR_RAW
+_O = HA-2.82                                             # décalage entre l'enregistrement de l'accroche et la vidéo
+HOOK_CAPS = [((_O+.1, _O+1.62), f"[S'enrichir] en jouant au [Loto]{NB}?"), ((_O+1.72, HA), f"[Vraiment]{NB}?"),
+             ((HA+.16, _O+6.0), "Jouer au [Loto] toute ta vie, ou bien [placer] le même montant"),
+             ((_O+6.0, _O+7.2), "chaque semaine en [bourse]."), ((_O+7.2, HB), f"Qui finit le plus [riche]{NB}?")]
 ZOOM = (18.75, 22.75)                                    # plongée dans la foule des 19 068 840 joueurs (remplace le décor)
-SRC = [((0.09, 3.64), f"Jouer au [Loto] toute ta vie, ou [placer] le même argent{NB}:", GD),
-    ((3.67, 4.80), f"qui finit le plus [riche]{NB}?", GD),
-    ((5.00, 7.20), f"Une grille coûte [2,20{NB}€].", GD),
+SRC = [((5.00, 7.20), f"Une grille coûte [2,20{NB}€].", GD),
     ((7.20, 10.80), f"Tu joues à chaque tirage, le lundi, le mercredi et le samedi{NB}:", GD),
     ((10.80, 12.66), f"[6,60{NB}€] par semaine.", GD),
     ((12.66, 16.40), f"De 25 à 65 ans, ça fait près de [14{NB}000{NB}€].", GD),

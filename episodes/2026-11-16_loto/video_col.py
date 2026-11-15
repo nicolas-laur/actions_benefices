@@ -11,7 +11,7 @@ import video as V
 import veo_coin as VC
 import zoom_foule as ZF
 from scenes import surface, to_img, rr, col, W, H, clamp, ease, rgb, NB
-FPS = 60; DUR = V.DUR_RAW; HK = V.HK; DUR_TOTAL = V.DUR; VOICE = V.VOICE; euro, tm = V.euro, V.tm
+FPS = 60; DUR = V.DUR_RAW; HA, HB = V.HA, V.HB; DUR_TOTAL = V.DUR; VOICE = V.VOICE; euro, tm = V.euro, V.tm
 def inout(x): x = clamp(x); return x*x*(3-2*x)
 def lerp(a, b, u): return a+(b-a)*u
 def ent(k, d=.45): return ease(k/d)
@@ -263,7 +263,7 @@ def b_tabac(cv, c, t, k):
     if t < 5.0:
         a = 1-ent(t-4.75, .25) if t > 4.75 else 1
         title(c, "LE LOTO", t, .1, 230, 92, YEL, t1=4.75)
-        title(c, "OU LE PLACEMENT ?", t, 2.15, 330, 66, CREAM, t1=4.75)
+        title(c, "OU LA BOURSE ?", t, 2.15, 330, 70, CREAM, t1=4.75)
         prop(c, 'grille_loto', 290, 560, h=310, k=t-.45, rot=-.12+.03*math.sin(t*2), a=a)
         if t > 1.9: pop_text(c, "VS", 540, 560, 90, t, 1.95, PINK, rot=-.08, a=a)
         if t > 2.25: prop(c, 'tirelire', 790, 575, w=290, k=t-2.3, a=a)
@@ -370,7 +370,7 @@ def b_verger(cv, c, t, k):
     if t > 59.0: plate(c, 540, 470, 760, 104, ent(t-59.05, .3)); paint(c, "Dis-le en commentaire", 500, 470, 54, a=ent(t-59.05, .3))
 SC = [(0.0, 16.4, b_tabac, 'tabac'), (16.4, 34.6, b_tirage, 'tirage'), (34.6, 46.0, b_machine, 'machine'), (46.0, DUR, b_verger, 'verger')]
 BLOCS = [(a, b, d) for (a, b, f, d) in SC]
-BLOCS_MIX = [(a+HK, b+HK, d) for (a, b, d) in BLOCS]                 # ligne de temps finale (après l'accroche), pour le mixage
+BLOCS_MIX = [(V.from_raw(a), V.from_raw(b), d) for (a, b, d) in BLOCS]                 # ligne de temps finale (après l'accroche), pour le mixage
 IRIS = [s_[0] for s_ in SC[1:]]+list(V.ZOOM); IR = .42
 MCX = [(0, 540), (SC[1][0], 540), (SC[2][0], 250), (SC[3][0], 540)]
 def raw(t):
@@ -396,25 +396,32 @@ def raw_x(t):
         if ta-XF/2 <= t < ta+XF/2:
             k = inout((t-(ta-XF/2))/XF); return raw(min(t, ta-1/FPS))*(1-k)+raw(max(t, ta))*k
     return raw(t)
+def hook_cap(c, T, y, first=0):
+    for (a_, b_), s_ in V.HOOK_CAPS[first:]:
+        if a_-.05 <= T < b_+.1: S.caption(c, s_, hl=S.GD, a=ent(T-a_+.05, .12)*(1-ent(T-b_, .1)), y=y); return
 def hook(t):
-    """accroche (0 à HK) : la fin de la plongée, le Mister Coin qui rit sous le projecteur, et la question"""
-    im, pos = ZF.frame(.55+.45*inout(t/max(.1, HK-.6)), W, H, cy=900, ta=t+10); img = im[..., ::-1]
+    """ouverture (0 à HA) : la fin de la plongée, le Mister Coin qui rit sous le projecteur, « S'enrichir en jouant au Loto ? Vraiment ? »"""
+    im, pos = ZF.frame(.7+.3*inout(t/max(.1, HA-.4)), W, H, cy=900, ta=t+10); img = im[..., ::-1]
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA'); s, c = surface()
-    plate(c, 540, 330, 1000, 330, ent(t-.05, .2))
-    pop_text(c, "PEUT-ON VRAIMENT", 540, 230, 66, t, .1, CREAM)
-    pop_text(c, "DEVENIR RICHE", 540, 330, 92, t, .45, YEL, rot=-.03)
-    pop_text(c, "EN JOUANT AU LOTO ?", 540, 435, 70, t, .9, CREAM)
+    plate(c, 540, 300, 1000, 260, ent(t-.05, .2))
+    pop_text(c, "S'ENRICHIR", 540, 250, 96, t, .15, YEL, rot=-.03)
+    pop_text(c, "EN JOUANT AU LOTO ?", 540, 355, 66, t, .55, CREAM)
+    t_v = V.HOOK_CAPS[1][0][0]
+    if t > t_v: plate(c, 540, 560, 560, 130, ent(t-t_v, .15)); pop_text(c, "VRAIMENT ?", 540, 560, 88, t, t_v, PINK, rot=.04)
     cv.alpha_composite(to_img(s)); arr = np.asarray(cv.convert('RGB')).astype(np.float32)
     fl = film(arr.copy(), t); arr = arr*.72+fl*.28
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
-    s, c = surface(); S.caption(c, "[Peut-on vraiment] devenir riche en jouant au [Loto]{NB}?".replace('{NB}', NB), a=ent(t-.1, .12)); out.alpha_composite(to_img(s))
+    s, c = surface(); hook_cap(c, t, 1060); out.alpha_composite(to_img(s))
     return np.asarray(out.convert('RGB')).astype(np.float32)
 def frame(t):
-    if t < HK-XF/2: arr = hook(t)
-    elif t < HK+XF/2:
-        k = inout((t-(HK-XF/2))/XF); arr = hook(min(t, HK-1/FPS))*(1-k)+raw_x(max(0, t-HK))*k
-    else: arr = raw_x(t-HK)
-    return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
+    if t < HA-XF/2: arr = hook(t)
+    elif t < HA+XF/2:
+        k = inout((t-(HA-XF/2))/XF); arr = hook(min(t, HA-1/FPS))*(1-k)+raw_x(V.to_raw(max(t, HA)))*k
+    else: arr = raw_x(V.to_raw(t))
+    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert('RGBA')
+    if HA-XF/2 <= t < HB+.2:                                  # sous-titres de la phrase d'ouverture (au-dessus de Mister Coin, comme dans le tabac)
+        s, c = surface(); hook_cap(c, t, 820, first=2); out.alpha_composite(to_img(s))
+    return out
 def cap_c(c, t):
     for k, (a, b, s_, hl) in enumerate(V.CAPS):
         nxt = V.CAPS[k+1][0] if k+1 < len(V.CAPS) else DUR; end = min(nxt, b+.45)
@@ -422,7 +429,8 @@ def cap_c(c, t):
             al = ease((t-a+.05)/.12)*(1-ease((t-(end-.12))/.12) if end-b > .1 or k+1 >= len(V.CAPS) else 1)
             S.caption(c, s_, hl=S.GD if hl in (S.GD, S.GR) else 'FF8A8A', a=al, y=820 if t < SC[1][0] else 1060); return
 def events():
-    return sorted([(.1, 'impact'), (.45, 'pop'), (.9, 'tadaa')]+[(a+HK, n) for (a, n) in _events()])
+    t_v = V.HOOK_CAPS[1][0][0]
+    return sorted([(.15, 'impact'), (.55, 'pop'), (t_v, 'bonk')]+[(V.from_raw(a), n) for (a, n) in _events() if a >= 0])
 def _events():
     zs, ze = V.ZOOM
     ev = [e for e in V.events()] + [(ta-XF/2, 'whoosh') for ta in IRIS]

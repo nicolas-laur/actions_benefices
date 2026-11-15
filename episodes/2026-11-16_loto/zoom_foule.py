@@ -48,7 +48,7 @@ def _build():
 def camera(u):
     """Paramètres de caméra le long de la plongée."""
     e = ease(u); e2 = ease(min(1, u*1.25))
-    dist = math.exp(math.log(75)+(math.log(2.6)-math.log(75))*e)       # distance à TOI (en personnages)
+    dist = math.exp(math.log(75)+(math.log(4.2)-math.log(75))*e)       # distance à TOI (en personnages)
     pitch = math.radians(36+(90-36)*e2)                                      # vue rasante -> verticale
     yaw = math.radians(28*(1-e)+6*math.sin(u*2.2))                           # légère rotation
     return dist, pitch, yaw

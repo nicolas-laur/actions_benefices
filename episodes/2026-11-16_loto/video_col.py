@@ -298,10 +298,19 @@ def b_tirage(cv, c, t, k):
                 pop_text(c, f"1 CHANCE SUR 3{NB}000", 540, 625, 78, t, 24.6, PINK, rot=-.03, a=a)
             if t > 25.7: paint(c, "de gagner le jackpot une seule fois", 540, 718, 40, a=ent(t-25.7, .3)*a)
         if 27.0 <= t < 32.0:
-            title(c, f"SUR 100{NB}€ JOUÉS", t, 27.15, 250, 72, CREAM, t1=31.9)
-            glass_bar(cv, t, 27.6, [(.5435, 'FFE27A', 'B97A12', f"54{NB}€", "reversés aux gagnants", 28.6, 'l'),
-                                    (.4565, 'C9C2D6', '6E6680', f"46{NB}€", "gardés", 30.4, 'r')], cy=640,
+            title(c, f"SUR 100{NB}€ MISÉS AU LOTO", t, 27.15, 250, 62, CREAM, t1=31.9)
+            glass_bar(cv, t, 27.6, [(.5435, 'FFE27A', 'B97A12', f"54{NB}€", "reviennent aux gagnants", 28.6, 'l'),
+                                    (.4565, 'C9C2D6', '6E6680', f"46{NB}€", "gardés par l'État et la FDJ", 30.4, 'r')], cy=640,
                       note="taux de retour aux joueurs du Loto : 54,35 % depuis le 4 mai 2026", t1=32.0)
+            if 30.9 < t < 32.0:                                     # les 46 € s'envolent : ils ne reviennent jamais aux joueurs
+                for i in range(12):
+                    u = (t-30.9-((i*5) % 12)*.05)/.85
+                    if not 0 < u < 1: continue
+                    x = 610+(i*131) % 170+18*math.sin(u*5+i*1.7); y = 690-(i*23) % 70-330*ease(u); r_ = 19+(i % 3)*3
+                    c.save(); c.translate(x, y); c.scale(1, .55+.45*abs(math.cos(u*9+i)))
+                    g = cairo.RadialGradient(-5, -5, 2, 0, 0, r_)
+                    for st_, cc in ((0, 'FFF1A8'), (1, 'B8860B')): r1, g1, b1 = rgb(cc)[:3]; g.add_color_stop_rgba(st_, r1, g1, b1, 1-u)
+                    c.arc(0, 0, r_, 0, 2*math.pi); c.set_source(g); c.fill_preserve(); c.set_source_rgba(.23, .14, .07, 1-u); c.set_line_width(3); c.stroke(); c.restore()
         if t >= 32.0:
             title(c, "EN MOYENNE", t, 32.05, 250, 76, CREAM)
             prop(c, "ticket_froisse", 540, 520, h=300, k=t-32.2, rot=-.1+.04*math.sin(t*3))
@@ -397,7 +406,7 @@ def events():
     ev += [(.1, 'impact'), (.5, 'pop'), (1.95, 'bonk'), (2.15, 'thud'), (2.3, 'pop'), (5.05, 'pop'), (6.15, 'impact'), (8.63, 'pop'), (9.2, 'pop'), (10.23, 'pop'),
            (10.85, 'bonk'), (11.2, 'coin'), (12.7, 'thud'), (13.3, 'swish'), (13.6, 'fill1'), (15.6, 'coins')]
     ev += [(16.5, 'impact'), (16.7, 'pop'), (16.95, 'pop'), (17.2, 'pop'), (17.45, 'pop'), (17.7, 'pop'), (17.95, 'bonk'), (zs+.15, 'riser'), (zs+.1+.92*(21.9-zs-.1), 'tadaa'), (ze+.05, 'thud'), (23.3, 'pop'), (24.6, 'crash'),
-           (27.15, 'thud'), (27.6, 'swish'), (28.6, 'fill1'), (30.4, 'pop'), (32.05, 'thud'), (32.2, 'pop'), (33.65, 'bonk')]
+           (27.15, 'thud'), (27.6, 'swish'), (28.6, 'fill1'), (30.4, 'pop'), (30.95, 'whoosh'), (32.05, 'thud'), (32.2, 'pop'), (33.65, 'bonk')]
     ev += [(34.7, 'thud'), (36.3, 'impact'), (38.25, 'pop'), (39.05, 'impact'), (39.3, 'swish'), (39.5, 'fill2'), (40.9, 'coins'), (42.05, 'thud'), (42.3, 'swish'), (42.9, 'fill0'), (44.3, 'fill2'), (44.6, 'glint')]
     ev += [(37.6+i*.42, 'coin') for i in range(5)]+[(39.6+i*.32, 'coins' if i % 2 else 'coin') for i in range(5)]+[(41.4+i*.55, 'coin') for i in range(8)]   # pièces qui tombent de la machine
     ev += [(46.2, 'pop'), (46.75, 'bonk'), (49.2, 'pop'), (49.75, 'tadaa'), (53.1, 'thud'), (54.35, 'pop'), (55.4, 'pop'), (55.95, 'impact'), (57.05, 'thud'), (57.75, 'impact')]

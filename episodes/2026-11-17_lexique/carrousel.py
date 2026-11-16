@@ -42,12 +42,20 @@ def coin(cv, pose, cx, feet, h=430, flip=False):
     g = cairo.RadialGradient(0, 0, 0, 0, 0, 1); g.add_color_stop_rgba(0, 0, 0, 0, .65); g.add_color_stop_rgba(1, 0, 0, 0, 0); c.set_source(g); c.arc(0, 0, 1, 0, 2*math.pi); c.fill(); c.restore()
     cv.alpha_composite(to_img(s)); cv.alpha_composite(im, (int(cx-im.width/2), int(feet-h+6)))
     return (cx-im.width/2, feet-h, cx+im.width/2, feet)
-def bulle_pres(c, s_, bb, size=34, k=.3):
-    """bulle collée à Mister Coin : elle part juste à droite de lui, pointe courte vers sa tête"""
-    w = tw(c, s_, 'xb', size)+60; h = size*2.0; x0 = bb[2]+26; y = bb[1]+(bb[3]-bb[1])*k
+def bulle_pres(c, s_, bb, size=34, k=.3, xmax=930):
+    """bulle collée à Mister Coin : elle part juste à droite de lui, pointe courte vers sa tête ; passe sur deux lignes si elle dépasserait x = xmax (icônes des applis)"""
+    x0 = bb[2]+26; y = bb[1]+(bb[3]-bb[1])*k; lines = s_.split('|')
+    if len(lines) == 1 and tw(c, s_, 'xb', size)+60 > xmax-x0:
+        m = s_.split(' '); best = None
+        for i in range(1, len(m)):
+            a, b = ' '.join(m[:i]), ' '.join(m[i:]); v = max(tw(c, a, 'xb', size), tw(c, b, 'xb', size))
+            if best is None or v < best[0]: best = (v, [a, b])
+        lines = best[1]
+    w = max(tw(c, l, 'xb', size) for l in lines)+60; lh = size*1.25; h = size*2.0+lh*(len(lines)-1)
     c.move_to(x0+16, y-15); c.line_to(x0-22, y+24); c.line_to(x0+16, y+13); c.close_path(); col(c, WHITE); c.fill()
-    rr(c, x0, y-h/2, w, h, h/2); col(c, WHITE); c.fill()
-    text(c, s_, x0+w/2, y, 'xb', size, INK, 'c')
+    rr(c, x0, y-h/2, w, h, min(h/2, size)); col(c, WHITE); c.fill()
+    for j, l in enumerate(lines): text(c, l, x0+w/2, y+(j-(len(lines)-1)/2)*lh, 'xb', size, INK, 'c')
+    assert x0+w <= xmax+1, (s_, x0+w)
 def bulle(c, s, x, y, tip, size=34):
     """bulle de BD blanche, pointe vers (tip) = la tête de Mister Coin"""
     w = tw(c, s, 'xb', size)+64; h = size*2.1; x0 = x-w/2; y0 = y-h/2
@@ -194,21 +202,21 @@ FICHES = [  # (sigle, développé, explication, exemple, emoji de l'exemple, pos
  ("PEA", "Plan d'épargne en actions", "Une enveloppe pour investir en actions européennes et en ETF éligibles, avec moins d'impôts après 5 ans.",
   f"Jusqu'à 150{NB}000{NB}€ de versements. Après 5 ans, plus d'impôt sur le revenu sur tes gains.", '🇫🇷', 'pouce', "Mon préféré !", 'banque', 'FFB020'),
  ("CTO", "Compte-titres ordinaire", "Le compte sans limite : toutes les actions du monde, pas de plafond… mais aucun avantage fiscal.",
-  "Tes gains y sont taxés au PFU (voir plus loin).", '🌍', 'montre', "Sans plafond", 'gare', 'FFB020'),
+  "Tes gains y sont taxés au PFU (voir plus loin).", '🌍', 'montre', "Direction le monde !", 'gare', 'FFB020'),
  ("ETF", "Fonds indiciel coté (« tracker »)", "Un panier d'entreprises que tu achètes en un seul clic. Il copie un indice, avec des frais très bas.",
-  f"Un ETF MSCI World : environ 1{NB}250 entreprises d'un coup.", '🧺', 'joie', "Tout en un clic", 'rayons', '3FE08A'),
+  f"Un ETF MSCI World : environ 1{NB}250 entreprises d'un coup.", '🧺', 'joie', "WHAOU !|Tout en un clic !", 'rayons', '3FE08A'),
  ("MSCI World", "L'indice des pays développés", "Les grandes et moyennes entreprises de 23 pays développés. C'est l'indice que copient beaucoup d'ETF.",
-  "Environ 73 % d'entreprises américaines, et ni la Chine ni l'Inde.", '🌐', 'montre', "Le monde entier ?", 'machine', '35D6FF'),
+  "Environ 73 % d'entreprises américaines, et ni la Chine ni l'Inde.", '🌐', 'montre', "Le monde entier ?|Pas tout à fait !", 'machine', '35D6FF'),
  ("DCA", "Dollar Cost Averaging", "Investir la même somme à intervalles réguliers, quoi qu'il arrive, pour lisser son prix d'achat.",
-  "100 € le 5 de chaque mois, sans regarder les cours.", '📅', 'pouce', "Pas de stress", 'chambre', '3FE08A'),
+  "100 € le 5 de chaque mois, sans regarder les cours.", '📅', 'pouce', "Pas de stress ma poule", 'chambre', '3FE08A'),
  ("PER", "Plan d'épargne retraite", "Une épargne bloquée jusqu'à la retraite, et tes versements réduisent ton impôt sur le revenu (dans une limite).",
   "Un versement fait avant le 31 décembre compte pour les impôts de l'année.", '🏖️', 'joie', "Moins d'impôts !", 'verger', 'FFB020'),
  ("PER", "… Price Earnings Ratio !", "Le piège : même sigle, rien à voir. C'est le prix d'une action divisé par ce qu'elle gagne par action.",
-  "PER de 20 : l'action coûte 20 ans de bénéfices (s'ils restent stables).", '🧮', 'choc', "Rien à voir ?!", 'banque', 'FF5A3C'),
+  "PER de 20 : l'action coûte 20 ans de bénéfices (s'ils restent stables).", '🧮', 'joie', "Super important celui-ci,|retiens-le !", 'banque', 'FF5A3C'),
  ("PFU", "Prélèvement forfaitaire unique", "La « flat tax » sur tes gains hors PEA et assurance vie : 12,8 % d'impôt + 18,6 % de prélèvements sociaux.",
   f"1{NB}000{NB}€ de plus-value en CTO : 314{NB}€ pour l'État en 2026.", '💸', 'triste', "Aïe…", 'tabac', 'FF5A3C'),
  ("IPO", "Initial Public Offering", "L'introduction en bourse : le jour où une entreprise vend pour la première fois ses actions au public.",
-  "Airbnb est entrée en bourse en décembre 2020.", '🔔', 'rire', "Ding ding !", 'tirage', 'FFB020'),
+  "Airbnb est entrée en bourse en décembre 2020.", '🔔', 'rire', "Oh, tiens,|voilà un petit nouveau !", 'tirage', 'FFB020'),
  ("BCE", "Banque centrale européenne", "Elle fixe les taux d'intérêt de la zone euro pour tenir l'inflation autour de 2 % par an.",
   "Son taux de change de référence sert aussi à nos conversions dollar → euro.", '🏦', 'montre', "Le chef d'orchestre", 'gare', '35D6FF'),
 ]
@@ -231,7 +239,7 @@ def s_cover(cv, c):
         for j, s_ in enumerate(sig):
             x = 105+(j % 3)*270; yy = 70+(j//3)*120; text(k, s_, x+60, yy, 'a', 58, WHITE if s_ != "PER" else 'FF8A8A', 'c')
     tp(cv, 860, 380, dr, 540, 960, 'or', rx=.04)
-    bb = coin(cv, 'question', 230, 1478, 260); bulle_pres(c, "Tu les connais tous ?", bb, 30, .2)
+    bb = coin(cv, 'question', 230, 1478, 260); bulle_pres(c, "Tu les connais tous ?|Allez viens, on révise ensemble !", bb, 30, .2)
     text(c, "SWIPE", 920, 1420, 'xb', 28, WHITE, 'r', .85, 4); put_emoji(cv, '👉', 965, 1418, 48)
 def s_fin(cv, c):
     glow_text(cv, "LEQUEL TU NE", 540, 330, 100, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)

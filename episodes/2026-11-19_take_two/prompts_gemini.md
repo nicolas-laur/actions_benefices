@@ -39,3 +39,4 @@ Montage : la scène quitte vers le haut (zoom arrière rapide), fondu vers carte
 
 ## Reçus le 16/11
 Décors : decor_boulevard, decor_2013, decor_tour, decor_plage_nuit (dans `decors/`). Plans de Mister Coin : mc_venice, mc_cabriolet, mc_pier, mc_billets, mc_poursuite (dans `plans/`). Manquent : mc_yacht et les trois images de carte pour la transition.
+Cartes reçues le 16/11 (dossier `cartes/`) : carte_rue et carte_quartier (vue verticale, midi, cohérentes), carte_quartier_marina (même quartier avec marina et jetée, même altitude), carte_ville_v2_oblique_midi (vue oblique, lumière cohérente ; v1 au coucher du soleil écartée). Décision : on s'arrête là ; le sommet de la montée utilise carte_ville_v2, très bref, flouté par le mouvement et sous le voile de carte.

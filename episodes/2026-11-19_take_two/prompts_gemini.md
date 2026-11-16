@@ -10,9 +10,21 @@ Bloc commun (à coller à la fin de chaque prompt de décor) :
 3. [decor_tour] (le résultat, l'action qui monte) : "A futuristic glass skyscraper at golden sunset seen from below, its windows reflecting pink and orange clouds, a rooftop helipad, money bills gently floating in the warm wind around the tower. The camera slowly tilts up the tower."
 4. [decor_plage_nuit] (le piège et la fin) : "A beach at dusk under a violet sky, a lifeguard tower with soft neon lights, palm trees silhouetted, gentle waves, a pier with a Ferris wheel slowly turning in the distance. Static camera, smooth continuous motion."
 
-## Mister Coin en tenue de vacances (optionnel)
+## Mister Coin en action (plans complets, Veo, 9:16, 8 s)
 
-Étape 1, image de référence (Gemini image, fond vert) : à partir de `mister_coin/veo/classique_reference_marges_16x9.jpg` :
-"Same character exactly as drawn (same 1930s rubber-hose cartoon style, colors, outlines and proportions), now wearing a colorful Hawaiian shirt with flowers and dark round sunglasses, keeping his top hat. Standing in the same neutral pose, flat solid green background (#00FF00), same framing with large green margins."
-Étape 2, 3 clips Veo (16:9) avec cette nouvelle image et le bloc commun habituel (`mister_coin/veo/PROMPTS_GEMINI.md`) : [vacances_parle_enthousiaste], [vacances_parle_explique], [vacances_joie].
-Sans ces clips, on garde Mister Coin classique et je lui dessine seulement des lunettes de soleil au montage.
+Ce sont des plans finis, avec le décor : pas de fond vert, pas besoin de refaire toutes ses attitudes. Image jointe : `mister_coin/veo/classique_reference_marges_16x9.jpg`.
+
+Bloc commun (à coller à la fin de chaque prompt de plan) :
+"The attached character, exactly as drawn: same 1930s rubber-hose cartoon coin with face, same colors, thick outlines and proportions, same top hat, now wearing a colorful flowered Hawaiian shirt and round dark sunglasses. He is placed in a bold illustrated video game loading-screen world with thick ink outlines, cel shading, saturated sunset colors. Vertical 9:16. Cartoon action, playful and fun, no blood, no real weapons, no people from any existing game, no text, no logos, no brand names. Smooth continuous motion, no cuts."
+
+Partie 1, Los Angeles (l'époque GTA 5) :
+1. [mc_venice] « He rollerblades along the Venice Beach boardwalk in Los Angeles at golden hour, palm trees, skate park and muscle beach in the background, waving at the camera. Tracking shot following him. »
+2. [mc_cabriolet] « He drives a shiny red convertible along a coastal highway above the Pacific at sunset, one hand on the wheel, the other arm on the door, wind in his shirt. Side tracking shot, then the car speeds away. »
+3. [mc_pier] « He stands on the hood of his convertible parked near a Santa Monica style pier with a Ferris wheel, at dusk, raising his arms like a winner, neon lights turning on behind him. »
+
+Partie 2, bascule dans l'ambiance GTA 6 (Miami néon) :
+4. [mc_billets] « On a neon-lit Miami street at night, he stands on the roof of his convertible and fires a money gun into the air: a cartoon stream of banknotes flies everywhere and rains down, cartoon police sirens flash pink and blue in the background. Low angle shot. »
+5. [mc_poursuite] « Cartoon car chase at night through a neon tropical city: he drives his convertible fast, cartoon police cars with flashing lights behind him, the car jumps over a small ramp in slow motion, banknotes flying out of the car. »
+6. [mc_yacht] (fin) « He relaxes on the deck of a white yacht at sunset off a tropical skyline, sunglasses on, holding a video game controller, then turns to the camera with a big smile. Slow orbit around him. »
+
+Pourquoi un pistolet à billets et pas une vraie fusillade : TikTok et Instagram réduisent la diffusion des vidéos avec des armes (et Veo refuse souvent de les générer). Le pistolet à billets garde l'esprit GTA, et il colle au sujet : l'argent.

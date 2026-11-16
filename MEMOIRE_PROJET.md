@@ -107,7 +107,7 @@ Le texte complet des 26 prompts Gemini, avec le statut de chaque clip, est dans 
 - Sujets retirés gardés dans la roadmap (meta/reserve).
 
 ## Novembre (état au 16/11)
-- Épisodes depuis le 01/11 : iPhone/actions (04), Ubisoft (05), News (06 et 13, carrousels), « Pourquoi tu restes pauvre » (07), pub Instagram (07), « Comment commencer à s'enrichir » (09), Boeing (10), actions ou obligations (11), or (12), millionnaire (14), dividendes (16, style 1930 noir et blanc, gros succès Instagram), Loto (16, v5, 64 s), lexique des sigles (17, carrousel).
+- Dossiers d'épisodes depuis le 01/11 (date du dossier, voir la roadmap pour les dates de publication réelles) : iPhone/actions, Ubisoft, News du 06 et du 13 (carrousels), « Pourquoi tu restes pauvre », pub Instagram, « Comment commencer à s'enrichir », Boeing, actions ou obligations, or, millionnaire, dividendes (style 1930 noir et blanc, gros succès Instagram), Loto (v5, 64 s), lexique des sigles (carrousel du 17).
 - Le style « cartoon 1930 » avec décors Gemini affinés par Real-ESRGAN (13/11) est devenu le standard des vidéos : voir `docs/formats/video_1930.md`.
 - Point d'orgue de la semaine : Take-Two / GTA 6 le 19/11 (DA dédiée, `docs/formats/gta.md`), puis carrousel News sur les résultats Nvidia le 20/11. Le 25/11 : arbitrage à faire entre « les 10 % les plus riches » et le Black Friday.
 - La publicité Instagram lancée début novembre continue et fonctionne ; les vidéos récentes font des vues.

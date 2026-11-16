@@ -28,3 +28,14 @@ Partie 2, bascule dans l'ambiance GTA 6 (Miami néon) :
 6. [mc_yacht] (fin) « He relaxes on the deck of a white yacht at sunset off a tropical skyline, sunglasses on, holding a video game controller, then turns to the camera with a big smile. Slow orbit around him. »
 
 Pourquoi un pistolet à billets et pas une vraie fusillade : TikTok et Instagram réduisent la diffusion des vidéos avec des armes (et Veo refuse souvent de les générer). Le pistolet à billets garde l'esprit GTA, et il colle au sujet : l'argent.
+
+## Transition « changement de personnage » (demandée le 16/11)
+Référence : `references/transition_gta.mp4` (capture d'écran d'une vidéo YouTube, non versionnée, à ne pas réutiliser telle quelle). Le principe, emblématique du jeu : la caméra quitte la scène en montant d'un coup jusqu'à une vue satellite de la ville (léger voile vert/gris, grille de carte), glisse au-dessus de la carte, puis replonge en trois paliers vers la scène suivante, avec un « whoosh » sourd à chaque palier. On la recrée avec nos propres images, sans rien reprendre du jeu.
+Images fixes à générer (Gemini image, format 9:16, la plus haute définition possible), même ville fictive vue strictement de dessus :
+1. [carte_ville] « Strict top-down satellite photo of a fictional tropical coastal city at golden hour: grid of streets, palm-lined boulevards, beaches, a marina with yachts, a pier, glass towers casting long shadows, no text, no labels, no logos, photorealistic aerial imagery. »
+2. [carte_quartier] « Same fictional tropical city, strict top-down satellite view closer in: one neighbourhood with a palm-lined seaside boulevard, art deco rooftops, pools, parked convertibles, no text, no labels, no logos. »
+3. [carte_rue] « Same city, strict top-down aerial view very close: a single seaside street corner from above, palm tree crowns, cars, sidewalk, beach edge, no text, no labels, no logos. »
+Montage : la scène quitte vers le haut (zoom arrière rapide), fondu vers carte_rue puis carte_quartier puis carte_ville (zoom arrière continu), court glissement, puis chemin inverse vers la scène suivante. Deux usages prévus : passage Los Angeles → nouvelle ambiance Miami, et éventuellement retour vers la fin.
+
+## Reçus le 16/11
+Décors : decor_boulevard, decor_2013, decor_tour, decor_plage_nuit (dans `decors/`). Plans de Mister Coin : mc_venice, mc_cabriolet, mc_pier, mc_billets, mc_poursuite (dans `plans/`). Manquent : mc_yacht et les trois images de carte pour la transition.

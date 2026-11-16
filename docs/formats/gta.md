@@ -1,0 +1,8 @@
+# DA « façon GTA 6 » (validée par Nicolas le 14/11, épisode Take-Two du 19/11, à produire le mercredi 18)
+- Polices (licence libre OFL, fichiers et licences dans `fonts/`) : titres en `ArchivoBlack-Regular.ttf`, minuscules, blanc, contour violet-noir (25, 8, 35) d'environ 6–7 px, ombre portée floue ; chiffres et montants en `BigShouldersDisplay-Black.ttf` (haute et condensée, rappelle Pricedown), jaune doré (255, 214, 90), même contour. Aperçu de référence : `fonts/apercu_da_gta.jpg`. Pas de flèche dans les polices : la dessiner (polygone, même couleur et contour).
+- Pricedown (police historique de GTA) écartée : sa licence gratuite interdit l'usage sur serveurs et services cloud. Passion One écartée (trop enfantine).
+- Ambiance : dégradé coucher de soleil rose-orange (255, 150, 110) vers violet (90, 40, 140), palmiers, néons, front de mer, voitures de sport ; grille de cases de BD aux bords violet foncé façon écran de chargement, avec nos propres scènes ; Mister Coin en chemise hawaïenne et lunettes de soleil. Format 60 s.
+- Ouverture : Mister Coin dans des lieux emblématiques façon Los Santos (Venice Beach) avant de basculer très vite dans l'ambiance du nouveau GTA ; Nicolas ajoute lui-même la musique tendance (Justice).
+- Plans d'action de Mister Coin générés par Nicolas (prompts dans `episodes/2026-11-19_take_two/prompts_gemini.md`) : jamais de vraies armes (pistolet à billets à la place).
+- Logo Take-Two autorisé par Nicolas. Jamais de logo GTA, de « VI » géant, de personnages (Lucia, Jason…) ni de visuels officiels de Rockstar.
+- Chiffres à mettre à jour le 18/11 : voir `episodes/2026-11-19_take_two/script.md`.

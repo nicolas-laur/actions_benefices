@@ -1,4 +1,4 @@
-# Actions_Bénéfices : mémoire du projet (état au 28 octobre 2026)
+# Actions_Bénéfices : mémoire du projet (historique depuis le début ; état détaillé au 28 octobre, complété au 16 novembre)
 
 Ce document rassemble tout ce qui a été décidé, produit et appris depuis le début du projet. Il complète `CLAUDE.md` (consignes de production), `mister_coin/README.md` (kit historique de la mascotte) et l'historique Git.
 
@@ -105,3 +105,10 @@ Le texte complet des 26 prompts Gemini, avec le statut de chaque clip, est dans 
 - Décisions de Nicolas : 5 publications par semaine (lundi recherche, mardi histoire soignée, jeudi 15 s, vendredi carrousel Les News, samedi série ou 3D) ; test de l'accroche question contre le chiffre choc sur les 8 premières vidéos de la phase 2.
 - Boussole : % vu en entier (TikTok Studio). Cibles phase 2 : médiane 1 000, 50 % vu en entier, 50 abonnés TikTok, 300 Instagram ; phase 3 : 1 500, 60 %, 150, 500.
 - Sujets retirés gardés dans la roadmap (meta/reserve).
+
+## Novembre (état au 16/11)
+- Épisodes depuis le 01/11 : iPhone/actions (04), Ubisoft (05), News (06 et 13, carrousels), « Pourquoi tu restes pauvre » (07), pub Instagram (07), « Comment commencer à s'enrichir » (09), Boeing (10), actions ou obligations (11), or (12), millionnaire (14), dividendes (16, style 1930 noir et blanc, gros succès Instagram), Loto (16, v5, 64 s), lexique des sigles (17, carrousel).
+- Le style « cartoon 1930 » avec décors Gemini affinés par Real-ESRGAN (13/11) est devenu le standard des vidéos : voir `docs/formats/video_1930.md`.
+- Point d'orgue de la semaine : Take-Two / GTA 6 le 19/11 (DA dédiée, `docs/formats/gta.md`), puis carrousel News sur les résultats Nvidia le 20/11. Le 25/11 : arbitrage à faire entre « les 10 % les plus riches » et le Black Friday.
+- La publicité Instagram lancée début novembre continue et fonctionne ; les vidéos récentes font des vues.
+- 16/11 : réorganisation pour économiser les tokens (CLAUDE.md court, fiches par format dans `docs/formats/`, journal `docs/retours.md`, gabarit `lib/carrousel.py`) et règle « une session par épisode ».

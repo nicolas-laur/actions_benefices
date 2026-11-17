@@ -1,103 +1,167 @@
-"""Transition « changement de personnage » façon GTA, recréée avec nos images (prompts_gemini.md, 16/11) :
-la scène part vers le haut, trois paliers de carte de plus en plus haut (rue, quartier, ville), un court survol,
-puis trois paliers de descente vers la scène suivante. Voile vert-gris et grille de carte sur les vues satellite.
-Images : cartes/carte_rue, carte_quartier, carte_ville_v2_oblique_midi, carte_quartier_marina (Gemini, 1438×2576).
-image(u, depart, arrivee) : u en secondes depuis le début de la transition (durée DUREE), depart/arrivee = fonctions u → image 1080×1920.
-son(sr) : bruitages fabriqués (aucun son du jeu) : whoosh montant, impacts sourds à chaque palier, souffle du survol, whoosh descendants.
-python3 transition_satellite.py → tmp/transition_seule.wav (écoute du son seul)"""
+"""Transition « changement de personnage » façon GTA, v2 (17/11) : rythme, étalonnage et son calqués sur la capture de Nicolas
+(references/transition_gta.mp4, vidéo YouTube « google maps gta zoom effect », mesurée image par image et au spectre).
+Mesures de la référence (secondes depuis le début de l'effet) :
+  départ 0,73 s (vue de dessus, froide) ; trois paliers de montée toutes les 0,60 s (coupe nette, flash +40 %, aberration
+  chromatique sur les bords) ; glissement latéral rapide 0,47 s ; survol tenu 2,57 s (dérive lente, image froide désaturée) ;
+  descente : palier 1 vert léger 2,63 s, palier 2 vert franc 2,60 s, palier 3 jaune chaud 1,10 s ; plongée en rotation 1,15 s.
+  Son : coup sourd très grave à 45–47 Hz sur chaque palier (attaque nette, corps vers 330 Hz, queue 0,4 s en montée, ~1 s en
+  descente), bourdon grave (45 et 66 Hz) pendant le survol, souffle d'air discret (250–800 Hz, −30 dB) entre les paliers de
+  descente, grand souffle aigu au début de la plongée, grondement jusqu'à l'arrivée.
+On recrée tout avec nos images (cartes Gemini) et nos sons fabriqués : rien n'est repris du jeu ni de la capture.
+image(u, depart, arrivee) ; son(sr) → stéréo ; python3 transition_satellite.py → tmp/transition_seule.wav"""
 import os, functools
 import numpy as np, cv2
+from scipy import signal
 D = os.path.dirname(os.path.abspath(__file__)); W, H = 1080, 1920
-DUREE = 2.2
-# paliers (u de début) : montée, rue, quartier, ville + survol, marina, marina ×2, plongée vers la scène
-P_RUE, P_QUA, P_VIL, P_MAR, P_MA2, P_PLO = .35, .60, .85, 1.35, 1.60, 1.85
+
+# ---------- calage (mesuré sur la référence) ----------
+T_DEP = 0.73; T_UP = [0.73, 1.33, 1.93]; T_GLI = 2.56; T_TEN = 3.03; T_D1 = 5.60; T_D2 = 8.23; T_D3 = 10.83; T_PLO = 11.93
+DUREE = 13.08
 
 @functools.lru_cache(maxsize=None)
 def carte(nom):
     return cv2.cvtColor(cv2.imread(f'{D}/cartes/{nom}.jpg'), cv2.COLOR_BGR2RGB).astype(np.float32)
-def vue(nom, z=1.0, dx=0.0, dy=0.0, flou=0.0):
-    """cadre 1080×1920 dans la carte : z = grossissement (1 = toute la largeur), dx/dy = décalage en fraction de largeur/hauteur"""
-    c = carte(nom); h, w = c.shape[:2]; cw, ch = w/z, w/z*H/W
+def vue(nom, z=1.0, dx=0.0, dy=0.0, rot=0.0):
+    """cadre 1080×1920 dans la carte : z = grossissement (1 = toute la largeur), dx/dy en fraction, rot en degrés"""
+    c = carte(nom); h, w = c.shape[:2]; cw = w/z; s = W/cw
     cx, cy = w/2+dx*w, h/2+dy*h
-    M = np.float32([[W/cw, 0, -(cx-cw/2)*W/cw], [0, W/cw, -(cy-ch/2)*W/cw]])
-    im = cv2.warpAffine(c, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
-    if flou > .3: im = cv2.GaussianBlur(im, (0, 0), flou)
-    return im
-def voile(im, force=1.0):
-    """voile vert-gris et grille de carte (vue satellite du jeu, recréée)"""
-    g = im.mean(2, keepdims=True); v = im*.5+g*.5; v = v*.78+np.array((92, 118, 104), np.float32)*.22
-    grille = np.zeros((H, W), np.float32)
-    for x in range(30, W, 120): grille[:, x:x+2] = 1
-    for y in range(0, H, 120): grille[y:y+2] = 1
-    v = v*(1-.18*grille[..., None])+235*.18*grille[..., None]
-    yy, xx = np.mgrid[0:H, 0:W]; vig = 1-.35*(((xx-W/2)/(W*.75))**2+((yy-H/2)/(H*.75))**2)
-    v = v*vig[..., None]
-    return im*(1-force)+v*force
-def zoom_img(im, s, flou=0.0):
-    """agrandit (s > 1) ou rapetisse (s < 1) une image plein cadre autour du centre"""
-    M = cv2.getRotationMatrix2D((W/2, H/2), 0, s)
-    o = cv2.warpAffine(im, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
-    return cv2.GaussianBlur(o, (0, 0), flou) if flou > .3 else o
-def ease(x): x = min(1, max(0, x)); return 1-(1-x)**3
-def flash(im, u, t0, d=.07, a=.35):
-    """bref voile clair à l'arrivée d'un palier (ressenti d'impact)"""
-    k = max(0, 1-(u-t0)/d) if u >= t0 else 0
-    return im*(1-a*k)+255*a*k
-def image(u, depart, arrivee):
-    if u < P_RUE:                                   # la scène s'envole : zoom arrière rapide puis fondu vers la rue vue d'en haut
-        k = ease(u/P_RUE); s_ = 1-.55*k                # la scène rapetisse et s'enfonce dans la carte (pas de bords en miroir)
-        M = cv2.getRotationMatrix2D((W/2, H/2), 0, s_)
-        sc = cv2.warpAffine(depart(u), M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-        m = cv2.warpAffine(np.ones((H, W), np.float32), M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-        if k > .05: sc = cv2.GaussianBlur(sc, (0, 0), 5*k); m = cv2.GaussianBlur(m, (0, 0), 3)
-        rue = voile(vue('carte_rue', 1.5-.25*k, flou=4*(1-k)))
-        a = m*(1-min(1, max(0, (u-.2)/.15)))
-        return sc*a[..., None]+rue*(1-a[..., None])
-    if u < P_QUA: im = voile(vue('carte_rue', 1.12-.12*ease((u-P_RUE)/.12))); return flash(im, u, P_RUE)
-    if u < P_VIL: im = voile(vue('carte_quartier', 1.12-.12*ease((u-P_QUA)/.12))); return flash(im, u, P_QUA)
-    if u < P_MAR:                                   # sommet : la ville, brève, floutée par le mouvement, avec un glissement latéral
-        g = (u-P_VIL)/(P_MAR-P_VIL); im = voile(vue('carte_ville_v2_oblique_midi', 1.08-.08*ease(g*3), dx=-.06+.12*g, flou=2.5))
-        return flash(im, u, P_VIL)
-    if u < P_MA2: im = voile(vue('carte_quartier_marina', 1.0+.12*ease((u-P_MAR)/.25))); return flash(im, u, P_MAR)
-    if u < P_PLO: im = voile(vue('carte_quartier_marina', 1.9+.15*ease((u-P_MA2)/.25), dy=.05)); return flash(im, u, P_MA2)
-    k = ease((u-P_PLO)/(DUREE-P_PLO))               # plongée : zoom avant dans la carte, fondu vers la scène d'arrivée qui se pose
-    m = voile(vue('carte_quartier_marina', 2.05+2.5*k, dy=.05, flou=5*k), 1-k)
-    sc = zoom_img(arrivee(u), 1.6-.6*k, flou=5*(1-k))
-    a = min(1, max(0, (k-.35)/.5)); return m*(1-a)+sc*a
+    M = cv2.getRotationMatrix2D((cx, cy), rot, s); M[0, 2] += W/2-cx; M[1, 2] += H/2-cy
+    return cv2.warpAffine(c, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+def ease(x): x = min(1, max(0, x)); return x*x*(3-2*x)
 
-# ---------- son ----------
-def _bruit(n, rng): return rng.standard_normal(n).astype(np.float32)
-def _passe_bande(x, sr, f_lo, f_hi):
-    X = np.fft.rfft(x); f = np.fft.rfftfreq(len(x), 1/sr); X[(f < f_lo) | (f > f_hi)] = 0; return np.fft.irfft(X, len(x)).astype(np.float32)
-def whoosh(sr, d, monte=True, rng=None):
-    rng = rng or np.random.default_rng(1); n = int(d*sr); x = _bruit(n, rng); out = np.zeros(n, np.float32); B = 8
-    for i in range(B):                              # balayage de bande : bruit filtré dont la fréquence monte (ou descend)
-        a, b = i*n//B, (i+1)*n//B; k = i/(B-1) if monte else 1-i/(B-1); fc = 250*(14**k)
-        out[a:b] = _passe_bande(x, sr, fc*.6, fc*1.6)[a:b]
-    t = np.linspace(0, 1, n); env = np.sin(np.pi*t)**1.5 if monte else (1-t)**1.2*np.minimum(1, t*12)
-    return out*env/ (np.abs(out).max()+1e-6)
-def impact(sr, fort=1.0, rng=None):
-    rng = rng or np.random.default_rng(2); d = .38 if fort > 1 else .26; n = int(d*sr); t = np.arange(n)/sr
-    f = 95*np.exp(-t*9)+38; ph = 2*np.pi*np.cumsum(f)/sr; boum = np.sin(ph)*np.exp(-t*(9 if fort > 1 else 14))
-    clic = _passe_bande(_bruit(n, rng), sr, 600, 5000)*np.exp(-t*90)*.5
-    return (boum+clic)*.9*fort
-def survol(sr, d, rng=None):
-    rng = rng or np.random.default_rng(3); n = int(d*sr); x = _passe_bande(_bruit(n, rng), sr, 120, 900)
-    t = np.linspace(0, 1, n); return x/np.abs(x).max()*np.sin(np.pi*t)*.45
-def son(sr=48000):
-    rng = np.random.default_rng(7); out = np.zeros(int((DUREE+.6)*sr), np.float32)
-    def pose(x, t, g=1.0):
-        a = int(t*sr); b = min(len(out), a+len(x)); out[a:b] += x[:b-a]*g
-    pose(whoosh(sr, .42, True, rng), 0, .55)
-    for p in (P_RUE, P_QUA, P_VIL): pose(impact(sr, 1.0, rng), p, .55)
-    pose(survol(sr, P_MAR-P_VIL+.1, rng), P_VIL, .5)
-    for p in (P_MAR, P_MA2): pose(whoosh(sr, .22, False, rng), p-.05, .35); pose(impact(sr, 1.0, rng), p, .5)
-    pose(whoosh(sr, DUREE-P_PLO, False, rng), P_PLO, .45); pose(impact(sr, 1.4, rng), DUREE, .7)
+# ---------- étalonnage ----------
+_yy, _xx = np.mgrid[0:H, 0:W].astype(np.float32)
+_R = np.sqrt(((_xx-W/2)/(W/2))**2+((_yy-H/2)/(H/2))**2)
+_VIG = np.clip(1-.30*_R**2, .45, 1)[..., None]
+def grade(im, mode, k=1.0):
+    g = im.mean(2, keepdims=True)
+    if mode == 'froid':   o = (g+(im-g)*.30)*np.array((.96, 1.02, 1.04), np.float32)                 # gris bleuté désaturé
+    elif mode == 'vert1': o = (g+(im-g)*.55)*np.array((1.00, 1.12, .82), np.float32)                 # vert-jaune léger
+    elif mode == 'vert2': o = ((g+(im-g)*.6)*np.array((.98, 1.22, .70), np.float32)-128)*1.12+128     # vert franc, contraste
+    elif mode == 'chaud': o = (g+(im-g)*.75)*np.array((1.12, 1.08, .74), np.float32)+10              # jaune chaud, lumière de jour
+    else: o = im
+    return im*(1-k)+o*k
+def aberration(im, a):
+    """décalage radial du rouge et du bleu (bords irisés), a ≈ 0,01"""
+    if a < 1e-3: return im
+    out = im.copy()
+    for ch, s in ((0, 1+a), (2, 1-a)):
+        M = cv2.getRotationMatrix2D((W/2, H/2), 0, s); out[..., ch] = cv2.warpAffine(im[..., ch], M, (W, H), borderMode=cv2.BORDER_REFLECT)
     return out
+def finition(im, u, onsets, flash=.40):
+    """à chaque palier : flash bref (+40 %) et aberration forte qui retombent en 0,3 s ; aberration légère permanente ; vignette ; grain"""
+    k = max([0.0]+[np.exp(-(u-t)/.10) for t in onsets if u >= t])
+    im = aberration(im, .004+.016*k)
+    im = im*(1+flash*k)
+    rng = np.random.default_rng(int(u*1000)); im = im+rng.normal(0, 4, (H//2, W//2, 1)).astype(np.float32).repeat(2, 0).repeat(2, 1)
+    return np.clip(im*_VIG, 0, 255)
+def flou_dir(im, dx):
+    """flou de bougé horizontal (glissement)"""
+    n = int(abs(dx))
+    if n < 2: return im
+    k = np.zeros((1, n), np.float32); k[:] = 1/n; return cv2.filter2D(im, -1, k)
+
+def image(u, depart, arrivee):
+    ON = [T_DEP]+T_UP[1:]+[T_D1, T_D2, T_D3]
+    if u < T_DEP:                                                   # départ : la scène vire au froid et recule
+        k = ease(u/T_DEP); im = depart(u)
+        M = cv2.getRotationMatrix2D((W/2, H/2), 0, 1-.08*k); im = cv2.warpAffine(im, M, (W, H), borderMode=cv2.BORDER_REFLECT)
+        return finition(grade(im, 'froid', min(1, u/.25)), u, [0.0], flash=.25)
+    if u < T_UP[1]: im = grade(vue('carte_rue', 1.30-.10*(u-T_UP[0])/.6), 'froid')
+    elif u < T_UP[2]: im = grade(vue('carte_quartier', 1.25-.10*(u-T_UP[1])/.6), 'froid')
+    elif u < T_GLI: im = grade(vue('carte_ville_v2_oblique_midi', 1.20-.06*(u-T_UP[2])/.63, dx=-.08), 'froid')
+    elif u < T_TEN:                                                 # glissement latéral rapide, flou de bougé
+        g = ease((u-T_GLI)/(T_TEN-T_GLI)); v = np.sin(np.pi*g)
+        im = flou_dir(grade(vue('carte_ville_v2_oblique_midi', 1.14, dx=-.08+.16*g), 'froid'), 90*v)
+    elif u < T_D1: im = grade(vue('carte_ville_v2_oblique_midi', 1.14+.05*(u-T_TEN)/(T_D1-T_TEN), dx=.08, dy=-.01*(u-T_TEN)), 'froid')
+    elif u < T_D2: im = grade(vue('carte_quartier_marina', 1.00+.05*(u-T_D1)/(T_D2-T_D1), dy=.02), 'vert1')
+    elif u < T_D3: im = grade(vue('carte_quartier_marina', 1.90+.08*(u-T_D2)/(T_D3-T_D2), dx=.04, dy=.05), 'vert2')
+    elif u < T_PLO: im = grade(vue('carte_quartier_marina', 3.40+.10*(u-T_D3)/(T_PLO-T_D3), dx=.06, dy=.07), 'chaud')
+    else:                                                           # plongée : zoom et rotation dans la carte, la scène arrive en tournant
+        k = ease((u-T_PLO)/(DUREE-T_PLO))
+        m = grade(vue('carte_quartier_marina', 3.5*(1+2.2*k**1.5), dx=.06, dy=.07, rot=-38*k), 'chaud')
+        sc = arrivee(u); M = cv2.getRotationMatrix2D((W/2, H/2), 22*(1-k), 1+.7*(1-k))
+        sc = cv2.warpAffine(sc, M, (W, H), borderMode=cv2.BORDER_REFLECT); sc = grade(sc, 'chaud', .5*(1-k))
+        a = ease((k-.35)/.5); im = m*(1-a)+sc*a
+        out = finition(im, u, ON); fin = ease((k-.75)/.25)       # l'image se « nettoie » (vignette et grain retirés) à l'arrivée
+        return out*(1-fin)+np.clip(sc, 0, 255)*fin
+    return finition(im, u, ON)
+
+# ---------- son (fabriqué) ----------
+def _bp(x, sr, lo, hi, o=4): return signal.sosfilt(signal.butter(o, [lo, hi], 'bandpass', fs=sr, output='sos'), x)
+def _lp(x, sr, f, o=4): return signal.sosfilt(signal.butter(o, f, 'lowpass', fs=sr, output='sos'), x)
+def _hp(x, sr, f, o=4): return signal.sosfilt(signal.butter(o, f, 'highpass', fs=sr, output='sos'), x)
+def coup(sr, queue=.45, gain=1.0, rng=None, punch=0.0, brillance=.18):
+    """coup sourd du palier : sous-grave 46 Hz (léger glissement de 62 à 46 Hz à l'attaque), harmonique, corps à 330 Hz, attaque claire"""
+    rng = rng or np.random.default_rng(1); d = queue*4+.2; n = int(d*sr); t = np.arange(n)/sr
+    f = 46+16*np.exp(-t/.035); ph = 2*np.pi*np.cumsum(f)/sr
+    env = (1-np.exp(-t/.004))*np.exp(-t/queue)
+    sub = np.tanh(1.6*(np.sin(ph)+.28*np.sin(2*ph+.4)))*env
+    corps = _bp(rng.standard_normal(n), sr, 220, 480)*np.exp(-t/(queue*.45)); corps /= np.abs(corps).max()+1e-9
+    clic = _hp(rng.standard_normal(n), sr, 1800)*np.exp(-t/.010); clic /= np.abs(clic).max()+1e-9
+    mid = _bp(rng.standard_normal(n), sr, 600, 2200)*np.exp(-t/(queue*.6)); mid /= np.abs(mid).max()+1e-9    # grain médium du coup
+    p = np.sin(2*np.pi*np.cumsum(88+30*np.exp(-t/.02))/sr)*(1-np.exp(-t/.003))*np.exp(-t/.09)   # « punch » vers 88 Hz (paliers de descente)
+    return (sub*.95+corps*.10*(1-np.exp(-t/.003))+clic*brillance+p*punch+mid*.06)*gain
+def bourdon(sr, d, rng=None):
+    rng = rng or np.random.default_rng(2); n = int(d*sr); t = np.arange(n)/sr
+    x = np.sin(2*np.pi*45.5*t)+.8*np.sin(2*np.pi*66*t+1)+.45*np.sin(2*np.pi*132*t+2)+.35*_lp(rng.standard_normal(n), sr, 160)*3
+    am = .75+.25*np.sin(2*np.pi*.7*t); env = np.minimum(1, t/.4)*np.minimum(1, np.maximum(0, d-t)/.5)
+    return np.tanh(x*.8)*am*env*.45
+def air(sr, d, rng=None):
+    rng = rng or np.random.default_rng(3); n = int(d*sr); t = np.arange(n)/sr
+    x = _bp(rng.standard_normal(n), sr, 220, 850); x /= np.abs(x).max()+1e-9
+    env = np.minimum(1, t/.8)*np.minimum(1, np.maximum(0, d-t)/.3)*(.8+.2*np.sin(2*np.pi*.35*t))
+    return x*env*.075
+def souffle(sr, d, rng=None, lo=1500, hi=12000):
+    """souffle (glissement, début de plongée) : bruit filtré qui enfle puis retombe"""
+    rng = rng or np.random.default_rng(4); n = int(d*sr); t = np.linspace(0, 1, n)
+    x = _bp(rng.standard_normal(n), sr, lo, hi); x /= np.abs(x).max()+1e-9
+    return x*np.sin(np.pi*t)**2*.5
+def reverbe(x, sr, d=1.6, mix=.22, seed=5):
+    """réverbération synthétique (bruit à décroissance exponentielle, assombri), stéréo décorrélée"""
+    rng = np.random.default_rng(seed); n = int(d*sr); t = np.arange(n)/sr; outs = []
+    for ch in range(2):
+        ir = _lp(rng.standard_normal(n), sr, 3500)*np.exp(-t/(d/6.9)); ir /= np.sqrt((ir**2).sum())
+        outs.append(signal.fftconvolve(x, ir)[:len(x)])
+    return np.stack([x*(1-mix)+outs[0]*mix*3, x*(1-mix)+outs[1]*mix*3], 1)
+def son(sr=48000):
+    rng = np.random.default_rng(11); L = int((DUREE+1.5)*sr); out = np.zeros(L, np.float64)
+    def pose(x, t, g=1.0):
+        a = int(t*sr); b = min(L, a+len(x)); out[a:b] += x[:b-a]*g
+    pose(coup(sr, .35, .8, rng), 0.0)                                    # départ
+    for t in T_UP: pose(coup(sr, .30, 1.0, rng), t)                       # trois paliers de montée
+    pose(souffle(sr, T_TEN-T_GLI+.15, rng, 400, 6000), T_GLI-.05, .7); pose(coup(sr, .30, .55, rng), T_GLI+.15)
+    pose(bourdon(sr, T_D1-T_GLI+.3, rng), T_GLI)                          # survol
+    for t, nxt in ((T_D1, T_D2), (T_D2, T_D3)):                           # paliers de descente : coup long puis souffle d'air
+        pose(coup(sr, .30, 1.0, rng, punch=.7, brillance=.45), t); pose(air(sr, nxt-t-.5, rng), t+.5)
+    pose(coup(sr, .35, 1.0, rng, punch=.5, brillance=.3), T_D3); pose(souffle(sr, .45, rng, 600, 7000), T_D3+.08, .9)
+    pose(bourdon(sr, DUREE-T_D3+.4, rng)*.8, T_D3+.3)                    # grondement jusqu'à l'arrivée
+    pose(souffle(sr, DUREE-T_PLO+.2, rng, 300, 3000), T_PLO, .18); pose(coup(sr, .5, .7, rng), DUREE)
+    st = reverbe(out, sr); return st/np.abs(st).max()*10**(-1/20)
+
 if __name__ == '__main__':
     import wave
-    s = son(); s = s/max(1e-6, np.abs(s).max())*10**(-1/20)
-    os.makedirs(f'{D}/tmp', exist_ok=True)
+    os.makedirs(f'{D}/tmp', exist_ok=True); s = son()
     with wave.open(f'{D}/tmp/transition_seule.wav', 'wb') as w:
-        w.setnchannels(1); w.setsampwidth(2); w.setframerate(48000); w.writeframes((s*32767).astype(np.int16).tobytes())
-    print('ok', len(s)/48000, 's')
+        w.setnchannels(2); w.setsampwidth(2); w.setframerate(48000); w.writeframes((s*32767).astype(np.int16).tobytes())
+    print('son ok', round(len(s)/48000, 2), 's')
+
+def demo(avant=1.5, apres=2.5, fps=30, nom='demo_transition'):
+    """démo de la transition seule (bruitages seuls) : la jetée de Los Angeles, la transition, la rue de Miami"""
+    import subprocess, wave
+    def plan(n, t0):
+        cap = cv2.VideoCapture(f'{D}/plans/{n}.mp4'); cap.set(cv2.CAP_PROP_POS_FRAMES, int(t0*24)); ok, f = cap.read(); cap.release()
+        return cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_LANCZOS4).astype(np.float32)
+    dep = lambda u: plan('mc_pier', 2.0+u); arr = lambda u: plan('mc_billets', 1.0+(u-DUREE))
+    sr = 48000; s = son(sr); tot = avant+DUREE+apres; a = np.zeros((int(tot*sr), 2)); k = int(avant*sr); n = min(len(s), len(a)-k); a[k:k+n] = s[:n]
+    with wave.open(f'{D}/tmp/{nom}.wav', 'wb') as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr); w.writeframes((a*32767).astype(np.int16).tobytes())
+    ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(fps), '-i', '-',
+                           '-i', f'{D}/tmp/{nom}.wav', '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '256k', '-shortest', f'{D}/{nom}.mp4'], stdin=subprocess.PIPE)
+    for i in range(int(tot*fps)):
+        t = i/fps; u = t-avant
+        im = dep(u) if u < 0 else (image(u, dep, arr) if u < DUREE else arr(u))
+        ff.stdin.write(np.clip(im, 0, 255).astype(np.uint8).tobytes())
+    ff.stdin.close(); ff.wait(); print('démo ok', nom)
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'demo': demo()

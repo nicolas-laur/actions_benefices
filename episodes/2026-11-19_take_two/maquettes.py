@@ -161,25 +161,39 @@ def verre(img, x, y, w, h, mood='or'):
     return np.asarray(cv.convert('RGB')).astype(np.float32)
 
 # ---------- sous-titres mot à mot (ligne de 760 px max, y ≈ 1040, mot clé en jaune) ----------
+def _rr(img, x0, y0, x1, y1, r, coul, a):
+    """rectangle arrondi plein, fondu dans l'image"""
+    m = np.zeros((H, W), np.uint8); x0, y0, x1, y1, r = map(int, (x0, y0, x1, y1, r))
+    cv2.rectangle(m, (x0+r, y0), (x1-r, y1), 255, -1); cv2.rectangle(m, (x0, y0+r), (x1, y1-r), 255, -1)
+    for cx, cy in ((x0+r, y0+r), (x1-r, y0+r), (x0+r, y1-r), (x1-r, y1-r)): cv2.circle(m, (cx, cy), r, 255, -1, cv2.LINE_AA)
+    m = m[..., None]/255*a; return img*(1-m)+np.array(coul, np.float32)*m
 def sous_titre(img, t):
+    """sous-titres comme les épisodes précédents (loto) : la ligne entière toujours centrée sur x = 540, sur une plaque arrondie ;
+    mot à mot = les mots déjà dits en blanc plein, les suivants estompés ; mot clé sur une pastille or une fois dit"""
     ph = next((p for p in PH if p[0] <= t < p[1]+.15), None)
     if ph is None: return img
-    a, b, s, cle = ph; mots = s.split(' ')
+    a, b, s, cle = ph; mots = s.split(' '); T = 46; PAD = 18
     k = max(1, min(len(mots), int((t-a)/max(.1, b-a)*len(mots))+1))         # mot courant (réparti à la longueur, en attendant un calage fin)
-    # groupe de mots tenant sur une ligne autour du mot courant
-    lignes, cur = [], []
-    for m in mots:
-        if cur and largeur(' '.join(cur+[m]), 50, F_SUB, 0) > 760: lignes.append(cur); cur = []
-        cur.append(m)
-    lignes.append(cur); i = 0
-    for L in lignes:
-        if k <= i+len(L): break
-        i += len(L)
-    vis = L[:k-i]; X = (W-largeur(' '.join(L), 50, F_SUB, 0))//2
-    img = plaque(img, X-24, 1012, X+largeur(' '.join(L), 50, F_SUB, 0)+24, 1098, .6)
-    for m in vis:
-        c = GOLD if any(w in cle.split(' ') for w in [m.strip(',.:?…')]) or m.strip(',.:?…') in cle.split(' ') else (255, 255, 255)
-        img = texte(img, m, 1022, 50, police=F_SUB, coul=c, contour=0, x=X, ombre=None); X += largeur(m+' ', 50, F_SUB, 0)
+    cles = set(cle.split(' '))
+    est_cle = [m.strip(',.:?…') in cles for m in mots]
+    wd = [largeur(m, T, F_SUB, 0)+(2*PAD if c else 0) for m, c in zip(mots, est_cle)]; sp = largeur(' ', T, F_SUB, 0)+4
+    lignes, cur, cw = [], [], 0
+    for i, w in enumerate(wd):
+        need = w+(sp if cur else 0)
+        if cur and cw+need > 760: lignes.append((cur, cw)); cur, cw = [], 0; need = w
+        cur.append(i); cw += need
+    lignes.append((cur, cw))
+    li = next(j for j, (idx, _) in enumerate(lignes) if k-1 in idx)                # une seule ligne à l'écran : celle du mot courant
+    idx, lw = lignes[li]; x = 540-lw/2; y = 1020
+    img = _rr(img, x-30, y-14, x+lw+30, y+T+30, 26, INK, .72)
+    for i in idx:
+        dit = i < k
+        if est_cle[i] and dit:
+            img = _rr(img, x, y-8, x+wd[i], y+T+22, 14, (255, 196, 74), 1.0)
+            img = texte(img, mots[i], y-2, T, police=F_SUB, coul=INK, contour=0, x=int(x+PAD), ombre=None)
+        else:
+            img = texte(img, mots[i], y-2, T, police=F_SUB, coul=(255, 255, 255), contour=0, x=int(x+(PAD if est_cle[i] else 0)), ombre=None, alpha=1.0 if dit else .42)
+        x += wd[i]+sp
     return img
 
 # ---------- cadre façon écran de chargement ----------
@@ -206,7 +220,25 @@ def mosaique(t, plans=('mc_venice', 'mc_cabriolet', 'mc_billets', 'mc_poursuite'
         tile = np.zeros_like(img); tile[y0:y1, x0:x1] = g[oy:oy+h, ox:ox+w]; img = img*(1-m[..., None])+tile*m[..., None]
     for a, b in (((0, 690), (1080, 610)), ((560, 648), (500, 1333)), ((0, 1360), (1080, 1300))):
         cv2.line(img, a, b, BORD, 26, cv2.LINE_AA)
-    return img
+    return neons(img, t)
+ROSE, CYAN = (255, 60, 190), (40, 210, 255)
+NEONS = [(((0, 690), (1080, 610)), ROSE, 0.0), (((560, 648), (500, 1333)), CYAN, .35), (((0, 1360), (1080, 1300)), ROSE, .7),
+         (((16, 16), (1064, 16)), CYAN, .15), (((1064, 16), (1064, 1904)), ROSE, .5), (((1064, 1904), (16, 1904)), CYAN, .85), (((16, 1904), (16, 16)), ROSE, .3)]
+def neons(img, t, vitesse=.55, n=48):
+    """séparations et cadre en tubes néon rose et bleu (DA de GTA 6) ; des éclats de lumière glissent le long des tubes"""
+    lum = np.zeros((H, W, 3), np.float32); coeur = np.zeros((H, W, 3), np.float32)
+    for (a, b), c, ph in NEONS:
+        a, b = np.array(a, np.float32), np.array(b, np.float32)
+        for i in range(n):
+            u0, u1 = i/n, (i+1)/n; um = (u0+u1)/2
+            d = ((um-(t*vitesse+ph)) % 1.0); d = min(d, 1-d)                    # distance à l'éclat qui avance
+            k = .45+.55*np.exp(-(d/.07)**2)+.25*np.exp(-(min((um-(t*vitesse*.6+ph+.5)) % 1.0, 1-(um-(t*vitesse*.6+ph+.5)) % 1.0)/.05)**2)
+            p0 = tuple(int(v) for v in a+(b-a)*u0); p1 = tuple(int(v) for v in a+(b-a)*u1)
+            cv2.line(lum, p0, p1, tuple(float(v)*k for v in c), 16, cv2.LINE_AA)
+            cv2.line(coeur, p0, p1, tuple(float(min(255, v*.35+255*.65))*min(1, k) for v in c), 5, cv2.LINE_AA)
+    halo = cv2.GaussianBlur(lum, (0, 0), 14)*1.3+cv2.GaussianBlur(lum, (0, 0), 4)*.8
+    m = (coeur.max(2, keepdims=True) > 0)*1.0
+    return np.clip(img+halo, 0, 255)*(1-m)+np.clip(coeur*1.0+halo, 0, 255)*m
 @functools.lru_cache(maxsize=1)
 def cours():
     """cours mensuels réels (donnees/ttwo_mensuel.csv) : départ 17,70 $ le 17/09/2013, arrivée = dernière clôture (COURS_FIN)"""

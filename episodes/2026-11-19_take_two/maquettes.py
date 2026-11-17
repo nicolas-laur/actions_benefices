@@ -226,7 +226,10 @@ def image(t):
     else: img = frame(pl('mc_yacht'), t, T3+26.4-5.5, 1.0)
     # ---- textes par scène, style des carrousels : gros mots en Anton, phrases en Inter Display, sans contour, ombre douce ----
     if TS <= t < T_BIL: pass                                                   # transition : image seule
-    elif t < T_CAB: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)
+    elif t < T_VEN: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)     # mosaïque : titre en grand
+    elif t < T_CAB:                                                             # Venice : titre sur une ligne, au-dessus du chapeau
+        wa = largeur('GTA 6', 104, F_ANT, 0); wb = largeur("sort aujourd'hui", 58, F_TIT, 0); x0 = (W-(wa+28+wb))//2
+        img = A(img, 'GTA 6', 190, 104, x=x0); img = I(img, "sort aujourd'hui", 222, 58, x=x0+wa+28)
     elif t < T_PIE: img = I(img, 'Cotée en', 250, 80); img = A(img, 'BOURSE ?', 345, 170, GOLD)
     elif t < TS:
         if t >= T2-.1:
@@ -281,10 +284,36 @@ def image(t):
     return cadre(img)
 
 CLES = [(0.0, 'image 0 · mosaïque'), (3.5, 'venice'), (7.5, 'cabriolet · bourse ?'), (12.0, 'jetée · rockstar'),
-        (TS+.4, 'transition · départ'), (TS+1.5, 'transition · montée'), (TS+3.5, 'transition · survol'), (TS+5.4, 'transition · vert'),
-        (TS+7.3, 'transition · plongée'), (T_BIL+2.0, "miami · l'action ou le jeu ?"), (T13+3.0, '2013 · 17,70 $'), (T13+7.5, '800 m$ en 24 h'),
-        (TM+4.6, 'le résultat'), (T3+6.5, 'précommandes'), (T3+18.4, '1,4 × contre 5,7 ×'), (T3+27.6, 'question finale')]
+        (TS+.4, 'transition · départ'), (TS+1.5, 'transition · montée'), (TS+3.5, 'transition · survol'), (TS+4.4, 'transition · vert'),
+        (TS+6.5, 'transition · jaune'), (TS+7.6, 'transition · plongée'), (T_BIL+2.0, "miami · l'action ou le jeu ?"), (T13+3.0, '2013 · 17,70 $'),
+        (T13+7.5, '800 m$ en 24 h'), (TM+1.1, 'le résultat · courbe'), (TM+4.6, 'le résultat · montant'), (T3+2.0, "ton gta 5"),
+        (T3+6.5, 'précommandes'), (T3+11.5, 'attention'), (T3+15.5, '1,4 ×'), (T3+18.4, '1,4 × contre 5,7 ×'),
+        (T3+20.5, 'le succès…'), (T3+23.5, '…déjà dans le prix'), (T3+26.0, 'décevoir'), (T3+27.6, 'question finale')]
 TRANS = [T_CAB+.02, T_PIE+.02, TS-.02, T_BIL+.02, T13+.02, TM+.05, T3+3.82, T3+9.62, T3+26.42]          # contrôle des coupes (texte sur texte)
+def ambiance(sr, t0, t1, niveau=-30.0, baisse_voix=8.0):
+    """son d'ambiance des vidéos générées (Veo et décors), très bas : chaque extrait ramené à niveau dBFS efficaces,
+    baissé de baisse_voix dB quand la voix parle, fondus de 0,4 s aux coupes ; la musique de Nicolas passe par-dessus"""
+    import subprocess, wave
+    TAB = [('plans/mc_venice', 1.2, T_CAB, 1.2), ('plans/mc_cabriolet', T_CAB, T_PIE, T_CAB-.5), ('plans/mc_pier', T_PIE, TS+1.0, T_PIE-.6),
+           ('plans/mc_billets', T_BIL-.8, T13, T_BIL-.4), ('decors/decor_2013', T13, TM, T13), ('decors/decor_tour', TM, T3+3.8, TM),
+           ('plans/mc_poursuite', T3+3.8, T3+9.6, T3+3.8-1.0), ('decors/decor_plage_nuit', T3+9.6, T3+26.4, T3+9.6), ('plans/mc_yacht', T3+26.4, FIN, T3+26.4-5.5)]
+    out = np.zeros((int((t1-t0)*sr), 2), np.float32)
+    for (f, a, b, deb) in TAB:
+        a, b = max(a, t0), min(b, t1)
+        if b <= a: continue
+        raw = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', f'{D}/{f}.mp4', '-f', 's16le', '-ac', '2', '-ar', str(sr), '-'], capture_output=True).stdout
+        x = np.frombuffer(raw, np.int16).reshape(-1, 2).astype(np.float32)/32768
+        x = x/max(1e-6, np.sqrt((x**2).mean()))*10**(niveau/20)
+        n = int((b-a)*sr); i0 = int(max(0, a-deb)*sr)
+        idx = (i0+np.arange(n)) % len(x); seg = x[idx]                       # boucle si l'extrait dépasse les 8 s du clip
+        fd = min(int(.4*sr), n//2); env = np.ones(n, np.float32); env[:fd] = np.linspace(0, 1, fd); env[-fd:] = np.linspace(1, 0, fd)
+        k = int((a-t0)*sr); out[k:k+n] += seg*env[:, None]
+    import wave as _w
+    v = np.frombuffer(_w.open(f'{D}/voix/voice_provisoire.wav').readframes(10**9), np.int16).astype(np.float32)/32768
+    v = v[int(t0*sr):int(t0*sr)+len(out)]; v = np.pad(v, (0, len(out)-len(v)))
+    from scipy.ndimage import maximum_filter1d, uniform_filter1d
+    parle = uniform_filter1d(maximum_filter1d((np.abs(v) > .02).astype(np.float32), int(.25*sr)), int(.15*sr))
+    return out*(10**(-baisse_voix*parle/20))[:, None]
 def assembler_voix():
     """voix provisoire : segments posés selon SEGS, trou de TMD pour la phrase du montant, troisième morceau à T3"""
     import wave
@@ -299,7 +328,7 @@ def demo(t0=0.0, t1=None, fps=30, nom='demo_accroche'):
     import subprocess, wave
     t1 = t1 or T13+1.0; out = f'{D}/tmp/{nom}'; assembler_voix()
     sr = 48000; v = np.frombuffer(wave.open(f'{D}/voix/voice_provisoire.wav').readframes(10**9), np.int16).astype(np.float32)/32768
-    a = np.stack([v[int(t0*sr):int(t1*sr)]]*2, 1); fx = TSAT.son(sr); k = int((TS-t0)*sr); n = min(len(a)-k, len(fx)); a[k:k+n] += fx[:n]*.8
+    a = np.stack([v[int(t0*sr):int(t1*sr)]]*2, 1); a += ambiance(sr, t0, t1)[:len(a)]; fx = TSAT.son(sr); k = int((TS-t0)*sr); n = min(len(a)-k, len(fx)); a[k:k+n] += fx[:n]*.8
     a = a/max(1, np.abs(a).max()/10**(-1/20))
     with wave.open(out+'.wav', 'wb') as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr); w.writeframes((a*32767).astype(np.int16).tobytes())
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(fps), '-i', '-',
@@ -320,8 +349,8 @@ if __name__ == '__main__':
         v = cv2.resize(im, (360, 640), interpolation=cv2.INTER_AREA)[..., ::-1].copy()
         cv2.rectangle(v, (0, 600), (360, 640), (35, 8, 25), -1); cv2.putText(v, f'{t:4.1f}s  {lab}', (8, 628), cv2.FONT_HERSHEY_SIMPLEX, .55, (255, 255, 255), 1, cv2.LINE_AA)
         vign.append(v); print(i, round(t, 2), lab, flush=True)
-    while len(vign) % 4: vign.append(np.zeros_like(vign[0]))
-    pl_ = np.vstack([np.hstack(vign[i:i+4]) for i in range(0, len(vign), 4)])
+    while len(vign) % 6: vign.append(np.zeros_like(vign[0]))
+    pl_ = np.vstack([np.hstack(vign[i:i+6]) for i in range(0, len(vign), 6)])
     cv2.imwrite(f'{D}/maquettes_take_two_{os.environ.get("VERSION", "v")}.jpg', pl_, [cv2.IMWRITE_JPEG_QUALITY, 88])
     cv2.imwrite(f'{out}/planche_bd.jpg', cv2.resize(pl_, None, fx=.5, fy=.5), [cv2.IMWRITE_JPEG_QUALITY, 75])
     tr = [cv2.resize(np.clip(image(t), 0, 255).astype(np.uint8), (270, 480))[..., ::-1] for t in TRANS]

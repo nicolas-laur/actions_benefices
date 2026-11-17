@@ -10,3 +10,4 @@
 - Prix : 79,99 $ l'édition standard (BeInCrypto).
 - Valorisation : 5,7 fois les ventes annuelles contre 1,4 fois en 2013 (Motley Fool, 11/11/2026), à recalculer au cours du 17/11.
 - Sortie de GTA VI : 19/11/2026 (Take-Two, Rockstar).
+- Courbe du résultat : cours de clôture mensuels de Take-Two de septembre 2013 à octobre 2026 (Digrin, « TTWO Price History », relevé le 17/11/2026), copiés dans `donnees/ttwo_mensuel.csv`, plus 17,70 $ au départ et la dernière clôture à l'arrivée. Prix non ajustés : aucune division d'action ni aucun dividende sur la période.

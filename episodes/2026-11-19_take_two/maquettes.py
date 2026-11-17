@@ -18,6 +18,8 @@ INK = (25, 8, 35); GOLD = (255, 214, 90); BORD = (38, 14, 58)
 V1, V2, V3 = 8.28, 19.80, 28.53                      # durées des trois morceaux reçus le 17/11
 T2 = V1+.35; TM = T2+V2+.25; TMD = 5.0; T3 = TM+TMD+.3; FIN = T3+V3+1.2
 # phrases (début, fin, texte, mot clé) — repérées sur les silences de chaque morceau
+import transition_satellite as TSAT
+TS = 3.4                                              # départ de la transition satellite (arrivée à TS+2,2 s sur la rue de Miami)
 PH = [(0.00, 4.52, "GTA 6, le jeu le plus attendu de la décennie, sort aujourd'hui.", "aujourd'hui"),
       (4.99, 7.94, "Savais-tu que l'entreprise derrière le jeu est cotée en bourse ?", "bourse"),
       (T2+0.00, T2+4.53, "Rockstar, le studio de GTA, appartient à Take-Two, cotée à New York.", "Take-Two"),
@@ -58,6 +60,7 @@ def pose(img, clip, tl):
     rgb, a = coin().layer(T_ABS[0])
     return img*(1-a[..., None])+rgb*a[..., None]
 T_ABS = [0.0]
+REG = {'verres': [], 'objets': []}            # contrôle automatique : chaque texte ou graphique posé sur un verre doit rester dans son intérieur
 
 # ---------- textes DA GTA ----------
 @functools.lru_cache(maxsize=None)
@@ -68,11 +71,13 @@ def texte(img, s, y, taille, police=F_TIT, coul=(255, 255, 255), contour=7, x=No
     f = font(police, taille); bb = f.getbbox(s, stroke_width=contour); w = bb[2]-bb[0]
     X = (W-w)//2-bb[0] if x is None else x
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    if ombre:
+    if ombre is True:
         sh = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).text((X+6, y+9), s, font=f, fill=(10, 0, 20, 170), stroke_width=contour, stroke_fill=(10, 0, 20, 170))
         lay = Image.alpha_composite(lay, sh.filter(ImageFilter.GaussianBlur(7))); d = ImageDraw.Draw(lay)
     d.text((X, y), s, font=f, fill=coul+(255,), stroke_width=contour, stroke_fill=INK+(255,))
     a = np.asarray(lay).astype(np.float32); m = a[..., 3:]/255*alpha
+    bx = np.asarray(lay.getchannel('A')).nonzero()
+    if len(bx[0]) and ombre is not None: REG['objets'].append((s, bx[1].min(), bx[0].min(), bx[1].max(), bx[0].max()))
     return img*(1-m)+a[..., :3]*m
 def A(img, s, y, taille, coul=CREME, x=None):
     """gros mot façon carrousel (« BCE ») : Anton, crème ou or, sans contour, ombre douce"""
@@ -103,7 +108,7 @@ def verre(img, x, y, w, h, mood='or'):
     """panneau de verre épais translucide (lib/verre_epais.py) : le décor se réfracte dans le biseau, lumière qui traverse"""
     from verre_epais import thick_panel, MOODS
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
-    thick_panel(cv, x, y, w, h, r=46, bevel=40, frost=22, dim=.55, **MOODS[mood])
+    thick_panel(cv, x, y, w, h, r=46, bevel=40, frost=22, dim=.55, **MOODS[mood]); REG['verres'].append((x, y, x+w, y+h))
     return np.asarray(cv.convert('RGB')).astype(np.float32)
 
 # ---------- sous-titres mot à mot (ligne de 760 px max, y ≈ 1040, mot clé en jaune) ----------
@@ -125,7 +130,7 @@ def sous_titre(img, t):
     img = plaque(img, X-24, 1012, X+largeur(' '.join(L), 50, F_SUB, 0)+24, 1098, .6)
     for m in vis:
         c = GOLD if any(w in cle.split(' ') for w in [m.strip(',.:?…')]) or m.strip(',.:?…') in cle.split(' ') else (255, 255, 255)
-        img = texte(img, m, 1022, 50, police=F_SUB, coul=c, contour=0, x=X, ombre=False); X += largeur(m+' ', 50, F_SUB, 0)
+        img = texte(img, m, 1022, 50, police=F_SUB, coul=c, contour=0, x=X, ombre=None); X += largeur(m+' ', 50, F_SUB, 0)
     return img
 
 # ---------- cadre façon écran de chargement ----------
@@ -140,6 +145,44 @@ def grille(cases, t):
         f = frame(src, tt); w, h = x1-x0, y1-y0; s = max(w/W, h/H); g = cv2.resize(f, (int(W*s)+1, int(H*s)+1))
         oy = (g.shape[0]-h)//2; ox = (g.shape[1]-w)//2; img[y0:y1, x0:x1] = g[oy:oy+h, ox:ox+w]
     return img
+CASES = [((0, 0), (1080, 0), (1080, 610), (0, 690)), ((0, 690), (560, 648), (500, 1333), (0, 1360)),
+         ((560, 648), (1080, 610), (1080, 1300), (500, 1333)), ((0, 1360), (1080, 1300), (1080, 1920), (0, 1920))]
+def mosaique(t, plans=('mc_venice', 'mc_cabriolet', 'mc_billets', 'mc_poursuite'), tps=(1.0, 3.0, 2.5, 4.0)):
+    """écran de chargement façon GTA : quatre cases de BD aux séparations obliques et bords violet foncé, nos propres plans"""
+    img = np.zeros((H, W, 3), np.float32)+np.array(BORD, np.float32)
+    for poly, nm, t0 in zip(CASES, plans, tps):
+        pts = np.array(poly, np.int32); x0, y0 = pts.min(0); x1, y1 = pts.max(0); w, h = x1-x0, y1-y0
+        f = frame(pl(nm), t0+t*.8); sc = max(w/W, h/H)*(1.06-.04*min(1, t)); g = cv2.resize(f, (int(W*sc)+2, int(H*sc)+2))
+        oy, ox = (g.shape[0]-h)//2, (g.shape[1]-w)//2; m = np.zeros((H, W), np.float32); cv2.fillPoly(m, [pts], 1.0, cv2.LINE_AA)
+        tile = np.zeros_like(img); tile[y0:y1, x0:x1] = g[oy:oy+h, ox:ox+w]; img = img*(1-m[..., None])+tile*m[..., None]
+    for a, b in (((0, 690), (1080, 610)), ((560, 648), (500, 1333)), ((0, 1360), (1080, 1300))):
+        cv2.line(img, a, b, BORD, 26, cv2.LINE_AA)
+    return img
+@functools.lru_cache(maxsize=1)
+def cours():
+    """cours mensuels réels (donnees/ttwo_mensuel.csv) : départ 17,70 $ le 17/09/2013, arrivée = dernière clôture (COURS_FIN)"""
+    L = [l.split(',') for l in open(f'{D}/donnees/ttwo_mensuel.csv') if l[0].isdigit()]
+    x = [2013+8.55/12]+[int(m[:4])+(int(m[5:7])-.5)/12 for m, _ in L]+[2026+10.55/12]
+    y = [17.70]+[float(v) for _, v in L]+[COURS_FIN]
+    return np.array(x), np.array(y)
+COURS_FIN = float(os.environ.get('COURS_FIN', '213.47'))     # clôture du 16/11 en attendant celle du 17/11
+def courbe(img, x0, y0, x1, y1, prog=1.0):
+    """courbe réelle du cours, tracée de gauche à droite (prog de 0 à 1), axe des prix linéaire de 0 au plus haut"""
+    xs, ys = cours(); n = max(2, int(len(xs)*prog))
+    X = x0+(xs-xs[0])/(xs[-1]-xs[0])*(x1-x0); Y = y1-ys/ys.max()*(y1-y0)
+    pts = np.stack([X[:n], Y[:n]], 1).astype(np.int32)
+    poly = np.vstack([pts, [[pts[-1][0], y1], [pts[0][0], y1]]]); m = np.zeros((H, W), np.float32); cv2.fillPoly(m, [poly], .22)
+    img = img*(1-m[..., None])+np.array(GOLD, np.float32)*m[..., None]
+    cv2.polylines(img, [pts], False, GOLD, 6, cv2.LINE_AA); cv2.circle(img, tuple(pts[-1]), 11, GOLD, -1, cv2.LINE_AA)
+    REG['objets'].append(('courbe', x0, y0, x1, y1)); return img, pts[-1]
+def controle(t):
+    """renvoie les objets qui débordent de l'intérieur d'un verre (marge 30 px) ou qui le chevauchent sans y être"""
+    pb = []
+    for (s_, a, b, c, d) in REG['objets']:
+        for (x0, y0, x1, y1) in REG['verres']:
+            chev = a < x1 and c > x0 and b < y1 and d > y0
+            if chev and not (a >= x0+30 and c <= x1-30 and b >= y0+30 and d <= y1-30): pb.append(f'{t:5.2f}s « {s_} » ({a},{b})-({c},{d}) hors du verre ({x0},{y0})-({x1},{y1})')
+    return pb
 def carte(t):
     """transition « changement de personnage » : vue de dessus, voile vert-gris, grille de carte"""
     c = cv2.cvtColor(cv2.imread(f'{D}/cartes/carte_quartier.jpg'), cv2.COLOR_BGR2RGB); c = cv2.resize(c, (W, H)).astype(np.float32)
@@ -151,11 +194,15 @@ def carte(t):
 # ---------- scènes ----------
 def image(t):
     T_ABS[0] = t
-    if t < 1.6: img = frame(pl('mc_venice'), t, 0, 1.4)
-    elif t < 3.2: img = frame(pl('mc_cabriolet'), t, 1.6, 1.6)
-    elif t < 4.5: img = frame(pl('mc_pier'), t, 3.2, 1.8)
-    elif t < 5.6: img = carte(t)
-    elif t < T2: img = frame(pl('mc_billets'), t, 5.6-1.5, 1.0)
+    REG['verres'].clear(); REG['objets'].clear()
+    if t < 1.0: img = mosaique(t)
+    elif t < 1.3:                                                               # la case du haut s'ouvre en plein écran
+        k = (t-1.0)/.3; img = mosaique(t)*(1-k)+frame(pl('mc_venice'), t, 0, 1.4)*k
+    elif t < 2.2: img = frame(pl('mc_venice'), t, 0, 1.4)
+    elif t < 2.9: img = frame(pl('mc_cabriolet'), t, 2.2-1.0, 1.6)
+    elif t < TS: img = frame(pl('mc_pier'), t, 2.9, 1.8)
+    elif t < TS+TSAT.DUREE: img = TSAT.image(t-TS, lambda u: frame(pl('mc_pier'), TS+u, 2.9, 1.8), lambda u: frame(pl('mc_billets'), TS+u, TS+TSAT.DUREE-1.5, 1.0))
+    elif t < T2: img = frame(pl('mc_billets'), t, TS+TSAT.DUREE-1.5, 1.0)
     elif t < T2+5.0:                                                            # Rockstar → Take-Two
         img = pose(frame(dec('decor_boulevard'), t, T2, .9), 'classique_parle_explique', t-T2)
     elif t < TM:                                                                # 2013
@@ -167,8 +214,8 @@ def image(t):
         img = pose(frame(dec('decor_plage_nuit'), t, T3+9.6, .55), 'classique_parle_inquiet' if t < T3+19.5 else 'classique_parle_confidence', t-T3)
     else: img = frame(pl('mc_yacht'), t, T3+26.4-5.5, 1.0)
     # ---- textes par scène, style des carrousels : gros mots en Anton, phrases en Inter Display, sans contour, ombre douce ----
-    if 4.5 <= t < 5.6: pass
-    elif t < 4.5: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)
+    if TS <= t < TS+TSAT.DUREE: pass
+    elif t < TS: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)
     elif t < T2: img = I(img, 'Cotée en', 250, 80); img = A(img, 'BOURSE ?', 345, 170, GOLD)
     elif t < T2+5.0:
         img = verre(img, 170, 220, 740, 500, 'bleu')
@@ -184,9 +231,10 @@ def image(t):
     elif t < T3:
         img = verre(img, 110, 205, 860, 760, 'vert')
         img = I(img, "L'action Take-Two", 235, 46)
-        img = I(img, '2013', 520, 32, x=150); img = I(img, '2026', 520, 32, x=W-150-largeur('2026', 32, F_TIT, 0))
-        xs = np.linspace(170, 910, 60); u = (xs-170)/740; ys = 505-180*(u**2.2)          # courbe stylisée (à remplacer par les vrais cours annuels)
-        pts = np.stack([xs, ys], 1).astype(np.int32); cv2.polylines(img, [pts], False, INK, 16, cv2.LINE_AA); cv2.polylines(img, [pts], False, GOLD, 8, cv2.LINE_AA)
+        img = I(img, '2013', 520, 30, x=150); img = I(img, '2026', 520, 30, x=W-150-largeur('2026', 30, F_TIT, 0))
+        img, fin = courbe(img, 200, 330, 880, 505, prog=min(1, max(.02, (t-TM)/2.2)))
+        img = I(img, '17,70 $', 438, 30, x=200)
+        if t-TM >= 2.2: img = I(img, f"{COURS_FIN:.0f} $".replace('.', ','), 290, 30, x=880-largeur(f"{COURS_FIN:.0f} $", 30, F_TIT, 0))
         img = A(img, '1 000 €', 570, 90)
         img = fleche(img, 540, 715, 70, 52, bas=True)
         cnt = 1000+(float(MONTANT.replace(' ', ''))-1000)*min(1, max(0, (t-TM-2.2)/2.3))
@@ -208,7 +256,7 @@ def image(t):
                 img = A(img, an, y1-hh-100, 84, GOLD, x=x0+85-largeur(an, 84, F_ANT, 0)//2)
                 img = I(img, lab, y1+10, 40, x=x0+85-largeur(lab, 40, F_TIT, 0)//2)
         else:
-            img = verre(img, 140, 240, 800, 280, 'orange')
+            img = verre(img, 140, 240, 800, 300, 'orange')
             img = I(img, 'Le succès est', 270, 76); img = I(img, 'déjà dans le prix', 380, 76, GOLD)
         img = plaque(img, 170, 930, 910, 1000, .55)
         img = texte(img, 'performances passées ≠ performances futures', 936, 28, police=F_MEN, contour=0, ombre=False)
@@ -218,11 +266,28 @@ def image(t):
     img = sous_titre(img, t)
     return cadre(img)
 
-CLES = [(0.0, 'accroche · image 0'), (2.4, 'accroche · cabriolet'), (3.9, 'accroche · jetée'), (5.0, 'transition carte'),
-        (7.2, 'cotée en bourse ?'), (T2+2.6, 'rockstar → take-two'), (T2+8.0, '2013'), (T2+12.5, '17,70 $'),
-        (T2+17.5, '800 m$ en 24 h'), (TM+4.6, 'le résultat'), (T3+2.0, "gta 5 d'occasion"), (T3+6.5, 'précommandes'),
-        (T3+11.5, 'attention'), (T3+18.4, '1,4 × contre 5,7 ×'), (T3+23.5, 'déjà dans le prix'), (T3+27.6, 'question finale')]
+CLES = [(0.0, 'image 0 · mosaïque'), (1.8, 'accroche · venice'), (2.6, 'accroche · cabriolet'), (TS+.7, 'transition · quartier'),
+        (TS+1.1, 'transition · ville'), (7.2, 'cotée en bourse ?'), (T2+2.6, 'rockstar → take-two'), (T2+12.5, '2013 · 17,70 $'),
+        (T2+17.5, '800 m$ en 24 h'), (TM+1.1, 'le résultat · courbe'), (TM+4.6, 'le résultat'), (T3+2.0, "gta 5 d'occasion"),
+        (T3+6.5, 'précommandes'), (T3+18.4, '1,4 × contre 5,7 ×'), (T3+23.5, 'déjà dans le prix'), (T3+27.6, 'question finale')]
 TRANS = [T2-.05, T2+5.0, TM+.05, T3+3.82, T3+9.62, T3+26.42]          # contrôle des coupes (texte sur texte)
+def demo(t0=0.0, t1=None, fps=30, nom='demo_accroche'):
+    """démo vidéo (voix provisoire + bruitages de la transition) : python3 maquettes.py demo"""
+    import subprocess, wave
+    t1 = t1 or T2; out = f'{D}/tmp/{nom}'
+    sr = 48000; v = np.frombuffer(wave.open(f'{D}/voix/voice_provisoire.wav').readframes(10**9), np.int16).astype(np.float32)/32768
+    a = v[int(t0*sr):int(t1*sr)].copy(); fx = TSAT.son(sr); k = int((TS-t0)*sr); n = min(len(a)-k, len(fx)); a[k:k+n] += fx[:n]*.8
+    a = a/max(1, np.abs(a).max()/10**(-1/20))
+    with wave.open(out+'.wav', 'wb') as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((a*32767).astype(np.int16).tobytes())
+    ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(fps), '-i', '-',
+                           '-i', out+'.wav', '-c:v', 'libx264', '-crf', '20', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', f'{D}/{nom}.mp4'], stdin=subprocess.PIPE)
+    for i in range(int((t1-t0)*fps)): ff.stdin.write(np.clip(image(t0+i/fps), 0, 255).astype(np.uint8).tobytes())
+    ff.stdin.close(); ff.wait(); print('ok', f'{D}/{nom}.mp4')
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'demo': demo(); sys.exit()
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'controle':
+    pb = []
+    for t in np.arange(0, FIN, .1): image(t); pb += controle(t)
+    print('\n'.join(pb) or 'aucun débordement'); sys.exit()
 if __name__ == '__main__':
     out = f'{D}/tmp/maq'; os.makedirs(out, exist_ok=True); vign = []
     for i, (t, lab) in enumerate(CLES):

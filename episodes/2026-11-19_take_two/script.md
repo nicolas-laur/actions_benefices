@@ -2,21 +2,25 @@
 
 DA « façon GTA 6 » (CLAUDE.md), environ 60 s, accroche question. Production le mercredi 18, publication le jeudi 19 au matin.
 
-## Chiffres (relevés le 16/11, À ACTUALISER le 18/11 : cours de clôture du 17/11, taux BCE du 17/11, précommandes)
+## Chiffres (mis à jour le 17/11 à 16 h 30 ; reste à relever la clôture du 17/11 et le taux BCE du 17/11)
 
 | Donnée | Valeur | Source |
 |---|---|---|
 | Sortie de GTA V | 17/09/2013 | Benzinga |
 | Cours de Take-Two le 17/09/2013 (ouverture) | 17,70 $ | Benzinga |
-| Cours de Take-Two | 224,64 $ (clôture du 10/11/2026, +8,3 % sur la journée) | TradingKey |
-| Multiplication depuis 2013 | × 12,7 (en dollars) | calcul |
+| Taux BCE du 17/09/2013 | 1,3356 $ pour 1 € | BCE (relevé par Pound Sterling Live) |
+| Cours de Take-Two | 213,47 $ (clôture du lundi 16/11/2026, −6,3 % sur la journée, marché en baisse) ; clôture du 17/11 à relever après 22 h | Trefis, AskTraders, Yahoo Finance |
+| Multiplication depuis 2013 | × 12,1 en dollars (au 16/11) | calcul |
+| 1 000 € placés le 17/09/2013 | ≈ 14 500 € au 16/11 (14 255 à 14 644 € selon le taux BCE du jour) | `calcul_montant.py` |
 | Ventes de GTA V en 24 h | plus de 800 M$ | Take-Two, sept. 2013 (Fox13) |
-| Précommandes de GTA VI | ~9,7 millions d'unités, ~942 M$ (estimation Sensor Tower) ; « bien au-delà des attentes » (Strauss Zelnick, PDG) | TradingKey |
-| Prix de GTA VI | 79,99 $ (édition standard) | à revérifier |
-| Valorisation | 5,7 fois les ventes annuelles, contre 1,4 fois à la sortie de GTA V | Motley Fool, 11/11/2026 |
+| Précommandes de GTA VI | ~10,3 millions d'unités, plus de 1 Md$ (estimation Sensor Tower, nette des retours, consoles en numérique seulement) ; « bien au-delà des attentes » (Strauss Zelnick) | TweakTown, GTA Boom |
+| Prix de GTA VI | 79,99 $ (édition standard), 100 $ l'édition Ultimate | BeInCrypto, GameDev.net |
+| Valorisation | 5,7 fois les ventes annuelles au 11/11 (cours ≈ 224 $), contre 1,4 fois à la sortie de GTA V ; à recalculer au cours du 17/11 (≈ 5,4 fois à 213,47 $) | Motley Fool, 11/11/2026 |
 | Sortie de GTA VI | jeudi 19/11/2026 | Take-Two, TechRadar |
 
-Conversion en euros (règle du projet) : 1 000 € placés le 17/09/2013 = 1 000 × taux BCE du 17/09/2013 en dollars, × 12,7, puis ÷ taux BCE du 17/11/2026. À calculer le 18/11 avec les deux taux officiels.
+Conversion en euros : `python3 calcul_montant.py <clôture du 17/11> <taux BCE du 17/11>`.
+
+Trois phrases de la voix dépendent de ces chiffres : la phrase du montant (pas encore enregistrée), « près de dix millions de précommandes » (Sensor Tower est passé à 10,3 millions : dire « plus de dix millions ») et « cinq virgule sept fois » (le ratio suit le cours).
 
 ## Texte pour la voix (Thomas), environ 55 s (accroche et question finale revues par Nicolas le 16/11)
 

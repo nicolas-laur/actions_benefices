@@ -8,7 +8,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 D = os.path.dirname(os.path.abspath(__file__)); R = f'{D}/../..'
 sys.path.insert(0, f'{R}/mister_coin'); sys.path.insert(0, f'{R}/lib')
 W, H = 1080, 1920
-F_TIT = f'{R}/fonts/AlfaSlabOne-Regular.ttf'      # police maison (Alfa Slab One) pour titres, chiffres et sous-titres ; Big Shoulders réservée à la couverture (17/11)
+F_TIT = f'{R}/fonts/InterDisplay-ExtraBold.otf'    # police maison (Inter Display, comme les carrousels) ; Big Shoulders réservée à la couverture (17/11)
+F_SUB = f'{R}/fonts/InterDisplay-Bold.otf'
 F_MEN = f'{R}/fonts/InterDisplay-Bold.otf'
 INK = (25, 8, 35); GOLD = (255, 214, 90); BORD = (38, 14, 58)
 
@@ -100,17 +101,17 @@ def sous_titre(img, t):
     # groupe de mots tenant sur une ligne autour du mot courant
     lignes, cur = [], []
     for m in mots:
-        if cur and largeur(' '.join(cur+[m]), 50) > 760: lignes.append(cur); cur = []
+        if cur and largeur(' '.join(cur+[m]), 50, F_SUB, 5) > 760: lignes.append(cur); cur = []
         cur.append(m)
     lignes.append(cur); i = 0
     for L in lignes:
         if k <= i+len(L): break
         i += len(L)
-    vis = L[:k-i]; X = (W-largeur(' '.join(L), 50))//2
-    img = plaque(img, X-24, 1012, X+largeur(' '.join(L), 50)+24, 1098, .45)
+    vis = L[:k-i]; X = (W-largeur(' '.join(L), 50, F_SUB, 5))//2
+    img = plaque(img, X-24, 1012, X+largeur(' '.join(L), 50, F_SUB, 5)+24, 1098, .45)
     for m in vis:
         c = GOLD if any(w in cle.split(' ') for w in [m.strip(',.:?…')]) or m.strip(',.:?…') in cle.split(' ') else (255, 255, 255)
-        img = texte(img, m, 1022, 50, coul=c, contour=5, x=X, ombre=False); X += largeur(m+' ', 50)
+        img = texte(img, m, 1022, 50, police=F_SUB, coul=c, contour=5, x=X, ombre=False); X += largeur(m+' ', 50, F_SUB, 5)
     return img
 
 # ---------- cadre façon écran de chargement ----------

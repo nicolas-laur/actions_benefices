@@ -10,7 +10,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Économie de tokens (16/11) : une session par épisode ; valider script, DA et maquettes avant tout rendu ; grouper les retours en une passe ; vérifier sur planches en basse définition et zoomer seulement sur les zones à risque ; s'appuyer sur les gabarits de `lib/` plutôt que recopier de gros scripts.
 
 ## Lisibilité (retour le plus fréquent)
-- Polices condensées type Big Shoulders illisibles en vidéo : les garder pour la couverture (17/11).
+- Polices condensées type Big Shoulders illisibles en vidéo : les garder pour la couverture. Notre police habituelle est Inter Display (lib/mty.py, carrousels), pas Alfa Slab One ni Archivo Black (17/11).
 - Jamais de texte sur du texte : c'est le premier motif de refus (loto, 15-16/11 : TOI contre « 1 chance sur… », note 7 % sur les sous-titres, sous-titre de l'accroche doublé pendant le fondu). Contrôler chaque transition de scène, pas seulement une image par scène.
 - Petits textes posés sur une plaque ; rangées de jours et étiquettes au-dessus des sous-titres, jamais dessous.
 - Panneaux et compteurs : apparition et disparition en fondu, jamais d'un coup.

@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 D = os.path.dirname(os.path.abspath(__file__)); R = f'{D}/../..'
 sys.path.insert(0, f'{R}/mister_coin'); sys.path.insert(0, f'{R}/lib')
 W, H = 1080, 1920
-F_TIT = f'{R}/fonts/ArchivoBlack-Regular.ttf'      # titres et chiffres dans la vidéo (Big Shoulders réservée à la couverture, retour du 17/11)
+F_TIT = f'{R}/fonts/AlfaSlabOne-Regular.ttf'      # police maison (Alfa Slab One) pour titres, chiffres et sous-titres ; Big Shoulders réservée à la couverture (17/11)
 F_MEN = f'{R}/fonts/InterDisplay-Bold.otf'
 INK = (25, 8, 35); GOLD = (255, 214, 90); BORD = (38, 14, 58)
 

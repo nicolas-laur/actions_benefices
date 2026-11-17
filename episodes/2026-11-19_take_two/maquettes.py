@@ -224,21 +224,38 @@ def mosaique(t, plans=('mc_venice', 'mc_cabriolet', 'mc_billets', 'mc_poursuite'
 ROSE, CYAN = (255, 60, 190), (40, 210, 255)
 NEONS = [(((0, 690), (1080, 610)), ROSE, 0.0), (((560, 648), (500, 1333)), CYAN, .35), (((0, 1360), (1080, 1300)), ROSE, .7),
          (((16, 16), (1064, 16)), CYAN, .15), (((1064, 16), (1064, 1904)), ROSE, .5), (((1064, 1904), (16, 1904)), CYAN, .85), (((16, 1904), (16, 16)), ROSE, .3)]
-def neons(img, t, vitesse=.55, n=48):
-    """séparations et cadre en tubes néon rose et bleu (DA de GTA 6) ; des éclats de lumière glissent le long des tubes"""
-    lum = np.zeros((H, W, 3), np.float32); coeur = np.zeros((H, W, 3), np.float32)
-    for (a, b), c, ph in NEONS:
-        a, b = np.array(a, np.float32), np.array(b, np.float32)
+def _screen(img, add):
+    """fusion « écran » : la lumière s'ajoute sans brûler les couleurs"""
+    a = np.clip(img, 0, 255)/255; b = np.clip(add, 0, 255)/255; return (1-(1-a)*(1-b))*255
+def _eclat(lum, x, y, r, c, k):
+    """étoile à quatre branches (reflet d'objectif) blanche, teintée de la couleur du tube"""
+    for (dx, dy, L) in ((1, 0, r*2.6), (0, 1, r*2.6), (.7, .7, r*1.1), (.7, -.7, r*1.1)):
+        p0 = (int(x-dx*L), int(y-dy*L)); p1 = (int(x+dx*L), int(y+dy*L))
+        cv2.line(lum, p0, p1, tuple(float(min(255, 255*.75+v*.25))*k for v in c), 3, cv2.LINE_AA)
+    cv2.circle(lum, (int(x), int(y)), int(r*.5), (255*k, 255*k, 255*k), -1, cv2.LINE_AA)
+def neons(img, t, vitesse=.55, n=64):
+    """séparations et cadre en tubes néon rose et bleu (DA de GTA 6), version lumineuse (17/11) :
+    cœur blanc incandescent, gaine colorée, trois halos (serré, moyen, large) en fusion écran, lumière qui déborde sur les cases,
+    éclats blancs qui glissent le long des tubes avec un reflet en étoile, léger scintillement"""
+    gaine = np.zeros((H, W, 3), np.float32); coeur = np.zeros((H, W, 3), np.float32); etoiles = np.zeros((H, W, 3), np.float32)
+    rng = np.random.default_rng(int(t*30))
+    for j, ((a, b), c, ph) in enumerate(NEONS):
+        a, b = np.array(a, np.float32), np.array(b, np.float32); fl = .93+.07*np.sin(t*23+j*1.7)       # scintillement très léger
         for i in range(n):
             u0, u1 = i/n, (i+1)/n; um = (u0+u1)/2
-            d = ((um-(t*vitesse+ph)) % 1.0); d = min(d, 1-d)                    # distance à l'éclat qui avance
-            k = .45+.55*np.exp(-(d/.07)**2)+.25*np.exp(-(min((um-(t*vitesse*.6+ph+.5)) % 1.0, 1-(um-(t*vitesse*.6+ph+.5)) % 1.0)/.05)**2)
+            d1 = (um-(t*vitesse+ph)) % 1.0; d1 = min(d1, 1-d1); d2 = (um-(t*vitesse*.6+ph+.5)) % 1.0; d2 = min(d2, 1-d2)
+            k = fl*(.75+.9*np.exp(-(d1/.06)**2)+.5*np.exp(-(d2/.045)**2))
             p0 = tuple(int(v) for v in a+(b-a)*u0); p1 = tuple(int(v) for v in a+(b-a)*u1)
-            cv2.line(lum, p0, p1, tuple(float(v)*k for v in c), 16, cv2.LINE_AA)
-            cv2.line(coeur, p0, p1, tuple(float(min(255, v*.35+255*.65))*min(1, k) for v in c), 5, cv2.LINE_AA)
-    halo = cv2.GaussianBlur(lum, (0, 0), 14)*1.3+cv2.GaussianBlur(lum, (0, 0), 4)*.8
-    m = (coeur.max(2, keepdims=True) > 0)*1.0
-    return np.clip(img+halo, 0, 255)*(1-m)+np.clip(coeur*1.0+halo, 0, 255)*m
+            cv2.line(gaine, p0, p1, tuple(float(v)*min(1.4, k) for v in c), 14, cv2.LINE_AA)
+            w = min(1, k); cv2.line(coeur, p0, p1, (255*w, 255*w, 255*w), 4 if k < 1.1 else 6, cv2.LINE_AA)
+        for (ph2, sp) in ((ph, vitesse), (ph+.5, vitesse*.6)):              # tête des éclats : reflet en étoile
+            u = (t*sp+ph2) % 1.0; x, y = a+(b-a)*u
+            if 8 < x < W-8 and 8 < y < H-8: _eclat(etoiles, x, y, 14, c, .95)
+    halo = cv2.GaussianBlur(gaine, (0, 0), 5)*1.3+cv2.GaussianBlur(gaine, (0, 0), 16)*1.4+cv2.GaussianBlur(gaine, (0, 0), 42)*1.3
+    etoiles = cv2.GaussianBlur(etoiles, (0, 0), 1.2)+cv2.GaussianBlur(etoiles, (0, 0), 7)*.8
+    out = _screen(img, halo)                                                   # la lumière déborde sur les cases
+    out = _screen(out, gaine*.9); out = _screen(out, coeur); return _screen(out, etoiles)
+
 @functools.lru_cache(maxsize=1)
 def cours():
     """cours mensuels réels (donnees/ttwo_mensuel.csv) : départ 17,70 $ le 17/09/2013, arrivée = dernière clôture (COURS_FIN)"""

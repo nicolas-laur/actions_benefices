@@ -3,7 +3,7 @@
 Mesures de la référence (secondes depuis le début de l'effet) :
   départ 0,73 s (vue de dessus, froide) ; trois paliers de montée toutes les 0,60 s (coupe nette, flash +40 %, aberration
   chromatique sur les bords) ; glissement latéral rapide 0,47 s ; survol tenu 2,57 s (dérive lente, image froide désaturée) ;
-  descente : palier 1 vert léger 2,63 s, palier 2 vert franc 2,60 s, palier 3 jaune chaud 1,10 s ; plongée en rotation 1,15 s.
+  (référence) descente : palier 1 vert léger 2,63 s, palier 2 vert franc 2,60 s, palier 3 jaune chaud 1,10 s ; plongée en rotation 1,15 s.
   Son : coup sourd très grave à 45–47 Hz sur chaque palier (attaque nette, corps vers 330 Hz, queue 0,4 s en montée, ~1 s en
   descente), bourdon grave (45 et 66 Hz) pendant le survol, souffle d'air discret (250–800 Hz, −30 dB) entre les paliers de
   descente, grand souffle aigu au début de la plongée, grondement jusqu'à l'arrivée.
@@ -15,8 +15,10 @@ from scipy import signal
 D = os.path.dirname(os.path.abspath(__file__)); W, H = 1080, 1920
 
 # ---------- calage (mesuré sur la référence) ----------
-T_DEP = 0.73; T_UP = [0.73, 1.33, 1.93]; T_GLI = 2.56; T_TEN = 3.03; T_D1 = 5.60; T_D2 = 8.23; T_D3 = 10.83; T_PLO = 11.93
-DUREE = 13.08
+# version validée le 17/11 : temps tenus raccourcis (survol 0,9 s au lieu de 2,57 ; paliers verts 1,0 s au lieu de 2,6), le reste au rythme de la référence
+TENU_SURVOL, TENU_D1, TENU_D2 = 0.9, 1.0, 1.0
+T_DEP = 0.73; T_UP = [0.73, 1.33, 1.93]; T_GLI = 2.56; T_TEN = 3.03
+T_D1 = T_TEN+TENU_SURVOL; T_D2 = T_D1+TENU_D1; T_D3 = T_D2+TENU_D2; T_PLO = T_D3+1.10; DUREE = T_PLO+1.15
 
 @functools.lru_cache(maxsize=None)
 def carte(nom):

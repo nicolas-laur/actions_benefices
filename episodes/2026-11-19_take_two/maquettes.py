@@ -16,16 +16,28 @@ INK = (25, 8, 35); GOLD = (255, 214, 90); BORD = (38, 14, 58)
 
 # ---------- calage provisoire (secondes) ----------
 V1, V2, V3 = 8.28, 19.80, 28.53                      # durées des trois morceaux reçus le 17/11
-T2 = V1+.35; TM = T2+V2+.25; TMD = 5.0; T3 = TM+TMD+.3; FIN = T3+V3+1.2
-# phrases (début, fin, texte, mot clé) — repérées sur les silences de chaque morceau
+# Découpage validé le 17/11 : plans Veo de 4 à 6 s, transition satellite d'environ 8 s sans voix (musique et bruitages).
+# La voix est découpée en segments posés sur l'image : (fichier, début source, fin source, début dans la vidéo).
+T_VEN, T_CAB, T_PIE = 1.5, 5.6, 9.8                    # mosaïque 0–1,5 s, puis Venice, cabriolet, jetée
+TS = 14.8                                              # départ de la transition satellite (jetée de Los Angeles → rue de Miami)
 import transition_satellite as TSAT
-TS = 3.4                                              # départ de la transition satellite (arrivée à TS+2,2 s sur la rue de Miami)
+T_BIL = TS+TSAT.DUREE; T13 = T_BIL+6.0                 # Miami (pistolet à billets) puis la chambre de 2013
+SEGS = [('voix_1_accroche', 0.00, 4.75, 0.00), ('voix_1_accroche', 4.75, 8.28, 5.65),
+        ('voix_2', 0.00, 4.85, 9.90), ('voix_2', 4.85, 10.53, T_BIL+.30), ('voix_2', 10.53, 19.80, T13+.30)]
+def pos(f, ts):
+    """instant dans la vidéo d'un instant ts du fichier de voix f"""
+    for (g, a, b, d) in SEGS:
+        if g == f and a <= ts <= b: return d+ts-a
+    raise ValueError((f, ts))
+T2 = pos('voix_2', 0.0)
+TM = pos('voix_2', 19.80)+.25; TMD = 5.0; T3 = TM+TMD+.3; FIN = T3+V3+1.2
+# phrases (début, fin, texte, mot clé) — repérées sur les silences de chaque morceau
 PH = [(0.00, 4.52, "GTA 6, le jeu le plus attendu de la décennie, sort aujourd'hui.", "aujourd'hui"),
-      (4.99, 7.94, "Savais-tu que l'entreprise derrière le jeu est cotée en bourse ?", "bourse"),
-      (T2+0.00, T2+4.53, "Rockstar, le studio de GTA, appartient à Take-Two, cotée à New York.", "Take-Two"),
-      (T2+5.17, T2+10.38, "Et si, en 2013, à la sortie de GTA 5, tu avais acheté l'action plutôt que le jeu ?", "l'action"),
-      (T2+10.68, T2+14.6, "Ce jour-là, l'action vaut 17,70 $.", "17,70 $"),
-      (T2+14.6, T2+19.8, "Le jeu pulvérise les records : 800 M$ de ventes en 24 h.", "800 M$"),
+      (pos('voix_1_accroche', 4.99), pos('voix_1_accroche', 7.94), "Savais-tu que l'entreprise derrière le jeu est cotée en bourse ?", "bourse"),
+      (pos('voix_2', 0.0), pos('voix_2', 4.53), "Rockstar, le studio de GTA, appartient à Take-Two, cotée à New York.", "Take-Two"),
+      (pos('voix_2', 5.17), pos('voix_2', 10.38), "Et si, en 2013, à la sortie de GTA 5, tu avais acheté l'action plutôt que le jeu ?", "l'action"),
+      (pos('voix_2', 10.68), pos('voix_2', 14.6), "Ce jour-là, l'action vaut 17,70 $.", "17,70 $"),
+      (pos('voix_2', 14.6), pos('voix_2', 19.8), "Le jeu pulvérise les records : 800 M$ de ventes en 24 h.", "800 M$"),
       (TM, TM+TMD, "Résultat : 1 000 € placés dans Take-Two ce jour-là valent aujourd'hui environ … €.", "aujourd'hui"),
       (T3+0.00, T3+3.66, "Pendant ce temps, ton vieux GTA 5 vaut quelques euros d'occasion.", "quelques euros"),
       (T3+3.94, T3+9.39, "Et GTA 6 démarre encore plus fort : près de 10 millions de précommandes avant même la sortie.", "10 millions"),
@@ -51,8 +63,7 @@ def pl(n): return f'{D}/plans/{n}.mp4'
 def coin():
     """Mister Coin classique : il parle quand la voix parle (voix provisoire, trou de 5 s pour la phrase du montant)"""
     import veo_coin as VC
-    return VC.VeoCoin([(T2, ['classique_parle_explique', 'classique_parle_enthousiaste'], 'voix'),
-                       (T2+5.0, ['classique_parle_question', 'classique_parle_enthousiaste'], 'voix'),
+    return VC.VeoCoin([(T13, ['classique_parle_explique', 'classique_parle_enthousiaste'], 'voix'),
                        (TM, ['classique_danse_parle_billets', 'classique_parle_enthousiaste'], 'voix'),
                        (T3+9.6, ['classique_parle_inquiet', 'classique_parle_confidence', 'classique_parle_explique'], 'voix')],
                       voix=f'{D}/voix/voice_provisoire.wav', x=540, pieds=1650, largeur_piece=230, duree=FIN, lisse=True)
@@ -195,18 +206,18 @@ def carte(t):
 def image(t):
     T_ABS[0] = t
     REG['verres'].clear(); REG['objets'].clear()
-    if t < 1.0: img = mosaique(t)
-    elif t < 1.3:                                                               # la case du haut s'ouvre en plein écran
-        k = (t-1.0)/.3; img = mosaique(t)*(1-k)+frame(pl('mc_venice'), t, 0, 1.4)*k
-    elif t < 2.2: img = frame(pl('mc_venice'), t, 0, 1.4)
-    elif t < 2.9: img = frame(pl('mc_cabriolet'), t, 2.2-1.0, 1.6)
-    elif t < TS: img = frame(pl('mc_pier'), t, 2.9, 1.8)
-    elif t < TS+TSAT.DUREE: img = TSAT.image(t-TS, lambda u: frame(pl('mc_pier'), TS+u, 2.9, 1.8), lambda u: frame(pl('mc_billets'), TS+u, TS+TSAT.DUREE-1.5, 1.0))
-    elif t < T2: img = frame(pl('mc_billets'), t, TS+TSAT.DUREE-1.5, 1.0)
-    elif t < T2+5.0:                                                            # Rockstar → Take-Two
-        img = pose(frame(dec('decor_boulevard'), t, T2, .9), 'classique_parle_explique', t-T2)
+    if t < 1.2: img = mosaique(t)
+    elif t < T_VEN:                                                             # la case du haut s'ouvre en plein écran
+        k = (t-1.2)/(T_VEN-1.2); img = mosaique(t)*(1-k)+frame(pl('mc_venice'), t, 1.2, 1.0)*k
+    elif t < T_CAB: img = frame(pl('mc_venice'), t, 1.2, 1.0)                   # 4,1 s
+    elif t < T_PIE: img = frame(pl('mc_cabriolet'), t, T_CAB-.5, 1.0)           # 4,2 s
+    elif t < TS: img = frame(pl('mc_pier'), t, T_PIE-.6, 1.0)                    # 5,0 s
+    elif t < T_BIL: img = TSAT.image(t-TS, lambda u: frame(pl('mc_pier'), TS+u, T_PIE-.6, 1.0), lambda u: frame(pl('mc_billets'), TS+u, T_BIL-.4, 1.0))
+    elif t < T13: img = frame(pl('mc_billets'), t, T_BIL-.4, 1.0)              # 6,0 s
     elif t < TM:                                                                # 2013
-        img = pose(frame(dec('decor_2013'), t, T2+5, .5), 'classique_parle_question' if t < T2+10.5 else 'classique_parle_enthousiaste', t-T2)
+        img = pose(frame(dec('decor_2013'), t, T13, .5), '', t)
+    elif t < T3+3.8:                                                            # le résultat, la tour
+        img = pose(frame(dec('decor_tour'), t, TM, .9), '', t)
     elif t < T3+3.8:                                                            # le résultat, la tour
         img = pose(frame(dec('decor_tour'), t, TM, .9), 'classique_danse_parle_billets', t-TM)
     elif t < T3+9.6: img = frame(pl('mc_poursuite'), t, T3+3.8-1.0, 1.2)      # GTA 6, précommandes
@@ -214,20 +225,23 @@ def image(t):
         img = pose(frame(dec('decor_plage_nuit'), t, T3+9.6, .55), 'classique_parle_inquiet' if t < T3+19.5 else 'classique_parle_confidence', t-T3)
     else: img = frame(pl('mc_yacht'), t, T3+26.4-5.5, 1.0)
     # ---- textes par scène, style des carrousels : gros mots en Anton, phrases en Inter Display, sans contour, ombre douce ----
-    if TS <= t < TS+TSAT.DUREE: pass
-    elif t < TS: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)
-    elif t < T2: img = I(img, 'Cotée en', 250, 80); img = A(img, 'BOURSE ?', 345, 170, GOLD)
-    elif t < T2+5.0:
-        img = verre(img, 170, 220, 740, 500, 'bleu')
-        img = I(img, 'Rockstar', 255, 76); img = fleche(img, 540, 420, 76, 56, bas=True); img = A(img, 'TAKE-TWO', 455, 120)
-        img = pill(img, 'Nasdaq · New York', 640)
+    if TS <= t < T_BIL: pass                                                   # transition : image seule
+    elif t < T_CAB: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)
+    elif t < T_PIE: img = I(img, 'Cotée en', 250, 80); img = A(img, 'BOURSE ?', 345, 170, GOLD)
+    elif t < TS:
+        if t >= T2-.1:
+            img = verre(img, 150, 190, 780, 225, 'bleu')                      # bandeau bas de hauteur : Mister Coin reste dégagé
+            wr = largeur('Rockstar', 54, F_TIT, 0); wt = largeur('TAKE-TWO', 92, F_ANT, 0); x0 = (W-(wr+110+wt))//2
+            img = I(img, 'Rockstar', 228, 54, x=x0); img = fleche(img, x0+wr+55, 262, 70, 50); img = A(img, 'TAKE-TWO', 205, 92, x=x0+wr+110)
+            img = pill(img, 'Nasdaq · New York', 328, 32)
+    elif t < T13:
+        if t >= pos('voix_2', 5.0):
+            img = verre(img, 150, 200, 780, 330, 'or'); img = A(img, '2013', 215, 150, GOLD); img = I(img, "L'action ou le jeu ?", 410, 58)
     elif t < TM:
-        img = verre(img, 150, 200, 780, 330 if t < T2+10.6 else (530 if t < T2+14.6 else 740), 'or')
+        img = verre(img, 150, 200, 780, 530 if t < pos('voix_2', 14.6) else 740, 'or')
         img = A(img, '2013', 215, 150, GOLD)
-        if t < T2+10.6: img = I(img, "L'action ou le jeu ?", 410, 58)
-        else:
-            img = I(img, "L'action Take-Two", 400, 48); img = A(img, '17,70 $', 460, 130, GOLD)
-            if t >= T2+14.6: img = A(img, 'GTA 5 : 800 M$', 640, 96, GOLD); img = I(img, 'de ventes en 24 h', 765, 48)
+        img = I(img, "L'action Take-Two", 400, 48); img = A(img, '17,70 $', 460, 130, GOLD)
+        if t >= pos('voix_2', 14.6): img = A(img, 'GTA 5 : 800 M$', 640, 96, GOLD); img = I(img, 'de ventes en 24 h', 765, 48)
     elif t < T3:
         img = verre(img, 110, 205, 860, 760, 'vert')
         img = I(img, "L'action Take-Two", 235, 46)
@@ -266,29 +280,40 @@ def image(t):
     img = sous_titre(img, t)
     return cadre(img)
 
-CLES = [(0.0, 'image 0 · mosaïque'), (1.8, 'accroche · venice'), (2.6, 'accroche · cabriolet'), (TS+.7, 'transition · quartier'),
-        (TS+1.1, 'transition · ville'), (7.2, 'cotée en bourse ?'), (T2+2.6, 'rockstar → take-two'), (T2+12.5, '2013 · 17,70 $'),
-        (T2+17.5, '800 m$ en 24 h'), (TM+1.1, 'le résultat · courbe'), (TM+4.6, 'le résultat'), (T3+2.0, "gta 5 d'occasion"),
-        (T3+6.5, 'précommandes'), (T3+18.4, '1,4 × contre 5,7 ×'), (T3+23.5, 'déjà dans le prix'), (T3+27.6, 'question finale')]
-TRANS = [T2-.05, T2+5.0, TM+.05, T3+3.82, T3+9.62, T3+26.42]          # contrôle des coupes (texte sur texte)
+CLES = [(0.0, 'image 0 · mosaïque'), (3.5, 'venice'), (7.5, 'cabriolet · bourse ?'), (12.0, 'jetée · rockstar'),
+        (TS+.4, 'transition · départ'), (TS+1.5, 'transition · montée'), (TS+3.5, 'transition · survol'), (TS+5.4, 'transition · vert'),
+        (TS+7.3, 'transition · plongée'), (T_BIL+2.0, "miami · l'action ou le jeu ?"), (T13+3.0, '2013 · 17,70 $'), (T13+7.5, '800 m$ en 24 h'),
+        (TM+4.6, 'le résultat'), (T3+6.5, 'précommandes'), (T3+18.4, '1,4 × contre 5,7 ×'), (T3+27.6, 'question finale')]
+TRANS = [T_CAB+.02, T_PIE+.02, TS-.02, T_BIL+.02, T13+.02, TM+.05, T3+3.82, T3+9.62, T3+26.42]          # contrôle des coupes (texte sur texte)
+def assembler_voix():
+    """voix provisoire : segments posés selon SEGS, trou de TMD pour la phrase du montant, troisième morceau à T3"""
+    import wave
+    sr = 48000; out = np.zeros(int((FIN+.5)*sr), np.float32)
+    def lire(f): return np.frombuffer(wave.open(f'{D}/voix/{f}.wav').readframes(10**9), np.int16).astype(np.float32)/32768
+    for (f, a, b, d) in SEGS+[('voix_3', 0.0, V3, T3)]:
+        x = lire(f)[int(a*sr):int(b*sr)]; k = int(d*sr); out[k:k+len(x)] += x
+    with wave.open(f'{D}/voix/voice_provisoire.wav', 'wb') as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((np.clip(out, -1, 1)*32767).astype(np.int16).tobytes())
 def demo(t0=0.0, t1=None, fps=30, nom='demo_accroche'):
     """démo vidéo (voix provisoire + bruitages de la transition) : python3 maquettes.py demo"""
     import subprocess, wave
-    t1 = t1 or T2; out = f'{D}/tmp/{nom}'
+    t1 = t1 or T13+1.0; out = f'{D}/tmp/{nom}'; assembler_voix()
     sr = 48000; v = np.frombuffer(wave.open(f'{D}/voix/voice_provisoire.wav').readframes(10**9), np.int16).astype(np.float32)/32768
-    a = v[int(t0*sr):int(t1*sr)].copy(); fx = TSAT.son(sr); k = int((TS-t0)*sr); n = min(len(a)-k, len(fx)); a[k:k+n] += fx[:n]*.8
+    a = np.stack([v[int(t0*sr):int(t1*sr)]]*2, 1); fx = TSAT.son(sr); k = int((TS-t0)*sr); n = min(len(a)-k, len(fx)); a[k:k+n] += fx[:n]*.8
     a = a/max(1, np.abs(a).max()/10**(-1/20))
-    with wave.open(out+'.wav', 'wb') as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((a*32767).astype(np.int16).tobytes())
+    with wave.open(out+'.wav', 'wb') as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr); w.writeframes((a*32767).astype(np.int16).tobytes())
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(fps), '-i', '-',
                            '-i', out+'.wav', '-c:v', 'libx264', '-crf', '20', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', f'{D}/{nom}.mp4'], stdin=subprocess.PIPE)
     for i in range(int((t1-t0)*fps)): ff.stdin.write(np.clip(image(t0+i/fps), 0, 255).astype(np.uint8).tobytes())
     ff.stdin.close(); ff.wait(); print('ok', f'{D}/{nom}.mp4')
 if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'demo': demo(); sys.exit()
 if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'controle':
+    assembler_voix()
     pb = []
     for t in np.arange(0, FIN, .1): image(t); pb += controle(t)
     print('\n'.join(pb) or 'aucun débordement'); sys.exit()
 if __name__ == '__main__':
+    assembler_voix()
     out = f'{D}/tmp/maq'; os.makedirs(out, exist_ok=True); vign = []
     for i, (t, lab) in enumerate(CLES):
         im = np.clip(image(t), 0, 255).astype(np.uint8); cv2.imwrite(f'{out}/{i:02d}.png', im[..., ::-1])

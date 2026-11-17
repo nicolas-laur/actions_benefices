@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 D = os.path.dirname(os.path.abspath(__file__)); R = f'{D}/../..'
 sys.path.insert(0, f'{R}/mister_coin'); sys.path.insert(0, f'{R}/lib')
 W, H = 1080, 1920
-F_TIT = f'{R}/fonts/ArchivoBlack-Regular.ttf'; F_NUM = f'{R}/fonts/BigShouldersDisplay-Black.ttf'
+F_TIT = f'{R}/fonts/ArchivoBlack-Regular.ttf'      # titres et chiffres dans la vidéo (Big Shoulders réservée à la couverture, retour du 17/11)
 F_MEN = f'{R}/fonts/InterDisplay-Bold.otf'
 INK = (25, 8, 35); GOLD = (255, 214, 90); BORD = (38, 14, 58)
 
@@ -84,6 +84,13 @@ def plaque(img, x0, y0, x1, y1, a=.55):
     m = np.zeros((H, W), np.float32); cv2.rectangle(m, (x0, y0), (x1, y1), 1, -1); m = cv2.GaussianBlur(m, (0, 0), 3)*a
     return img*(1-m[..., None])+np.array(INK, np.float32)*m[..., None]
 
+def verre(img, x, y, w, h, mood='or'):
+    """panneau de verre épais translucide (lib/verre_epais.py) : le décor se réfracte dans le biseau, lumière qui traverse"""
+    from verre_epais import thick_panel, MOODS
+    cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
+    thick_panel(cv, x, y, w, h, r=46, bevel=40, frost=22, dim=.55, **MOODS[mood])
+    return np.asarray(cv.convert('RGB')).astype(np.float32)
+
 # ---------- sous-titres mot à mot (ligne de 760 px max, y ≈ 1040, mot clé en jaune) ----------
 def sous_titre(img, t):
     ph = next((p for p in PH if p[0] <= t < p[1]+.15), None)
@@ -144,52 +151,56 @@ def image(t):
     elif t < T3+26.4:                                                           # le piège
         img = pose(frame(dec('decor_plage_nuit'), t, T3+9.6, .55), 'classique_parle_inquiet' if t < T3+19.5 else 'classique_parle_confidence', t-T3)
     else: img = frame(pl('mc_yacht'), t, T3+26.4-5.5, 1.0)
-    # ---- textes par scène ----
+    # ---- textes par scène : titres nus sur l'action, informations sur des panneaux de verre épais ----
     if 4.5 <= t < 5.6: pass
     elif t < 4.5: img = texte(img, 'gta 6', 230, 150); img = texte(img, "sort aujourd'hui", 400, 86)
-    elif 5.6 <= t < T2: img = texte(img, 'cotée en', 250, 96); img = texte(img, 'bourse ?', 370, 140, police=F_TIT, coul=GOLD)
-    elif T2 <= t < T2+5.0:
-        img = texte(img, 'rockstar', 250, 92); img = fleche(img, 540, 418, 80, 60, bas=True); img = texte(img, 'take-two', 470, 110)
-        img = texte(img, 'nasdaq · new york', 640, 56, coul=GOLD, contour=6)
-    elif T2+5.0 <= t < TM:
-        img = texte(img, '2013', 210, 170, police=F_NUM, coul=GOLD)
-        if t < T2+10.6: img = texte(img, "l'action ou le jeu ?", 440, 74)
+    elif t < T2: img = texte(img, 'cotée en', 250, 96); img = texte(img, 'bourse ?', 370, 140, coul=GOLD)
+    elif t < T2+5.0:
+        img = verre(img, 170, 220, 740, 500, 'bleu')
+        img = texte(img, 'rockstar', 260, 84); img = fleche(img, 540, 420, 76, 56, bas=True); img = texte(img, 'take-two', 470, 100)
+        img = texte(img, 'nasdaq · new york', 625, 46, coul=GOLD, contour=5)
+    elif t < TM:
+        img = verre(img, 150, 200, 780, 330 if t < T2+10.6 else (530 if t < T2+14.6 else 740), 'or')
+        img = texte(img, '2013', 225, 130, coul=GOLD)
+        if t < T2+10.6: img = texte(img, "l'action ou le jeu ?", 400, 62)
         else:
-            img = texte(img, 'action take-two', 430, 64); img = texte(img, '17,70 $', 510, 150, police=F_NUM, coul=GOLD)
-            if t >= T2+14.6: img = texte(img, '800 m$ en 24 h', 720, 104, police=F_NUM, coul=GOLD)
-    elif TM <= t < T3:
-        img = plaque(img, 90, 200, 990, 640, .35); img = texte(img, "l'action take-two", 218, 52)
-        img = texte(img, '2013', 570, 40, x=120, contour=4); img = texte(img, '2026', 570, 40, x=W-120-largeur('2026', 40, contour=4), contour=4)
-        xs = np.linspace(140, 940, 60); u = (xs-140)/800; ys = 545-250*(u**2.2)          # courbe stylisée (à remplacer par les vrais cours annuels)
-        pts = np.stack([xs, ys], 1).astype(np.int32); cv2.polylines(img, [pts], False, INK, 18, cv2.LINE_AA); cv2.polylines(img, [pts], False, GOLD, 9, cv2.LINE_AA)
-        img = texte(img, '1 000 €', 690, 120, police=F_NUM, coul=GOLD, x=60); img = fleche(img, 60+largeur('1 000 €', 120, F_NUM)+70, 765, 90, 50)
-    elif T3 <= t < T3+3.8:
-        img = texte(img, 'ton gta 5', 300, 100); img = texte(img, "quelques € d'occasion", 440, 70, coul=GOLD)
-    elif T3+3.8 <= t < T3+9.6:
-        img = texte(img, '~10 millions', 230, 150, police=F_NUM, coul=GOLD); img = texte(img, 'de précommandes', 420, 76)
-    elif T3+9.6 <= t < T3+26.4:
+            img = texte(img, "l'action take-two", 400, 52); img = texte(img, '17,70 $', 470, 120, coul=GOLD)
+            if t >= T2+14.6: img = texte(img, 'gta 5 : 800 m$', 650, 72, coul=GOLD); img = texte(img, 'en 24 h', 750, 56)
+    elif t < T3:
+        img = verre(img, 110, 205, 860, 760, 'vert')
+        img = texte(img, "l'action take-two", 235, 50)
+        img = texte(img, '2013', 520, 34, x=150, contour=4); img = texte(img, '2026', 520, 34, x=W-150-largeur('2026', 34, contour=4), contour=4)
+        xs = np.linspace(170, 910, 60); u = (xs-170)/740; ys = 505-180*(u**2.2)          # courbe stylisée (à remplacer par les vrais cours annuels)
+        pts = np.stack([xs, ys], 1).astype(np.int32); cv2.polylines(img, [pts], False, INK, 16, cv2.LINE_AA); cv2.polylines(img, [pts], False, GOLD, 8, cv2.LINE_AA)
+        img = texte(img, '1 000 €', 585, 70)
+        img = fleche(img, 540, 715, 70, 52, bas=True)
+        cnt = 1000+(float(MONTANT.replace(' ', ''))-1000)*min(1, max(0, (t-TM-2.2)/2.3))
+        img = texte(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 765, 120, coul=GOLD)
+    elif t < T3+3.8:
+        img = verre(img, 170, 250, 740, 300, 'rouge')
+        img = texte(img, 'ton gta 5', 290, 90); img = texte(img, "quelques € d'occasion", 420, 56, coul=GOLD)
+    elif t < T3+9.6:
+        img = texte(img, '10 millions', 240, 112, coul=GOLD); img = texte(img, 'de précommandes', 400, 70)
+    elif t < T3+26.4:
         if t < T3+12.9: img = texte(img, 'attention', 300, 120, coul=GOLD)
         elif t < T3+19.6:
-            img = plaque(img, 110, 190, 970, 935, .40)
+            img = verre(img, 120, 200, 840, 700, 'orange')
+            img = texte(img, 'valeur en bourse', 225, 44, contour=5); img = texte(img, 'pour 1 € de ventes', 280, 44, contour=5)
             for i, (lab, v, an, t0) in enumerate((('2013', 1.4, '1,4 ×', T3+12.98), ('2026', 5.7, '5,7 ×', T3+17.29))):
                 if t < t0: continue
-                x0 = 260+i*340; hh = int(430*v/5.7*min(1, (t-t0)/.8)); y1 = 860
+                x0 = 260+i*340; hh = int(380*v/5.7*min(1, (t-t0)/.8)); y1 = 830
                 cv2.rectangle(img, (x0-6, y1-hh-6), (x0+176, y1+6), INK, -1)
                 cv2.rectangle(img, (x0, y1-hh), (x0+170, y1), GOLD if i else (255, 150, 110), -1)
-                img = texte(img, an, y1-hh-118, 96, police=F_NUM, coul=GOLD, x=x0+85-largeur(an, 96, F_NUM)//2)
-                img = texte(img, lab, y1+8, 50, x=x0+85-largeur(lab, 54)//2)
-            img = texte(img, 'valeur en bourse ÷ ventes annuelles', 205, 38, contour=5)
+                img = texte(img, an, y1-hh-90, 66, coul=GOLD, x=x0+85-largeur(an, 66)//2)
+                img = texte(img, lab, y1+10, 44, x=x0+85-largeur(lab, 44)//2, contour=5)
         else:
-            img = texte(img, 'le succès est', 260, 96); img = texte(img, 'déjà dans le prix', 390, 96, coul=GOLD)
+            img = verre(img, 140, 240, 800, 280, 'orange')
+            img = texte(img, 'le succès est', 265, 84); img = texte(img, 'déjà dans le prix', 380, 84, coul=GOLD)
         img = plaque(img, 170, 930, 910, 1000, .55)                              # mention (Inter : Archivo n'a pas le signe ≠)
         img = texte(img, 'performances passées ≠ performances futures', 936, 28, police=F_MEN, contour=0, ombre=False)
         img = texte(img, 'pas un conseil en investissement', 968, 28, police=F_MEN, contour=0, ombre=False)
     else:
         img = texte(img, 'et toi, tu as', 250, 100); img = texte(img, 'acheté gta 6 ?', 380, 116, coul=GOLD)
-    # compteur du résultat (au-dessus de la phrase, jamais sur le sous-titre)
-    if TM <= t < T3:
-        cnt = 1000+(float(MONTANT.replace(' ', ''))-1000)*min(1, max(0, (t-TM-2.2)/2.3))
-        img = texte(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 670, 150, police=F_NUM, coul=GOLD, x=W-60-largeur('14 500 €', 150, F_NUM))
     img = sous_titre(img, t)
     return cadre(img)
 

@@ -30,7 +30,20 @@ def pos(f, ts):
         if g == f and a <= ts <= b: return d+ts-a
     raise ValueError((f, ts))
 T2 = pos('voix_2', 0.0)
-TM = pos('voix_2', 19.80)+.25; TMD = 5.0; T3 = TM+TMD+.3; FIN = T3+V3+1.2
+T_MINI = pos('voix_2', 19.80)+.25                      # mini-transition satellite 2013 → 2026 (1,5 s, sans voix)
+TM = T_MINI+TSAT.MINI+.1; TMD = 6.95; T3 = TM+TMD+.3          # phrase du montant enregistrée le 17/11 (voix_montant, 6,9 s)
+# Troisième morceau recomposé (17/11) : deux phrases remplacées par les nouvelles prises (voix_dix_millions, voix_ratio).
+SEGS3 = [('voix_3', 0.00, 3.80, 0.00), ('voix_dix_millions', 0.00, 7.30, 4.05), ('voix_3', 9.60, 17.15, 11.55),
+         ('voix_ratio', 0.00, 2.62, 19.40), ('voix_3', 19.45, 28.53, 22.25)]
+V3N = 22.25+28.53-19.45
+def p3(x):
+    """instant (relatif à T3) de la nouvelle voix 3 correspondant à l'instant x de l'ancienne prise (calage d'origine des scènes)"""
+    if x < 3.8: return x
+    if x < 9.6: return 4.05+(x-3.8)*(7.30/5.8)
+    if x < 17.15: return x+1.95
+    if x < 19.45: return 19.40+(x-17.29)*(2.62/2.06) if x >= 17.29 else x+1.95
+    return x+2.80
+FIN = T3+V3N+1.2
 # phrases (début, fin, texte, mot clé) — repérées sur les silences de chaque morceau
 PH = [(0.00, 4.52, "GTA 6, le jeu le plus attendu de la décennie, sort aujourd'hui.", "aujourd'hui"),
       (pos('voix_1_accroche', 4.99), pos('voix_1_accroche', 7.94), "Savais-tu que l'entreprise derrière le jeu est cotée en bourse ?", "bourse"),
@@ -38,16 +51,16 @@ PH = [(0.00, 4.52, "GTA 6, le jeu le plus attendu de la décennie, sort aujourd'
       (pos('voix_2', 5.17), pos('voix_2', 10.38), "Et si, en 2013, à la sortie de GTA 5, tu avais acheté l'action plutôt que le jeu ?", "l'action"),
       (pos('voix_2', 10.68), pos('voix_2', 14.6), "Ce jour-là, l'action vaut 17,70 $.", "17,70 $"),
       (pos('voix_2', 14.6), pos('voix_2', 19.8), "Le jeu pulvérise les records : 800 M$ de ventes en 24 h.", "800 M$"),
-      (TM, TM+TMD, "Résultat : 1 000 € placés dans Take-Two ce jour-là valent aujourd'hui environ … €.", "aujourd'hui"),
-      (T3+0.00, T3+3.66, "Pendant ce temps, ton vieux GTA 5 vaut quelques euros d'occasion.", "quelques euros"),
-      (T3+3.94, T3+9.39, "Et GTA 6 démarre encore plus fort : près de 10 millions de précommandes avant même la sortie.", "10 millions"),
-      (T3+9.78, T3+12.68, "Alors, faut-il acheter l'action aujourd'hui ? Attention.", "Attention"),
-      (T3+12.98, T3+16.84, "En 2013, Take-Two valait 1,4 fois ses ventes annuelles.", "1,4 fois"),
-      (T3+17.29, T3+19.35, "Aujourd'hui, 5,7 fois.", "5,7 fois"),
-      (T3+19.62, T3+21.42, "Le succès est déjà dans le prix :", "dans le prix"),
-      (T3+21.74, T3+26.20, "GTA 6 peut tout casser… et l'action quand même décevoir.", "décevoir"),
-      (T3+26.67, T3+28.28, "Et toi, tu as acheté GTA 6 ?", "GTA 6")]
-MONTANT = os.environ.get('MONTANT', '14 500')       # provisoire : clôture du 16/11 (213,47 $), à remplacer par la clôture du 17/11
+      (TM, TM+6.88, "Résultat : 1 000 € placés dans Take-Two ce jour-là valent aujourd'hui environ 14 100 €.", "14 100 €"),
+      (T3+p3(0.00), T3+p3(3.66), "Pendant ce temps, ton vieux GTA 5 vaut quelques euros d'occasion.", "quelques euros"),
+      (T3+4.05, T3+11.31, "Et GTA 6 démarre encore plus fort : plus de 10 millions de précommandes avant même la sortie.", "10 millions"),
+      (T3+p3(9.78), T3+p3(12.68), "Alors, faut-il acheter l'action aujourd'hui ? Attention.", "Attention"),
+      (T3+p3(12.98), T3+p3(16.84), "En 2013, Take-Two valait 1,4 fois ses ventes annuelles.", "1,4 fois"),
+      (T3+19.40, T3+21.98, "Aujourd'hui, 5,8 fois.", "5,8 fois"),
+      (T3+p3(19.62), T3+p3(21.42), "Le succès est déjà dans le prix :", "dans le prix"),
+      (T3+p3(21.74), T3+p3(26.20), "GTA 6 peut tout casser… et l'action quand même décevoir.", "décevoir"),
+      (T3+p3(26.67), T3+p3(28.28), "Et toi, tu as acheté GTA 6 ?", "GTA 6")]
+MONTANT = os.environ.get('MONTANT', '14 140')       # provisoire : clôture du 16/11 (213,47 $), à remplacer par la clôture du 17/11
 
 # ---------- lecture des clips ----------
 def frame(path, t, debut=0.0, vitesse=1.0):
@@ -65,7 +78,7 @@ def coin():
     import veo_coin as VC
     return VC.VeoCoin([(T13, ['classique_parle_explique', 'classique_parle_enthousiaste'], 'voix'),
                        (TM, ['classique_danse_parle_billets', 'classique_parle_enthousiaste'], 'voix'),
-                       (T3+9.6, ['classique_parle_inquiet', 'classique_parle_confidence', 'classique_parle_explique'], 'voix')],
+                       (T3+p3(9.6), ['classique_parle_inquiet', 'classique_parle_confidence', 'classique_parle_explique'], 'voix')],
                       voix=f'{D}/voix/voice_provisoire.wav', x=540, pieds=1650, largeur_piece=230, duree=FIN, lisse=True)
 def pose(img, clip, tl):
     rgb, a = coin().layer(T_ABS[0])
@@ -103,6 +116,31 @@ def pill(img, s, y, taille=40):
     cv2.circle(m, (x0+hh//2, y+hh//2), hh//2, 255, -1, cv2.LINE_AA); cv2.circle(m, (x0+w-hh//2, y+hh//2), hh//2, 255, -1, cv2.LINE_AA)
     a = m[..., None]/255; img = img*(1-a)+np.array((255, 196, 74), np.float32)*a
     return texte(img, s, y+int(hh*.16), taille, police=F_TIT, coul=INK, contour=0, ombre=False)
+def emoji_(img, ch, cx, cy, taille):
+    """émoji Noto (fonts/NotoColorEmoji.ttf, comme les carrousels)"""
+    f = ImageFont.truetype(f'{R}/fonts/NotoColorEmoji.ttf', 109); e = Image.new('RGBA', (180, 180), 0)    # même rendu que lib/carrousel.py
+    ImageDraw.Draw(e).text((10, 10), ch, font=f, embedded_color=True); e = e.crop(e.getbbox()); e = e.resize((taille, int(taille*e.height/e.width)), Image.LANCZOS)
+    cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
+    cv.alpha_composite(e, (int(cx-e.width/2), int(cy-e.height/2))); REG['objets'].append((ch, int(cx-e.width/2), int(cy-e.height/2), int(cx+e.width/2), int(cy+e.height/2)))
+    return np.asarray(cv.convert('RGB')).astype(np.float32)
+@functools.lru_cache(maxsize=None)
+def _tuile(nom, taille):
+    im = Image.open(f'{D}/logos/{nom}.png').convert('RGBA').resize((taille, taille), Image.LANCZOS); return im
+def tuile(img, nom, x, y, taille):
+    """tuile logo façon icône d'appli (logos/, tirée des favicons via Simple Icons), ombre douce"""
+    cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA'); t = _tuile(nom, taille)
+    sh = Image.new('RGBA', cv.size, 0); sh.paste((10, 0, 20, 150), (x+4, y+6, x+taille+4, y+taille+6), t.getchannel('A'))
+    cv.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6))); cv.alpha_composite(t, (x, y))
+    REG['objets'].append((nom, x, y, x+taille, y+taille)); return np.asarray(cv.convert('RGB')).astype(np.float32)
+def tendance(img, cx, cy, monte, k=1.0):
+    """flèche de tendance épaisse, verte qui monte ou rouge qui descend, qui se trace de gauche à droite"""
+    c = (90, 220, 120) if monte else (240, 80, 80); L = 150; d = -1 if monte else 1
+    x0, y0 = cx-L//2, cy-d*45; x1, y1 = int(x0+L*k), int(y0+d*90*k)
+    cv2.line(img, (x0, y0), (x1, y1), INK, 30, cv2.LINE_AA); cv2.line(img, (x0, y0), (x1, y1), c, 18, cv2.LINE_AA)
+    if k > .6:
+        ang = np.arctan2(y1-y0, x1-x0); p = np.array([(x1+30*np.cos(ang), y1+30*np.sin(ang)), (x1+26*np.cos(ang+2.4), y1+26*np.sin(ang+2.4)), (x1+26*np.cos(ang-2.4), y1+26*np.sin(ang-2.4))], np.int32)
+        cv2.fillPoly(img, [p], c, cv2.LINE_AA)
+    REG['objets'].append(('tendance', x0-15, min(y0, y1)-20, x0+L+30, max(y0, y1)+20)); return img
 def largeur(s, taille, police=F_TIT, contour=7): bb = font(police, taille).getbbox(s, stroke_width=contour); return bb[2]-bb[0]
 def fleche(img, cx, cy, l=70, e=34, bas=False):
     q = [(-l/2, -e*.32), (l*.12, -e*.32), (l*.12, -e*.62), (l/2, 0), (l*.12, e*.62), (l*.12, e*.32), (-l/2, e*.32)]
@@ -176,7 +214,8 @@ def cours():
     x = [2013+8.55/12]+[int(m[:4])+(int(m[5:7])-.5)/12 for m, _ in L]+[2026+10.55/12]
     y = [17.70]+[float(v) for _, v in L]+[COURS_FIN]
     return np.array(x), np.array(y)
-COURS_FIN = float(os.environ.get('COURS_FIN', '213.47'))     # clôture du 16/11 en attendant celle du 17/11
+COURS_FIN = float(os.environ.get('COURS_FIN', '205.93'))     # clôture du 17/11 (Yahoo Finance)
+RATIO = 5.8                                                    # capitalisation ÷ ventes sur douze mois au 17/11 (38,6 Md$ ÷ 6,7 Md$ = 5,76)
 def courbe(img, x0, y0, x1, y1, prog=1.0):
     """courbe réelle du cours, tracée de gauche à droite (prog de 0 à 1), axe des prix linéaire de 0 au plus haut"""
     xs, ys = cours(); n = max(2, int(len(xs)*prog))
@@ -194,6 +233,20 @@ def controle(t):
             chev = a < x1 and c > x0 and b < y1 and d > y0
             if chev and not (a >= x0+30 and c <= x1-30 and b >= y0+30 and d <= y1-30): pb.append(f'{t:5.2f}s « {s_} » ({a},{b})-({c},{d}) hors du verre ({x0},{y0})-({x1},{y1})')
     return pb
+CASES2 = [((0, 690), (560, 648), (500, 1333), (0, 1360)), ((560, 648), (1080, 610), (1080, 1300), (500, 1333)),
+          ((0, 1360), (1080, 1300), (1080, 1920), (0, 1920))]
+def mosaique2(t):
+    """proposition du 17/11 : la case du haut devient une case titre (dégradé coucher de soleil rose-orange vers violet de la DA),
+    trois cases de plans dessous ; le titre ne passe plus sur un visage, les sous-titres sont sur la bande centrale"""
+    img = mosaique(t, plans=('mc_venice', 'mc_venice', 'mc_cabriolet', 'mc_billets'), tps=(1.0, 3.0, 3.0, 2.5))
+    y = np.linspace(0, 1, 690, dtype=np.float32)[:, None, None]
+    grad = np.array((255, 150, 110), np.float32)*(1-y)+np.array((90, 40, 140), np.float32)*y
+    m = np.zeros((H, W), np.float32); cv2.fillPoly(m, [np.array(CASES[0], np.int32)], 1.0, cv2.LINE_AA)
+    g = np.zeros_like(img); g[:690] = grad; img = img*(1-m[..., None])+g*m[..., None]
+    cv2.line(img, (0, 690), (1080, 610), BORD, 26, cv2.LINE_AA)
+    img = texte(img, 'GTA 6', 150, 260, police=F_ANT, coul=CREME, contour=0)
+    img = texte(img, "sort aujourd'hui", 445, 74, police=F_TIT, coul=(255, 255, 255), contour=0)
+    return img
 def carte(t):
     """transition « changement de personnage » : vue de dessus, voile vert-gris, grille de carte"""
     c = cv2.cvtColor(cv2.imread(f'{D}/cartes/carte_quartier.jpg'), cv2.COLOR_BGR2RGB); c = cv2.resize(c, (W, H)).astype(np.float32)
@@ -214,16 +267,22 @@ def image(t):
     elif t < TS: img = frame(pl('mc_pier'), t, T_PIE-.6, 1.0)                    # 5,0 s
     elif t < T_BIL: img = TSAT.image(t-TS, lambda u: frame(pl('mc_pier'), TS+u, T_PIE-.6, 1.0), lambda u: frame(pl('mc_billets'), TS+u, T_BIL-.4, 1.0))
     elif t < T13: img = frame(pl('mc_billets'), t, T_BIL-.4, 1.0)              # 6,0 s
-    elif t < TM:                                                                # 2013
+    elif t < T_MINI:                                                            # 2013
         img = pose(frame(dec('decor_2013'), t, T13, .5), '', t)
-    elif t < T3+3.8:                                                            # le résultat, la tour
+    elif t < TM:                                                                # retour en 2026 : mini-transition satellite
+        dep = lambda u: pose(frame(dec('decor_2013'), T_MINI+u, T13, .5), '', T_MINI+u)
+        arr = lambda u: pose(frame(dec('decor_tour'), TM, TM, .9), '', TM)
+        img = TSAT.mini_image(t-T_MINI, dep, arr)
+    elif t < T3+p3(3.8):                                                            # le résultat, la tour
         img = pose(frame(dec('decor_tour'), t, TM, .9), '', t)
-    elif t < T3+3.8:                                                            # le résultat, la tour
+    elif t < T3+p3(3.8):                                                            # le résultat, la tour
         img = pose(frame(dec('decor_tour'), t, TM, .9), 'classique_danse_parle_billets', t-TM)
-    elif t < T3+9.6: img = frame(pl('mc_poursuite'), t, T3+3.8-1.0, 1.2)      # GTA 6, précommandes
-    elif t < T3+26.4:                                                           # le piège
-        img = pose(frame(dec('decor_plage_nuit'), t, T3+9.6, .55), 'classique_parle_inquiet' if t < T3+19.5 else 'classique_parle_confidence', t-T3)
-    else: img = frame(pl('mc_yacht'), t, T3+26.4-5.5, 1.0)
+    elif t < T3+p3(9.6): img = frame(pl('mc_poursuite'), t, T3+p3(3.8)-.2, 1.0)      # GTA 6, précommandes
+    elif t < T3+p3(19.6):                                                           # le piège, 1 : le boulevard (attention, les barres)
+        img = pose(frame(dec('decor_boulevard'), t, T3+p3(9.6), .7), '', t)
+    elif t < T3+p3(26.4):                                                           # le piège, 2 : la plage de nuit (déjà dans le prix)
+        img = pose(frame(dec('decor_plage_nuit'), t, T3+p3(19.6), .7), '', t)
+    else: img = frame(pl('mc_yacht'), t, T3+p3(26.4)-5.5, 1.0)
     # ---- textes par scène, style des carrousels : gros mots en Anton, phrases en Inter Display, sans contour, ombre douce ----
     if TS <= t < T_BIL: pass                                                   # transition : image seule
     elif t < T_VEN: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)     # mosaïque : titre en grand
@@ -233,48 +292,57 @@ def image(t):
     elif t < T_PIE: img = I(img, 'Cotée en', 250, 80); img = A(img, 'BOURSE ?', 345, 170, GOLD)
     elif t < TS:
         if t >= T2-.1:
-            img = verre(img, 150, 190, 780, 225, 'bleu')                      # bandeau bas de hauteur : Mister Coin reste dégagé
-            wr = largeur('Rockstar', 54, F_TIT, 0); wt = largeur('TAKE-TWO', 92, F_ANT, 0); x0 = (W-(wr+110+wt))//2
-            img = I(img, 'Rockstar', 228, 54, x=x0); img = fleche(img, x0+wr+55, 262, 70, 50); img = A(img, 'TAKE-TWO', 205, 92, x=x0+wr+110)
+            img = verre(img, 80, 190, 920, 225, 'bleu')                       # bandeau bas de hauteur : Mister Coin reste dégagé
+            wr = largeur('Rockstar', 50, F_TIT, 0); wt = largeur('TAKE-TWO', 84, F_ANT, 0); x0 = (W-(64+16+wr+100+64+16+wt))//2
+            img = tuile(img, 'ROCKSTAR', x0, 230, 64); x = x0+80
+            img = I(img, 'Rockstar', 230, 50, x=x); x += wr+50; img = fleche(img, x, 262, 70, 50); x += 50
+            img = tuile(img, 'TTWO', x, 230, 64); img = A(img, 'TAKE-TWO', 210, 84, x=x+80)
             img = pill(img, 'Nasdaq · New York', 328, 32)
     elif t < T13:
         if t >= pos('voix_2', 5.0):
-            img = verre(img, 150, 200, 780, 330, 'or'); img = A(img, '2013', 215, 150, GOLD); img = I(img, "L'action ou le jeu ?", 410, 58)
+            img = verre(img, 150, 200, 780, 350, 'or'); img = A(img, '2013', 215, 150, GOLD); img = I(img, "L'action ou le jeu ?", 410, 58)
+    elif T_MINI <= t < TM: pass                                                # mini-transition : image seule
     elif t < TM:
         img = verre(img, 150, 200, 780, 530 if t < pos('voix_2', 14.6) else 740, 'or')
         img = A(img, '2013', 215, 150, GOLD)
         img = I(img, "L'action Take-Two", 400, 48); img = A(img, '17,70 $', 460, 130, GOLD)
         if t >= pos('voix_2', 14.6): img = A(img, 'GTA 5 : 800 M$', 640, 96, GOLD); img = I(img, 'de ventes en 24 h', 765, 48)
     elif t < T3:
-        img = verre(img, 110, 205, 860, 760, 'vert')
-        img = I(img, "L'action Take-Two", 235, 46)
-        img = I(img, '2013', 520, 30, x=150); img = I(img, '2026', 520, 30, x=W-150-largeur('2026', 30, F_TIT, 0))
+        img = verre(img, 110, 205, 860, 780, 'vert')
+        wl = largeur("L'action Take-Two", 46, F_TIT, 0); img = tuile(img, 'TTWO', (W-wl)//2-62, 236, 48); img = I(img, "L'action Take-Two", 235, 46)
+        img = I(img, '2013', 520, 30, x=150); img = I(img, '2026', 520, 30, x=W-175-largeur('2026', 30, F_TIT, 0))
         img, fin = courbe(img, 200, 330, 880, 505, prog=min(1, max(.02, (t-TM)/2.2)))
         img = I(img, '17,70 $', 438, 30, x=200)
         if t-TM >= 2.2: img = I(img, f"{COURS_FIN:.0f} $".replace('.', ','), 290, 30, x=880-largeur(f"{COURS_FIN:.0f} $", 30, F_TIT, 0))
         img = A(img, '1 000 €', 570, 90)
         img = fleche(img, 540, 715, 70, 52, bas=True)
         cnt = 1000+(float(MONTANT.replace(' ', ''))-1000)*min(1, max(0, (t-TM-2.2)/2.3))
-        img = A(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 755, 150, GOLD)
-    elif t < T3+3.8:
+        img = A(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 755, 135, GOLD)
+    elif t < T3+p3(3.8):
         img = verre(img, 170, 250, 740, 300, 'rouge')
-        img = I(img, 'Ton GTA 5', 285, 76); img = pill(img, "quelques € d'occasion", 460)
-    elif t < T3+9.6:
+        img = I(img, 'Ton GTA 5', 285, 76); img = pill(img, "d'occasion : dès 13,90 €", 460)
+        img = emoji_(img, '💿', 255, 330, 80)
+    elif t < T3+p3(9.6):
         img = A(img, '10 MILLIONS', 225, 150, GOLD); img = I(img, 'de précommandes', 420, 64)
-    elif t < T3+26.4:
-        if t < T3+12.9: img = A(img, 'ATTENTION', 280, 170, GOLD)
-        elif t < T3+19.6:
+    elif t < T3+p3(26.4):
+        if t < T3+p3(12.9): img = A(img, 'ATTENTION', 280, 170, GOLD)
+        elif t < T3+p3(19.6):
             img = verre(img, 120, 200, 840, 700, 'orange')
-            img = I(img, 'Valeur en bourse', 225, 42); img = I(img, 'pour 1 € de ventes', 280, 42)
-            for i, (lab, v, an, t0) in enumerate((('2013', 1.4, '1,4 ×', T3+12.98), ('2026', 5.7, '5,7 ×', T3+17.29))):
+            img = I(img, 'Valeur en bourse', 238, 40); img = I(img, 'pour 1 € de ventes', 290, 40)
+            for i, (lab, v, an, t0) in enumerate((('2013', 1.4, '1,4 ×', T3+p3(12.98)), ('2026', RATIO, f'{RATIO:.1f} ×'.replace('.', ','), T3+p3(17.29)))):
                 if t < t0: continue
-                x0 = 260+i*340; hh = int(380*v/5.7*min(1, (t-t0)/.8)); y1 = 830
+                x0 = 260+i*340; hh = int(330*v/RATIO*min(1, (t-t0)/.8)); y1 = 790
                 cv2.rectangle(img, (x0, y1-hh), (x0+170, y1), GOLD if i else (255, 150, 110), -1)
                 img = A(img, an, y1-hh-100, 84, GOLD, x=x0+85-largeur(an, 84, F_ANT, 0)//2)
                 img = I(img, lab, y1+10, 40, x=x0+85-largeur(lab, 40, F_TIT, 0)//2)
         else:
-            img = verre(img, 140, 240, 800, 300, 'orange')
-            img = I(img, 'Le succès est', 270, 76); img = I(img, 'déjà dans le prix', 380, 76, GOLD)
+            if t < T3+p3(21.7):
+                img = verre(img, 140, 240, 800, 300, 'orange')
+                img = I(img, 'Le succès est', 270, 76); img = I(img, 'déjà dans le prix', 380, 76, GOLD)
+            else:                                                               # en deux temps : le jeu monte… l'action peut baisser
+                img = verre(img, 140, 220, 800, 360 if t >= T3+p3(23.6) else 200, 'orange')
+                img = A(img, 'GTA 6', 245, 96, x=250); img = tendance(img, 720, 318, True, min(1, (t-T3-21.7)/.4))
+                if t >= T3+p3(23.6): img = A(img, "L'ACTION", 405, 96, x=250); img = tendance(img, 720, 472, False, min(1, (t-T3-23.6)/.4))
         img = plaque(img, 170, 930, 910, 1000, .55)
         img = texte(img, 'performances passées ≠ performances futures', 936, 28, police=F_MEN, contour=0, ombre=False)
         img = texte(img, 'pas un conseil en investissement', 968, 28, police=F_MEN, contour=0, ombre=False)
@@ -286,17 +354,17 @@ def image(t):
 CLES = [(0.0, 'image 0 · mosaïque'), (3.5, 'venice'), (7.5, 'cabriolet · bourse ?'), (12.0, 'jetée · rockstar'),
         (TS+.4, 'transition · départ'), (TS+1.5, 'transition · montée'), (TS+3.5, 'transition · survol'), (TS+4.4, 'transition · vert'),
         (TS+6.5, 'transition · jaune'), (TS+7.6, 'transition · plongée'), (T_BIL+2.0, "miami · l'action ou le jeu ?"), (T13+3.0, '2013 · 17,70 $'),
-        (T13+7.5, '800 m$ en 24 h'), (TM+1.1, 'le résultat · courbe'), (TM+4.6, 'le résultat · montant'), (T3+2.0, "ton gta 5"),
-        (T3+6.5, 'précommandes'), (T3+11.5, 'attention'), (T3+15.5, '1,4 ×'), (T3+18.4, '1,4 × contre 5,7 ×'),
-        (T3+20.5, 'le succès…'), (T3+23.5, '…déjà dans le prix'), (T3+26.0, 'décevoir'), (T3+27.6, 'question finale')]
-TRANS = [T_CAB+.02, T_PIE+.02, TS-.02, T_BIL+.02, T13+.02, TM+.05, T3+3.82, T3+9.62, T3+26.42]          # contrôle des coupes (texte sur texte)
+        (T13+7.5, '800 m$ en 24 h'), (T_MINI+.5, 'mini-transition 2013 → 2026'), (TM+1.1, 'le résultat · courbe'), (TM+4.6, 'le résultat · montant'), (T3+p3(2.0), "ton gta 5"),
+        (T3+p3(6.5), 'précommandes'), (T3+p3(11.5), 'attention'), (T3+p3(15.5), '1,4 ×'), (T3+p3(18.4), '1,4 × contre 5,8 ×'),
+        (T3+p3(20.5), 'le succès…'), (T3+p3(22.6), 'GTA 6 ↗'), (T3+p3(25.5), "l'action ↘"), (T3+p3(27.6), 'question finale')]
+TRANS = [T_CAB+.02, T_PIE+.02, TS-.02, T_BIL+.02, T13+.02, TM+.05, T3+p3(3.82), T3+p3(9.62), T3+p3(26.42)]          # contrôle des coupes (texte sur texte)
 def ambiance(sr, t0, t1, niveau=-30.0, baisse_voix=8.0):
     """son d'ambiance des vidéos générées (Veo et décors), très bas : chaque extrait ramené à niveau dBFS efficaces,
     baissé de baisse_voix dB quand la voix parle, fondus de 0,4 s aux coupes ; la musique de Nicolas passe par-dessus"""
     import subprocess, wave
     TAB = [('plans/mc_venice', 1.2, T_CAB, 1.2), ('plans/mc_cabriolet', T_CAB, T_PIE, T_CAB-.5), ('plans/mc_pier', T_PIE, TS+1.0, T_PIE-.6),
-           ('plans/mc_billets', T_BIL-.8, T13, T_BIL-.4), ('decors/decor_2013', T13, TM, T13), ('decors/decor_tour', TM, T3+3.8, TM),
-           ('plans/mc_poursuite', T3+3.8, T3+9.6, T3+3.8-1.0), ('decors/decor_plage_nuit', T3+9.6, T3+26.4, T3+9.6), ('plans/mc_yacht', T3+26.4, FIN, T3+26.4-5.5)]
+           ('plans/mc_billets', T_BIL-.8, T13, T_BIL-.4), ('decors/decor_2013', T13, T_MINI+.3, T13), ('decors/decor_tour', TM-.3, T3+p3(3.8), TM),
+           ('plans/mc_poursuite', T3+p3(3.8), T3+p3(9.6), T3+p3(3.8)-.2), ('decors/decor_boulevard', T3+p3(9.6), T3+p3(19.6), T3+p3(9.6)), ('decors/decor_plage_nuit', T3+p3(19.6), T3+p3(26.4), T3+p3(19.6)), ('plans/mc_yacht', T3+p3(26.4), FIN, T3+p3(26.4)-5.5)]
     out = np.zeros((int((t1-t0)*sr), 2), np.float32)
     for (f, a, b, deb) in TAB:
         a, b = max(a, t0), min(b, t1)
@@ -319,7 +387,7 @@ def assembler_voix():
     import wave
     sr = 48000; out = np.zeros(int((FIN+.5)*sr), np.float32)
     def lire(f): return np.frombuffer(wave.open(f'{D}/voix/{f}.wav').readframes(10**9), np.int16).astype(np.float32)/32768
-    for (f, a, b, d) in SEGS+[('voix_3', 0.0, V3, T3)]:
+    for (f, a, b, d) in SEGS+[('voix_montant', 0.0, 6.95, TM)]+[(f_, a_, b_, T3+d_) for (f_, a_, b_, d_) in SEGS3]:
         x = lire(f)[int(a*sr):int(b*sr)]; k = int(d*sr); out[k:k+len(x)] += x
     with wave.open(f'{D}/voix/voice_provisoire.wav', 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((np.clip(out, -1, 1)*32767).astype(np.int16).tobytes())
@@ -328,7 +396,10 @@ def demo(t0=0.0, t1=None, fps=30, nom='demo_accroche'):
     import subprocess, wave
     t1 = t1 or T13+1.0; out = f'{D}/tmp/{nom}'; assembler_voix()
     sr = 48000; v = np.frombuffer(wave.open(f'{D}/voix/voice_provisoire.wav').readframes(10**9), np.int16).astype(np.float32)/32768
-    a = np.stack([v[int(t0*sr):int(t1*sr)]]*2, 1); a += ambiance(sr, t0, t1)[:len(a)]; fx = TSAT.son(sr); k = int((TS-t0)*sr); n = min(len(a)-k, len(fx)); a[k:k+n] += fx[:n]*.8
+    a = np.stack([v[int(t0*sr):int(t1*sr)]]*2, 1); a += ambiance(sr, t0, t1)[:len(a)]
+    fm = TSAT.mini_son(sr); km = int((T_MINI-t0)*sr)
+    if 0 <= km < len(a): nm = min(len(a)-km, len(fm)); a[km:km+nm] += fm[:nm]*.8
+    fx = TSAT.son(sr); k = int((TS-t0)*sr); n = min(len(a)-k, len(fx)); a[k:k+n] += fx[:n]*.8
     a = a/max(1, np.abs(a).max()/10**(-1/20))
     with wave.open(out+'.wav', 'wb') as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr); w.writeframes((a*32767).astype(np.int16).tobytes())
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(fps), '-i', '-',

@@ -2,25 +2,23 @@
 
 DA « façon GTA 6 » (CLAUDE.md), environ 60 s, accroche question. Production le mercredi 18, publication le jeudi 19 au matin.
 
-## Chiffres (mis à jour le 17/11 à 16 h 30 ; reste à relever la clôture du 17/11 et le taux BCE du 17/11)
+## Chiffres (définitifs, relevés le 17/11 au soir)
 
 | Donnée | Valeur | Source |
 |---|---|---|
 | Sortie de GTA V | 17/09/2013 | Benzinga |
 | Cours de Take-Two le 17/09/2013 (ouverture) | 17,70 $ | Benzinga |
-| Taux BCE du 17/09/2013 | 1,3356 $ pour 1 € | BCE (relevé par Pound Sterling Live) |
-| Cours de Take-Two | 213,47 $ (clôture du lundi 16/11/2026, −6,3 % sur la journée, marché en baisse) ; clôture du 17/11 à relever après 22 h | Trefis, AskTraders, Yahoo Finance |
-| Multiplication depuis 2013 | × 12,1 en dollars (au 16/11) | calcul |
-| 1 000 € placés le 17/09/2013 | ≈ 14 500 € au 16/11 (14 255 à 14 644 € selon le taux BCE du jour) | `calcul_montant.py` |
+| Taux BCE du 17/09/2013 | 1,3356 $ pour 1 € | BCE |
+| Cours de Take-Two | 205,93 $ (clôture du 17/11/2026) | Yahoo Finance |
+| Taux BCE du 17/11/2026 | 1,0989 $ pour 1 € | ECB Data Portal |
+| 1 000 € placés le 17/09/2013 | 14 140 € (× 11,6 en dollars, × 14,1 en euros) | `calcul_montant.py` |
 | Ventes de GTA V en 24 h | plus de 800 M$ | Take-Two, sept. 2013 (Fox13) |
-| Précommandes de GTA VI | ~10,3 millions d'unités, plus de 1 Md$ (estimation Sensor Tower, nette des retours, consoles en numérique seulement) ; « bien au-delà des attentes » (Strauss Zelnick) | TweakTown, GTA Boom |
-| Prix de GTA VI | 79,99 $ (édition standard), 100 $ l'édition Ultimate | BeInCrypto, GameDev.net |
-| Valorisation | 5,7 fois les ventes annuelles au 11/11 (cours ≈ 224 $), contre 1,4 fois à la sortie de GTA V ; à recalculer au cours du 17/11 (≈ 5,4 fois à 213,47 $) | Motley Fool, 11/11/2026 |
-| Sortie de GTA VI | jeudi 19/11/2026 | Take-Two, TechRadar |
+| Précommandes de GTA VI | ~10,3 millions d'unités, plus de 1 Md$ (Sensor Tower) | TweakTown |
+| Valorisation | 1,4 fois les ventes annuelles en 2013 ; 5,8 fois au 17/11 (38,6 Md$ ÷ 6,7 Md$) | Motley Fool ; Seeking Alpha, OpenCapital |
+| GTA V d'occasion | dès 13,90 € (Fnac Occasion, PS5) | KultureGeek |
+| Sortie de GTA VI | jeudi 19/11/2026 | Take-Two |
 
-Conversion en euros : `python3 calcul_montant.py <clôture du 17/11> <taux BCE du 17/11>`.
-
-Trois phrases de la voix dépendent de ces chiffres : la phrase du montant (pas encore enregistrée), « près de dix millions de précommandes » (Sensor Tower est passé à 10,3 millions : dire « plus de dix millions ») et « cinq virgule sept fois » (le ratio suit le cours).
+Phrases à réenregistrer (envoyées à Nicolas le 17/11 à 22 h 30) : le montant, « plus de dix millions », « cinq virgule huit fois ».
 
 ## Texte pour la voix (Thomas), environ 55 s (accroche et question finale revues par Nicolas le 16/11)
 
@@ -28,11 +26,11 @@ GTA 6, le jeu le plus attendu de la décennie, sort aujourd'hui. Savais-tu que l
 Rockstar, le studio de GTA, appartient à Take-Two, cotée à New York.
 Et si, en 2013, à la sortie de GTA 5, tu avais acheté l'action plutôt que le jeu ?
 Ce jour-là, l'action vaut dix-sept dollars soixante-dix. Le jeu pulvérise les records : huit cents millions de dollars de ventes en vingt-quatre heures.
-Résultat : mille euros placés dans Take-Two ce jour-là valent aujourd'hui environ [MONTANT À CALCULER] euros.
+Résultat : mille euros placés dans Take-Two ce jour-là valent aujourd'hui environ quatorze mille cent euros.
 Pendant ce temps, ton vieux GTA 5 vaut quelques euros d'occasion.
-Et GTA 6 démarre encore plus fort : près de dix millions de précommandes avant même la sortie.
+Et GTA 6 démarre encore plus fort : plus de dix millions de précommandes avant même la sortie.
 Alors, faut-il acheter l'action aujourd'hui ? Attention.
-En 2013, Take-Two valait un virgule quatre fois ses ventes annuelles. Aujourd'hui, cinq virgule sept fois.
+En 2013, Take-Two valait un virgule quatre fois ses ventes annuelles. Aujourd'hui, cinq virgule huit fois.
 Le succès est déjà dans le prix : GTA 6 peut tout casser… et l'action quand même décevoir.
 Et toi, tu as acheté GTA 6 ?
 

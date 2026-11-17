@@ -78,10 +78,10 @@ def image(u, depart, arrivee):
     elif u < T_D1: im = grade(vue('carte_ville_v2_oblique_midi', 1.14+.05*(u-T_TEN)/(T_D1-T_TEN), dx=.08, dy=-.01*(u-T_TEN)), 'froid')
     elif u < T_D2: im = grade(vue('carte_quartier_marina', 1.00+.05*(u-T_D1)/(T_D2-T_D1), dy=.02), 'vert1')
     elif u < T_D3: im = grade(vue('carte_quartier_marina', 1.90+.08*(u-T_D2)/(T_D3-T_D2), dx=.04, dy=.05), 'vert2')
-    elif u < T_PLO: im = grade(vue('carte_quartier_marina', 3.40+.10*(u-T_D3)/(T_PLO-T_D3), dx=.06, dy=.07), 'chaud')
+    elif u < T_PLO: im = grade(vue('carte_rue', 1.05+.06*(u-T_D3)/(T_PLO-T_D3)), 'chaud')             # carte de la rue : la plus détaillée, reste nette de près
     else:                                                           # plongée : zoom et rotation dans la carte, la scène arrive en tournant
         k = ease((u-T_PLO)/(DUREE-T_PLO))
-        m = grade(vue('carte_quartier_marina', 3.5*(1+2.2*k**1.5), dx=.06, dy=.07, rot=-38*k), 'chaud')
+        m = grade(vue('carte_rue', 1.11*(1+1.6*k**1.5), rot=-38*k), 'chaud')
         sc = arrivee(u); M = cv2.getRotationMatrix2D((W/2, H/2), 22*(1-k), 1+.7*(1-k))
         sc = cv2.warpAffine(sc, M, (W, H), borderMode=cv2.BORDER_REFLECT); sc = grade(sc, 'chaud', .5*(1-k))
         a = ease((k-.35)/.5); im = m*(1-a)+sc*a
@@ -167,3 +167,26 @@ def demo(avant=1.5, apres=2.5, fps=30, nom='demo_transition'):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == 'demo': demo()
+
+# ---------- mini-transition « retour en 2026 » (17/11) : deux paliers en 1,5 s, même langage que la grande ----------
+MINI = 1.5; M_UP = [0.30, 0.72]; M_PLO = 1.05
+def mini_image(u, depart, arrivee):
+    if u < M_UP[0]:
+        k = ease(u/M_UP[0]); im = depart(u); M = cv2.getRotationMatrix2D((W/2, H/2), 0, 1-.08*k)
+        return finition(grade(cv2.warpAffine(im, M, (W, H), borderMode=cv2.BORDER_REFLECT), 'froid', k), u, [0.0], flash=.25)
+    if u < M_UP[1]: im = grade(vue('carte_quartier', 1.22-.08*(u-M_UP[0])/.42), 'froid')
+    elif u < M_PLO: im = grade(vue('carte_ville_v2_oblique_midi', 1.16-.05*(u-M_UP[1])/.33, dx=.04), 'vert1')
+    else:
+        k = ease((u-M_PLO)/(MINI-M_PLO)); m = grade(vue('carte_ville_v2_oblique_midi', 1.11*(1+1.8*k**1.5), dx=.04, rot=-30*k), 'chaud')
+        sc = arrivee(u); M = cv2.getRotationMatrix2D((W/2, H/2), 18*(1-k), 1+.6*(1-k)); sc = cv2.warpAffine(sc, M, (W, H), borderMode=cv2.BORDER_REFLECT)
+        a = ease((k-.3)/.5); out = finition(m*(1-a)+sc*a, u, M_UP); fin = ease((k-.7)/.3)
+        return out*(1-fin)+np.clip(sc, 0, 255)*fin
+    return finition(im, u, M_UP)
+def mini_son(sr=48000):
+    rng = np.random.default_rng(21); L = int((MINI+1.2)*sr); out = np.zeros(L)
+    def pose(x, t, g=1.0):
+        a = int(t*sr); b = min(L, a+len(x)); out[a:b] += x[:b-a]*g
+    pose(coup(sr, .30, .7, rng), 0.0)
+    for t in M_UP: pose(coup(sr, .30, 1.0, rng), t)
+    pose(souffle(sr, MINI-M_PLO+.15, rng, 500, 6000), M_PLO-.05, .6); pose(coup(sr, .45, .75, rng, punch=.4), MINI)
+    st = reverbe(out, sr); return st/np.abs(st).max()*10**(-1/20)

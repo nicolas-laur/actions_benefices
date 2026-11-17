@@ -63,11 +63,30 @@ PH = [(0.00, 4.52, "GTA 6, le jeu le plus attendu de la décennie, sort aujourd'
 MONTANT = os.environ.get('MONTANT', '14 140')       # provisoire : clôture du 16/11 (213,47 $), à remplacer par la clôture du 17/11
 
 # ---------- lecture des clips ----------
-def frame(path, t, debut=0.0, vitesse=1.0):
-    cap = cv2.VideoCapture(path); n = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    cap.set(cv2.CAP_PROP_POS_FRAMES, int(min(n-1, max(0, (t-debut)*vitesse*24)))); ok, f = cap.read(); cap.release()
+class _Lecteur:
+    """lecture séquentielle d'un clip (une recherche par image coûte un décodage depuis l'image clé : trop lent pour le rendu)"""
+    def __init__(self, path): self.cap = cv2.VideoCapture(path); self.n = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)); self.i = -1; self.f = None
+    def lire(self, i):
+        if i == self.i: return self.f
+        if not (self.i < i <= self.i+8): self.cap.set(cv2.CAP_PROP_POS_FRAMES, i); self.i = i-1
+        while self.i < i: ok, f = self.cap.read(); self.i += 1; self.f = f if ok else self.f
+        return self.f
+_LECT = {}
+@functools.lru_cache(maxsize=48)
+def _image_clip(path, i):
+    """image i du clip en 1080×1920 : version affinée Real-ESRGAN (decors/sr/<nom>/fNNNN.jpg) si elle existe, sinon agrandie"""
+    nom = os.path.basename(path)[:-4]; sr = f'{D}/decors/sr/{nom}/f{i:04d}.jpg'
+    if os.path.exists(sr): return cv2.cvtColor(cv2.imread(sr), cv2.COLOR_BGR2RGB).astype(np.float32)
+    if path not in _LECT: _LECT[path] = _Lecteur(path)
+    f = _LECT[path].lire(i)
     g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_LANCZOS4).astype(np.float32)
     return np.clip(g+.25*(g-cv2.GaussianBlur(g, (0, 0), 1.2)), 0, 255)
+UTILISES = {}                                     # relevé des images de clip réellement utilisées (pour n'affiner qu'elles)
+def frame(path, t, debut=0.0, vitesse=1.0):
+    if path not in _LECT: _LECT[path] = _Lecteur(path)
+    i = int(min(_LECT[path].n-1, max(0, (t-debut)*vitesse*24)))
+    UTILISES.setdefault(path, set()).add(i)
+    return _image_clip(path, i).copy()
 def dec(n): return f'{D}/decors/{n}.mp4'
 def pl(n): return f'{D}/plans/{n}.mp4'
 
@@ -220,7 +239,7 @@ def mosaique(t, plans=('mc_venice', 'mc_cabriolet', 'mc_billets', 'mc_poursuite'
         tile = np.zeros_like(img); tile[y0:y1, x0:x1] = g[oy:oy+h, ox:ox+w]; img = img*(1-m[..., None])+tile*m[..., None]
     for a, b in (((0, 690), (1080, 610)), ((560, 648), (500, 1333)), ((0, 1360), (1080, 1300))):
         cv2.line(img, a, b, BORD, 26, cv2.LINE_AA)
-    return neons(img, t)
+    return img                                   # néons colorés annulés par Nicolas (17/11) : séparations violet foncé de la DA
 ROSE, CYAN = (255, 60, 190), (40, 210, 255)
 NEONS = [(((0, 690), (1080, 610)), ROSE, 0.0), (((560, 648), (500, 1333)), CYAN, .35), (((0, 1360), (1080, 1300)), ROSE, .7),
          (((16, 16), (1064, 16)), CYAN, .15), (((1064, 16), (1064, 1904)), ROSE, .5), (((1064, 1904), (16, 1904)), CYAN, .85), (((16, 1904), (16, 16)), ROSE, .3)]

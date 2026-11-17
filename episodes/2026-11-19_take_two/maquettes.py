@@ -9,7 +9,8 @@ D = os.path.dirname(os.path.abspath(__file__)); R = f'{D}/../..'
 sys.path.insert(0, f'{R}/mister_coin'); sys.path.insert(0, f'{R}/lib')
 W, H = 1080, 1920
 F_TIT = f'{R}/fonts/InterDisplay-ExtraBold.otf'    # police maison (Inter Display, comme les carrousels) ; Big Shoulders réservée à la couverture (17/11)
-F_SUB = f'{R}/fonts/InterDisplay-Bold.otf'
+F_SUB = f'{R}/fonts/InterDisplay-Bold.otf'; F_ANT = f'{R}/fonts/Anton-Regular.ttf'
+CREME = (255, 244, 222)
 F_MEN = f'{R}/fonts/InterDisplay-Bold.otf'
 INK = (25, 8, 35); GOLD = (255, 214, 90); BORD = (38, 14, 58)
 
@@ -73,6 +74,19 @@ def texte(img, s, y, taille, police=F_TIT, coul=(255, 255, 255), contour=7, x=No
     d.text((X, y), s, font=f, fill=coul+(255,), stroke_width=contour, stroke_fill=INK+(255,))
     a = np.asarray(lay).astype(np.float32); m = a[..., 3:]/255*alpha
     return img*(1-m)+a[..., :3]*m
+def A(img, s, y, taille, coul=CREME, x=None):
+    """gros mot façon carrousel (« BCE ») : Anton, crème ou or, sans contour, ombre douce"""
+    return texte(img, s, y, taille, police=F_ANT, coul=coul, contour=0, x=x)
+def I(img, s, y, taille, coul=(255, 255, 255), x=None):
+    """phrase façon carrousel : Inter Display ExtraBold, sans contour, ombre douce"""
+    return texte(img, s, y, taille, police=F_TIT, coul=coul, contour=0, x=x)
+def pill(img, s, y, taille=40):
+    """pastille jaune des carrousels (« Banque centrale européenne ») : texte encre sur fond or arrondi"""
+    w = largeur(s, taille, F_TIT, 0)+64; x0 = (W-w)//2; hh = int(taille*1.7)
+    m = np.zeros((H, W), np.uint8); cv2.rectangle(m, (x0+hh//2, y), (x0+w-hh//2, y+hh), 255, -1)
+    cv2.circle(m, (x0+hh//2, y+hh//2), hh//2, 255, -1, cv2.LINE_AA); cv2.circle(m, (x0+w-hh//2, y+hh//2), hh//2, 255, -1, cv2.LINE_AA)
+    a = m[..., None]/255; img = img*(1-a)+np.array((255, 196, 74), np.float32)*a
+    return texte(img, s, y+int(hh*.16), taille, police=F_TIT, coul=INK, contour=0, ombre=False)
 def largeur(s, taille, police=F_TIT, contour=7): bb = font(police, taille).getbbox(s, stroke_width=contour); return bb[2]-bb[0]
 def fleche(img, cx, cy, l=70, e=34, bas=False):
     q = [(-l/2, -e*.32), (l*.12, -e*.32), (l*.12, -e*.62), (l/2, 0), (l*.12, e*.62), (l*.12, e*.32), (-l/2, e*.32)]
@@ -101,17 +115,17 @@ def sous_titre(img, t):
     # groupe de mots tenant sur une ligne autour du mot courant
     lignes, cur = [], []
     for m in mots:
-        if cur and largeur(' '.join(cur+[m]), 50, F_SUB, 5) > 760: lignes.append(cur); cur = []
+        if cur and largeur(' '.join(cur+[m]), 50, F_SUB, 0) > 760: lignes.append(cur); cur = []
         cur.append(m)
     lignes.append(cur); i = 0
     for L in lignes:
         if k <= i+len(L): break
         i += len(L)
-    vis = L[:k-i]; X = (W-largeur(' '.join(L), 50, F_SUB, 5))//2
-    img = plaque(img, X-24, 1012, X+largeur(' '.join(L), 50, F_SUB, 5)+24, 1098, .45)
+    vis = L[:k-i]; X = (W-largeur(' '.join(L), 50, F_SUB, 0))//2
+    img = plaque(img, X-24, 1012, X+largeur(' '.join(L), 50, F_SUB, 0)+24, 1098, .6)
     for m in vis:
         c = GOLD if any(w in cle.split(' ') for w in [m.strip(',.:?…')]) or m.strip(',.:?…') in cle.split(' ') else (255, 255, 255)
-        img = texte(img, m, 1022, 50, police=F_SUB, coul=c, contour=5, x=X, ombre=False); X += largeur(m+' ', 50, F_SUB, 5)
+        img = texte(img, m, 1022, 50, police=F_SUB, coul=c, contour=0, x=X, ombre=False); X += largeur(m+' ', 50, F_SUB, 0)
     return img
 
 # ---------- cadre façon écran de chargement ----------
@@ -152,56 +166,55 @@ def image(t):
     elif t < T3+26.4:                                                           # le piège
         img = pose(frame(dec('decor_plage_nuit'), t, T3+9.6, .55), 'classique_parle_inquiet' if t < T3+19.5 else 'classique_parle_confidence', t-T3)
     else: img = frame(pl('mc_yacht'), t, T3+26.4-5.5, 1.0)
-    # ---- textes par scène : titres nus sur l'action, informations sur des panneaux de verre épais ----
+    # ---- textes par scène, style des carrousels : gros mots en Anton, phrases en Inter Display, sans contour, ombre douce ----
     if 4.5 <= t < 5.6: pass
-    elif t < 4.5: img = texte(img, 'gta 6', 230, 150); img = texte(img, "sort aujourd'hui", 400, 86)
-    elif t < T2: img = texte(img, 'cotée en', 250, 96); img = texte(img, 'bourse ?', 370, 140, coul=GOLD)
+    elif t < 4.5: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)
+    elif t < T2: img = I(img, 'Cotée en', 250, 80); img = A(img, 'BOURSE ?', 345, 170, GOLD)
     elif t < T2+5.0:
         img = verre(img, 170, 220, 740, 500, 'bleu')
-        img = texte(img, 'rockstar', 260, 84); img = fleche(img, 540, 420, 76, 56, bas=True); img = texte(img, 'take-two', 470, 100)
-        img = texte(img, 'nasdaq · new york', 625, 46, coul=GOLD, contour=5)
+        img = I(img, 'Rockstar', 255, 76); img = fleche(img, 540, 420, 76, 56, bas=True); img = A(img, 'TAKE-TWO', 455, 120)
+        img = pill(img, 'Nasdaq · New York', 640)
     elif t < TM:
         img = verre(img, 150, 200, 780, 330 if t < T2+10.6 else (530 if t < T2+14.6 else 740), 'or')
-        img = texte(img, '2013', 225, 130, coul=GOLD)
-        if t < T2+10.6: img = texte(img, "l'action ou le jeu ?", 400, 62)
+        img = A(img, '2013', 215, 150, GOLD)
+        if t < T2+10.6: img = I(img, "L'action ou le jeu ?", 410, 58)
         else:
-            img = texte(img, "l'action take-two", 400, 52); img = texte(img, '17,70 $', 470, 120, coul=GOLD)
-            if t >= T2+14.6: img = texte(img, 'gta 5 : 800 m$', 650, 72, coul=GOLD); img = texte(img, 'en 24 h', 750, 56)
+            img = I(img, "L'action Take-Two", 400, 48); img = A(img, '17,70 $', 460, 130, GOLD)
+            if t >= T2+14.6: img = A(img, 'GTA 5 : 800 M$', 640, 96, GOLD); img = I(img, 'de ventes en 24 h', 765, 48)
     elif t < T3:
         img = verre(img, 110, 205, 860, 760, 'vert')
-        img = texte(img, "l'action take-two", 235, 50)
-        img = texte(img, '2013', 520, 34, x=150, contour=4); img = texte(img, '2026', 520, 34, x=W-150-largeur('2026', 34, contour=4), contour=4)
+        img = I(img, "L'action Take-Two", 235, 46)
+        img = I(img, '2013', 520, 32, x=150); img = I(img, '2026', 520, 32, x=W-150-largeur('2026', 32, F_TIT, 0))
         xs = np.linspace(170, 910, 60); u = (xs-170)/740; ys = 505-180*(u**2.2)          # courbe stylisée (à remplacer par les vrais cours annuels)
         pts = np.stack([xs, ys], 1).astype(np.int32); cv2.polylines(img, [pts], False, INK, 16, cv2.LINE_AA); cv2.polylines(img, [pts], False, GOLD, 8, cv2.LINE_AA)
-        img = texte(img, '1 000 €', 585, 70)
+        img = A(img, '1 000 €', 570, 90)
         img = fleche(img, 540, 715, 70, 52, bas=True)
         cnt = 1000+(float(MONTANT.replace(' ', ''))-1000)*min(1, max(0, (t-TM-2.2)/2.3))
-        img = texte(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 765, 120, coul=GOLD)
+        img = A(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 755, 150, GOLD)
     elif t < T3+3.8:
         img = verre(img, 170, 250, 740, 300, 'rouge')
-        img = texte(img, 'ton gta 5', 290, 90); img = texte(img, "quelques € d'occasion", 420, 56, coul=GOLD)
+        img = I(img, 'Ton GTA 5', 285, 76); img = pill(img, "quelques € d'occasion", 460)
     elif t < T3+9.6:
-        img = texte(img, '10 millions', 240, 112, coul=GOLD); img = texte(img, 'de précommandes', 400, 70)
+        img = A(img, '10 MILLIONS', 225, 150, GOLD); img = I(img, 'de précommandes', 420, 64)
     elif t < T3+26.4:
-        if t < T3+12.9: img = texte(img, 'attention', 300, 120, coul=GOLD)
+        if t < T3+12.9: img = A(img, 'ATTENTION', 280, 170, GOLD)
         elif t < T3+19.6:
             img = verre(img, 120, 200, 840, 700, 'orange')
-            img = texte(img, 'valeur en bourse', 225, 44, contour=5); img = texte(img, 'pour 1 € de ventes', 280, 44, contour=5)
+            img = I(img, 'Valeur en bourse', 225, 42); img = I(img, 'pour 1 € de ventes', 280, 42)
             for i, (lab, v, an, t0) in enumerate((('2013', 1.4, '1,4 ×', T3+12.98), ('2026', 5.7, '5,7 ×', T3+17.29))):
                 if t < t0: continue
                 x0 = 260+i*340; hh = int(380*v/5.7*min(1, (t-t0)/.8)); y1 = 830
-                cv2.rectangle(img, (x0-6, y1-hh-6), (x0+176, y1+6), INK, -1)
                 cv2.rectangle(img, (x0, y1-hh), (x0+170, y1), GOLD if i else (255, 150, 110), -1)
-                img = texte(img, an, y1-hh-90, 66, coul=GOLD, x=x0+85-largeur(an, 66)//2)
-                img = texte(img, lab, y1+10, 44, x=x0+85-largeur(lab, 44)//2, contour=5)
+                img = A(img, an, y1-hh-100, 84, GOLD, x=x0+85-largeur(an, 84, F_ANT, 0)//2)
+                img = I(img, lab, y1+10, 40, x=x0+85-largeur(lab, 40, F_TIT, 0)//2)
         else:
             img = verre(img, 140, 240, 800, 280, 'orange')
-            img = texte(img, 'le succès est', 265, 84); img = texte(img, 'déjà dans le prix', 380, 84, coul=GOLD)
-        img = plaque(img, 170, 930, 910, 1000, .55)                              # mention (Inter : Archivo n'a pas le signe ≠)
+            img = I(img, 'Le succès est', 270, 76); img = I(img, 'déjà dans le prix', 380, 76, GOLD)
+        img = plaque(img, 170, 930, 910, 1000, .55)
         img = texte(img, 'performances passées ≠ performances futures', 936, 28, police=F_MEN, contour=0, ombre=False)
         img = texte(img, 'pas un conseil en investissement', 968, 28, police=F_MEN, contour=0, ombre=False)
     else:
-        img = texte(img, 'et toi, tu as', 250, 100); img = texte(img, 'acheté gta 6 ?', 380, 116, coul=GOLD)
+        img = I(img, 'Et toi, tu as', 250, 84); img = A(img, 'ACHETÉ GTA 6 ?', 360, 140, GOLD)
     img = sous_titre(img, t)
     return cadre(img)
 
@@ -219,7 +232,7 @@ if __name__ == '__main__':
         vign.append(v); print(i, round(t, 2), lab, flush=True)
     while len(vign) % 4: vign.append(np.zeros_like(vign[0]))
     pl_ = np.vstack([np.hstack(vign[i:i+4]) for i in range(0, len(vign), 4)])
-    cv2.imwrite(f'{D}/maquettes_take_two.jpg', pl_, [cv2.IMWRITE_JPEG_QUALITY, 88])
+    cv2.imwrite(f'{D}/maquettes_take_two_{os.environ.get("VERSION", "v")}.jpg', pl_, [cv2.IMWRITE_JPEG_QUALITY, 88])
     cv2.imwrite(f'{out}/planche_bd.jpg', cv2.resize(pl_, None, fx=.5, fy=.5), [cv2.IMWRITE_JPEG_QUALITY, 75])
     tr = [cv2.resize(np.clip(image(t), 0, 255).astype(np.uint8), (270, 480))[..., ::-1] for t in TRANS]
     cv2.imwrite(f'{out}/transitions_bd.jpg', np.hstack(tr), [cv2.IMWRITE_JPEG_QUALITY, 75])

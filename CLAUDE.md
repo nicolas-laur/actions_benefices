@@ -21,7 +21,7 @@ Présent tout du long, taille constante, pas de gros plan ; mouvements lents ; g
 Envoyer les maquettes (images clés de chaque scène) et attendre la validation de Nicolas (05/11). Vérifier soi-même chaque version : images clés, transitions, son.
 
 ## Publication
-Nicolas publie lui-même, à la main, sur TikTok, YouTube Shorts et Instagram Reels. Livrables : la vidéo, la couverture, la description TikTok, un titre YouTube Shorts, une légende Instagram et les sources pour le premier commentaire.
+Nicolas publie lui-même, à la main, sur TikTok et Instagram Reels (plus sur YouTube depuis le 18/11 : ne plus produire de titre ni de description YouTube). Livrables : la vidéo, la couverture, la description TikTok, une légende Instagram et les sources pour le premier commentaire.
 
 ## Dépôt
 Commits terminés par les lignes d'attribution de la session ; pousser avec une boucle de 5 essais (`git push` puis comparaison avec `git ls-remote`).

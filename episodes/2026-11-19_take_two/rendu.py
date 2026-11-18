@@ -86,5 +86,10 @@ if __name__ == '__main__':
     if c == 'utilises': utilises()
     elif c == 'sr': sr()
     elif c == 'images': images(float(sys.argv[2]), float(sys.argv[3]), sys.argv[4])
+    elif c == 'tout':                                        # morceaux de 10 s, un seul processus (mémoire limitée), reprenable
+        m = charger(); n = int(np.ceil(m.FIN/10)); del m
+        for k in range(n):
+            if not os.path.exists(f'{OUT}/part{k:02d}.mp4'): subprocess.run([sys.executable, __file__, 'images', str(k*10), str((k+1)*10), f'part{k:02d}'], check=True)
+        print('images ok', flush=True)
     elif c == 'son': son()
     elif c == 'assemble': assemble()

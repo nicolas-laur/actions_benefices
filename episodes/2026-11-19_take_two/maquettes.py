@@ -72,7 +72,7 @@ class _Lecteur:
         while self.i < i: ok, f = self.cap.read(); self.i += 1; self.f = f if ok else self.f
         return self.f
 _LECT = {}
-@functools.lru_cache(maxsize=48)
+@functools.lru_cache(maxsize=6)
 def _image_clip(path, i):
     """image i du clip en 1080×1920 : version affinée Real-ESRGAN (decors/sr/<nom>/fNNNN.jpg) si elle existe, sinon agrandie"""
     nom = os.path.basename(path)[:-4]; sr = f'{D}/decors/sr/{nom}/f{i:04d}.jpg'

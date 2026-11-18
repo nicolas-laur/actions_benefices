@@ -26,6 +26,8 @@ def utilises():
     m.courbe = lambda img, *a, **k: (img, (0, 0)); m.cadre = lambda img: img
     m.TSAT.finition = lambda im, *a, **k: im; m.TSAT.grade = lambda im, *a, **k: im; m.TSAT.vue = lambda *a, **k: Z
     for k in range(int(m.FIN*FPS)): m.image(k/FPS)
+    for k in range(int(m.OUTRO*FPS)+2):
+        x = (3.0+k/FPS*.1)*24; m.frame(m.pl('mc_billets'), int(x)/24); m.frame(m.pl('mc_billets'), (int(x)+1)/24)
     res = {os.path.basename(p)[:-4]: sorted(v) for p, v in m.UTILISES.items()}
     json.dump(res, open(f'{D}/tmp/utilises.json', 'w')); print({k: len(v) for k, v in res.items()}, sum(len(v) for v in res.values()))
 
@@ -50,7 +52,7 @@ def sr():
     print('sr ok', flush=True)
 
 def images(a, b, nom):
-    m = charger(); n0, n1 = int(round(a*FPS)), int(round(min(b, m.FIN)*FPS))
+    m = charger(); n0, n1 = int(round(a*FPS)), int(round(min(b, m.FIN_VID)*FPS))
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '1080x1920', '-r', str(FPS), '-i', '-',
                            '-c:v', 'libx264', '-crf', '12', '-preset', 'slow', '-pix_fmt', 'yuv420p', f'{OUT}/{nom}.part.mp4'], stdin=subprocess.PIPE)
     t0 = time.time()
@@ -61,10 +63,10 @@ def images(a, b, nom):
 
 def son():
     import wave
-    m = charger(); sr_ = 48000; L = int(m.FIN*sr_)
+    m = charger(); sr_ = 48000; L = int(m.FIN_VID*sr_)
     v = np.frombuffer(wave.open(f'{D}/voix/voice_provisoire.wav').readframes(10**9), np.int16).astype(np.float32)/32768
     a = np.zeros((L, 2), np.float32); n = min(L, len(v)); a[:n] = v[:n, None]
-    a += m.ambiance(sr_, 0, m.FIN)[:L]
+    a += m.ambiance(sr_, 0, m.FIN_VID)[:L]
     for fx, t in ((m.TSAT.son(sr_), m.TS), (m.TSAT.mini_son(sr_), m.T_MINI)):
         k = int(t*sr_); n = min(L-k, len(fx)); a[k:k+n] += fx[:n]*.8
     a = a/max(1.0, np.abs(a).max()/10**(-1/20))
@@ -87,7 +89,7 @@ if __name__ == '__main__':
     elif c == 'sr': sr()
     elif c == 'images': images(float(sys.argv[2]), float(sys.argv[3]), sys.argv[4])
     elif c == 'tout':                                        # morceaux de 10 s, un seul processus (mémoire limitée), reprenable
-        m = charger(); n = int(np.ceil(m.FIN/10)); del m
+        m = charger(); n = int(np.ceil(m.FIN_VID/10)); del m
         for k in range(n):
             if not os.path.exists(f'{OUT}/part{k:02d}.mp4'): subprocess.run([sys.executable, __file__, 'images', str(k*10), str((k+1)*10), f'part{k:02d}'], check=True)
         print('images ok', flush=True)

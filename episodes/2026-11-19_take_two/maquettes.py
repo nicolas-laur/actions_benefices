@@ -43,7 +43,8 @@ def p3(x):
     if x < 17.15: return x+1.95
     if x < 19.45: return 19.40+(x-17.29)*(2.62/2.06) if x >= 17.29 else x+1.95
     return x+2.80
-FIN = T3+V3N+1.2
+FIN = T3+V3N+2.7                                     # fin rallongée de 1,5 s (18/11)
+OUTRO = 5.0; FIN_VID = FIN+OUTRO                   # outro « Abonne-toi » sur le pistolet à billets ralenti
 # phrases (début, fin, texte, mot clé) — repérées sur les silences de chaque morceau
 PH = [(0.00, 4.52, "GTA 6, le jeu le plus attendu de la décennie, sort aujourd'hui.", "aujourd'hui"),
       (pos('voix_1_accroche', 4.99), pos('voix_1_accroche', 7.94), "Savais-tu que l'entreprise derrière le jeu est cotée en bourse ?", "bourse"),
@@ -151,6 +152,14 @@ def tuile(img, nom, x, y, taille):
     sh = Image.new('RGBA', cv.size, 0); sh.paste((10, 0, 20, 150), (x+4, y+6, x+taille+4, y+taille+6), t.getchannel('A'))
     cv.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6))); cv.alpha_composite(t, (x, y))
     REG['objets'].append((nom, x, y, x+taille, y+taille)); return np.asarray(cv.convert('RGB')).astype(np.float32)
+def fleche_simple(img, cx, y0, y1, coul=(255, 255, 255)):
+    """flèche fine et sobre vers le bas : un trait et deux branches, bouts arrondis, ombre douce (18/11)"""
+    pts = [((cx, y0), (cx, y1)), ((cx-20, y1-20), (cx, y1)), ((cx+20, y1-20), (cx, y1))]
+    sh = np.zeros((H, W), np.float32)
+    for a_, b_ in pts: cv2.line(sh, (a_[0], a_[1]+4), (b_[0], b_[1]+4), 1.0, 10, cv2.LINE_AA)
+    sh = cv2.GaussianBlur(sh, (0, 0), 5)*.5; img = img*(1-sh[..., None])+np.array((10, 0, 20), np.float32)*sh[..., None]
+    for a_, b_ in pts: cv2.line(img, a_, b_, coul, 6, cv2.LINE_AA)
+    REG['objets'].append(('flèche', cx-26, y0, cx+26, y1+6)); return img
 def tendance(img, cx, cy, monte, k=1.0):
     """flèche de tendance épaisse, verte qui monte ou rouge qui descend, qui se trace de gauche à droite"""
     c = (90, 220, 120) if monte else (240, 80, 80); L = 150; d = -1 if monte else 1
@@ -192,9 +201,13 @@ def sous_titre(img, t):
     ph = next((p for p in PH if p[0] <= t < p[1]+.15), None)
     if ph is None: return img
     a, b, s, cle = ph; mots = s.split(' '); T = 46; PAD = 18
-    k = max(1, min(len(mots), int((t-a)/max(.1, b-a)*len(mots))+1))         # mot courant (réparti à la longueur, en attendant un calage fin)
     cles = set(cle.split(' '))
-    est_cle = [m.strip(',.:?…') in cles for m in mots]
+    bruts = [(m, m.strip(',.:?…') in cles) for m in mots]
+    mots, est_cle = [], []                                                      # mots clés consécutifs regroupés dans une seule pastille (18/11)
+    for m, c in bruts:
+        if c and est_cle and est_cle[-1]: mots[-1] += ' '+m
+        else: mots.append(m); est_cle.append(c)
+    k = max(1, min(len(mots), int((t-a)/max(.1, b-a)*len(mots))+1))         # mot courant (réparti à la longueur, en attendant un calage fin)
     wd = [largeur(m, T, F_SUB, 0)+(2*PAD if c else 0) for m, c in zip(mots, est_cle)]; sp = largeur(' ', T, F_SUB, 0)+4
     lignes, cur, cw = [], [], 0
     for i, w in enumerate(wd):
@@ -324,8 +337,22 @@ def carte(t):
     return cv2.GaussianBlur(c, (0, 0), 1.5)
 
 # ---------- scènes ----------
+def ease_(x): x = min(1, max(0, x)); return x*x*(3-2*x)
+def outro(u):
+    """outro de 5 s (18/11) : le pistolet à billets de Miami ralenti presque à l'arrêt (0,1×, fondu entre images voisines, léger
+    zoom avant), puis le bloc « ABONNE-TOI » des carrousels (lib/carrousel.py, logos/PROFIL.png) en haut, au-dessus de Mister Coin"""
+    sys.path.insert(0, f'{R}/lib'); import carrousel as CR; CR.D = D
+    x = (3.0+u*.1)*24; i0 = int(x); f = x-i0
+    a = frame(pl('mc_billets'), i0/24, 0, 1.0); b = frame(pl('mc_billets'), (i0+1)/24, 0, 1.0); im = a*(1-f)+b*f
+    M = cv2.getRotationMatrix2D((W/2, H*.42), 0, 1+.05*u/OUTRO); im = cv2.warpAffine(im, M, (W, H), borderMode=cv2.BORDER_REFLECT)
+    k = ease_((u-.3)/.6)
+    cv = Image.fromarray(np.clip(im, 0, 255).astype(np.uint8)).convert('RGBA'); s_, c_ = CR.surface()
+    CR.bloc_abonne(cv, c_, cy=340); cv.alpha_composite(CR.to_img(s_))
+    out = np.asarray(cv.convert('RGB')).astype(np.float32)
+    return cadre(im*(1-k)+out*k)
 def image(t):
     T_ABS[0] = t
+    if t >= FIN: return outro(t-FIN)
     REG['verres'].clear(); REG['objets'].clear()
     if t < 1.2: img = mosaique(t)
     elif t < T_VEN:                                                             # la case du haut s'ouvre en plein écran
@@ -350,7 +377,7 @@ def image(t):
         img = pose(frame(dec('decor_boulevard'), t, T3+p3(9.6), .7), '', t)
     elif t < T3+p3(26.4):                                                           # le piège, 2 : la plage de nuit (déjà dans le prix)
         img = pose(frame(dec('decor_plage_nuit'), t, T3+p3(19.6), .7), '', t)
-    else: img = frame(pl('mc_yacht'), t, T3+p3(26.4)-5.5, 1.0)
+    else: img = frame(pl('mc_yacht'), t, T3+p3(26.4)-2.5, 1.0)
     # ---- textes par scène, style des carrousels : gros mots en Anton, phrases en Inter Display, sans contour, ombre douce ----
     if TS <= t < T_BIL: pass                                                   # transition : image seule
     elif t < T_VEN: img = A(img, 'GTA 6', 215, 190); img = I(img, "sort aujourd'hui", 440, 72)     # mosaïque : titre en grand
@@ -382,14 +409,14 @@ def image(t):
         img, fin = courbe(img, 200, 330, 880, 505, prog=min(1, max(.02, (t-TM)/2.2)))
         img = I(img, '17,70 $', 438, 30, x=200)
         if t-TM >= 2.2: img = I(img, f"{COURS_FIN:.0f} $".replace('.', ','), 290, 30, x=880-largeur(f"{COURS_FIN:.0f} $", 30, F_TIT, 0))
-        img = A(img, '1 000 €', 570, 90)
-        img = fleche(img, 540, 715, 70, 52, bas=True)
+        img = A(img, '1 000 €', 555, 90)
+        img = fleche_simple(img, 540, 688, 742)
         cnt = 1000+(float(MONTANT.replace(' ', ''))-1000)*min(1, max(0, (t-TM-2.2)/2.3))
-        img = A(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 755, 135, GOLD)
+        img = A(img, f"{int(round(cnt/10)*10):,} €".replace(',', ' '), 768, 135, GOLD)
     elif t < T3+p3(3.8):
         img = verre(img, 170, 250, 740, 300, 'rouge')
-        img = I(img, 'Ton GTA 5', 285, 76); img = pill(img, "d'occasion : dès 13,90 €", 460)
-        img = emoji_(img, '💿', 255, 330, 80)
+        img = I(img, 'Ton GTA 5', 302, 76); img = pill(img, "d'occasion : dès 13,90 €", 425)
+        img = emoji_(img, '💿', 262, 348, 76)
     elif t < T3+p3(9.6):
         img = A(img, '10 MILLIONS', 225, 150, GOLD); img = I(img, 'de précommandes', 420, 64)
     elif t < T3+p3(26.4):
@@ -409,8 +436,8 @@ def image(t):
                 img = I(img, 'Le succès est', 270, 76); img = I(img, 'déjà dans le prix', 380, 76, GOLD)
             else:                                                               # en deux temps : le jeu monte… l'action peut baisser
                 img = verre(img, 140, 220, 800, 360 if t >= T3+p3(23.6) else 200, 'orange')
-                img = A(img, 'GTA 6', 245, 96, x=250); img = tendance(img, 720, 318, True, min(1, (t-T3-21.7)/.4))
-                if t >= T3+p3(23.6): img = A(img, "L'ACTION", 405, 96, x=250); img = tendance(img, 720, 472, False, min(1, (t-T3-23.6)/.4))
+                img = A(img, 'GTA 6', 245, 96, x=250); img = emoji_(img, '📈', 740, 312, 96)
+                if t >= T3+p3(23.6): img = A(img, "L'ACTION", 405, 96, x=250); img = emoji_(img, '📉', 740, 470, 96)
         img = plaque(img, 170, 930, 910, 1000, .55)
         img = texte(img, 'performances passées ≠ performances futures', 936, 28, police=F_MEN, contour=0, ombre=False)
         img = texte(img, 'pas un conseil en investissement', 968, 28, police=F_MEN, contour=0, ombre=False)
@@ -432,7 +459,7 @@ def ambiance(sr, t0, t1, niveau=-30.0, baisse_voix=8.0):
     import subprocess, wave
     TAB = [('plans/mc_venice', 1.2, T_CAB, 1.2), ('plans/mc_cabriolet', T_CAB, T_PIE, T_CAB-.5), ('plans/mc_pier', T_PIE, TS+1.0, T_PIE-.6),
            ('plans/mc_billets', T_BIL-.8, T13, T_BIL-.4), ('decors/decor_2013', T13, T_MINI+.3, T13), ('decors/decor_tour', TM-.3, T3+p3(3.8), TM),
-           ('plans/mc_poursuite', T3+p3(3.8), T3+p3(9.6), T3+p3(3.8)-.2), ('decors/decor_boulevard', T3+p3(9.6), T3+p3(19.6), T3+p3(9.6)), ('decors/decor_plage_nuit', T3+p3(19.6), T3+p3(26.4), T3+p3(19.6)), ('plans/mc_yacht', T3+p3(26.4), FIN, T3+p3(26.4)-5.5)]
+           ('plans/mc_poursuite', T3+p3(3.8), T3+p3(9.6), T3+p3(3.8)-.2), ('decors/decor_boulevard', T3+p3(9.6), T3+p3(19.6), T3+p3(9.6)), ('decors/decor_plage_nuit', T3+p3(19.6), T3+p3(26.4), T3+p3(19.6)), ('plans/mc_yacht', T3+p3(26.4), FIN, T3+p3(26.4)-2.5), ('plans/mc_billets', FIN, FIN_VID, FIN-3.0)]
     out = np.zeros((int((t1-t0)*sr), 2), np.float32)
     for (f, a, b, deb) in TAB:
         a, b = max(a, t0), min(b, t1)

@@ -457,7 +457,8 @@ def ambiance(sr, t0, t1, niveau=-30.0, baisse_voix=8.0):
     """son d'ambiance des vidéos générées (Veo et décors), très bas : chaque extrait ramené à niveau dBFS efficaces,
     baissé de baisse_voix dB quand la voix parle, fondus de 0,4 s aux coupes ; la musique de Nicolas passe par-dessus"""
     import subprocess, wave
-    TAB = [('plans/mc_venice', 1.2, T_CAB, 1.2), ('plans/mc_cabriolet', T_CAB, T_PIE, T_CAB-.5), ('plans/mc_pier', T_PIE, TS+1.0, T_PIE-.6),
+    # Venice et cabriolet sans son (retour du 18/11) : l'ambiance commence sur la jetée
+    TAB = [('plans/mc_pier', T_PIE, TS+1.0, T_PIE-.6),
            ('plans/mc_billets', T_BIL-.8, T13, T_BIL-.4), ('decors/decor_2013', T13, T_MINI+.3, T13), ('decors/decor_tour', TM-.3, T3+p3(3.8), TM),
            ('plans/mc_poursuite', T3+p3(3.8), T3+p3(9.6), T3+p3(3.8)-.2), ('decors/decor_boulevard', T3+p3(9.6), T3+p3(19.6), T3+p3(9.6)), ('decors/decor_plage_nuit', T3+p3(19.6), T3+p3(26.4), T3+p3(19.6)), ('plans/mc_yacht', T3+p3(26.4), FIN, T3+p3(26.4)-2.5), ('plans/mc_billets', FIN, FIN_VID, FIN-3.0)]
     out = np.zeros((int((t1-t0)*sr), 2), np.float32)

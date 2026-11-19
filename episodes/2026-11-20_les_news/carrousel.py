@@ -7,7 +7,7 @@ from carrousel import *
 LOGOS |= {'PROFIL', 'NVDA', 'ANTH', 'TTWO', 'US', 'FR'}                       # pas de logo libre pour Walmart et Home Depot : émoji
 
 TOP = [("NVDA", "Nvidia : premiers résultats sans Huang"), ("ANTH", "Anthropic entre en bourse"), ("TTWO", "GTA 6 est sorti : et Take-Two ?"),
-       ("🛒", "Walmart face à Home Depot"), ("US", "Wall Street secouée, et Paris ?")]
+       ("🛒", "Walmart face à Home Depot"), ("US", "Wall Street sous les 50 000")]
 def puce(cv, key, cx, cy, size):
     if key in LOGOS: logo(cv, key, cx, cy, size)
     else: put_emoji(cv, key, cx, cy, int(size*.8))

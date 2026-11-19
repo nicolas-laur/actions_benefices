@@ -17,6 +17,21 @@ Idée du 19/11/2026, inspirée des carrousels « Que vaut l'entreprise qui… »
 7. Face à son secteur : croissance de l'entreprise contre celle de son marché, ou ratios comparés à 2 concurrents (PER, marge). Source du chiffre de marché obligatoire.
 8. Fin : « Ce qu'il faut surveiller » (2 ou 3 faits à venir, datés : prochains résultats, sortie, échéance), question d'engagement, « enregistre-le », `bloc_abonne`, `mention_pedago`.
 
+## Style graphique (retour du 19/11 : « vraiment bien », à adapter à nos couleurs)
+Repris des carrousels de référence, parce qu'il est clair et dense sans être chargé :
+- Tableau de bord en tuiles : indicateurs rangés par familles (croissance, rentabilité, santé financière, tendances), une tuile par chiffre avec son libellé, la valeur en gras et le contexte en petit gris (« +18,1 % vs 2025 »), une pastille ✓ / ✗ / – à gauche.
+- Titres de famille en petites capitales espacées, suivis de 2 ou 3 points de couleur qui résument la famille d'un coup d'œil.
+- Graphiques épurés : barres avec la valeur écrite au-dessus, négatifs en rouge sous l'axe, une courbe secondaire (marge) sous les barres, légende en bas, grille très légère.
+- Encadré de lecture : bloc à filet vertical coloré à gauche, 3 ou 4 lignes, chiffres clés en gras.
+- Mention « Source : … » sous chaque graphique, en petit, alignée à droite.
+
+Adaptation Actions_Bénéfices :
+- Les tuiles et les graphiques vivent dans nos panneaux de verre épais (`tp`), sur le décor 1930 assombri, pas sur un fond blanc.
+- Couleurs maison (`lib/carrousel.py`) : or `GD` pour les titres et le filet de l'encadré, vert `GR` pour ✓ et les hausses, rouge `RD` pour ✗ et les baisses, cyan `CY` pour la courbe secondaire et les barres « tendance », blanc et `ICE` pour les textes. Barres principales en or dégradé (`GD` → `GD2`).
+- Pastilles : nos émojis Noto (✅ ❌ ➖) ou des ronds pleins dans nos couleurs, au choix après maquette.
+- Police : Inter Display (pas de police condensée hors couverture), chiffres en ExtraBold.
+- Une seule fonction de graphique à ajouter à `lib/carrousel.py` (barres + courbe, valeurs étiquetées), réutilisable dans les News pour la diapo bonus « tendance longue ».
+
 ## Règles
 - Pas de note sur 10, pas de « cours revalorisé », pas d'objectif de cours, pas d'avis « bon ou mauvais investissement ». La dernière diapo liste des faits à venir, pas une opinion.
 - Exercices fiscaux nommés tels quels (« exercice clos fin mars 2026 ») ; ne jamais mélanger année civile et exercice sans le dire.

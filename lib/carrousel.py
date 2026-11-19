@@ -12,7 +12,7 @@ from nty import text, surface, to_img, rr, col, tw, W, H
 from logo import logo_symbol
 from bglass import gpanel, place, glow_text, tilt_quad, surf, pil
 from verre_epais import tplace
-NB = ' '
+NB = '\u00a0'                                                               # espace insécable (était une espace simple : les « % » partaient seuls à la ligne, corrigé le 19/11)
 CY = '35D6FF'; CY2 = 'A8EEFF'; GD = 'FFC24A'; GD2 = 'FFE3A0'; GR = '3FE08A'; RD = 'FF4D5E'; OR = 'FFA63D'; ICE = 'E8EEF8'; INK = '0B0E14'; WHITE = 'FFFFFF'
 def rgb(h): h = h.lstrip('#'); return [int(h[i:i+2], 16)/255 for i in (0, 2, 4)]
 def fmt(v, d=1): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',').replace(' ', NB)
@@ -160,13 +160,15 @@ def entete(cv, c, num, sujet, titre, glow='FFB020', size=92, flag=None):
     glow_text(cv, titre, 540, 320, size, top='FFFFFF', bottom='FFE3A0', glow=glow, ga=.55, reflect=False)
 GAP = 58                                                                     # espace entre deux cadres de verre (retour du 12/11)
 def hauteur(s_, size=29): k0 = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 4, 4)); return int(len(wrap(k0, s_, 'sb', size, 720))*size*1.32+36)
-def sujet(cv, c, i, num, nom, titre, fait, rows, mood, lect, pose, bul, glow='FFB020', tsize=92, emo='📰', extra=None):
+def sujet(cv, c, i, num, nom, titre, fait, rows, mood, lect, pose, bul, glow='FFB020', tsize=92, emo='📰', extra=None, ch=200):
+    """ch : hauteur de Mister Coin ; 'auto' = le plus grand possible (≤ 340) dans la place libre sous le dernier cadre (retour du 19/11)"""
     entete(cv, c, num, nom, titre, glow, tsize, flag=emo if emo in LOGOS else None)
     h = hauteur(fait); texte(cv, fait, 392+h/2, emo, mood='or'); kh = len(rows)*100+30; ky = 392+h+GAP+kh/2
     kpi(cv, rows, 540, ky, mood, h=kh); y = ky+kh/2+GAP
     if extra: y = extra(cv, c, y)+GAP
-    if lect: hl = hauteur(lect); texte(cv, lect, y+hl/2, '💡')
-    bb = coin(cv, pose, 200, 1478, 200); bulle_pres(c, bul, bb, 30, .3)
+    if lect: hl = hauteur(lect); texte(cv, lect, y+hl/2, '💡'); y += hl
+    if ch == 'auto': ch = int(max(220, min(370, 1505-y-30)))
+    bb = coin(cv, pose, 60+ch*.62, 1505 if ch > 200 else 1478, ch); bulle_pres(c, bul, bb, 32 if ch > 260 else 30, .3)
     pagination(c, i)
 
 # ---------- éléments communs de fin ----------

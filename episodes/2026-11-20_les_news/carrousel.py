@@ -48,38 +48,37 @@ def s_nvda(cv, c):
           [("RACHAT D'ACTIONS EN PLUS", f"{fmt(eur(150), 0)}{NB}Md€", "150 Md$", None, GR),
            ("L'ACTION, SUR LA SEMAINE", NV_SEM, NV_SEM_SUB, None, RD),
            ("PUCES : LICENCE D'EXPORT EXIGÉE", "5 pays", "dont Singapour et la Malaisie", None, OR)],
-          'rouge', TXT['nvda_lect'], 'sceptique', "Records… et ça baisse ?", glow='FF5A3C', tsize=78, emo='NVDA')
+          'rouge', TXT['nvda_lect'], 'sceptique', "Records… et ça baisse ?", glow='FF5A3C', tsize=78, emo='NVDA', ch='auto')
 def s_ant(cv, c):
     sujet(cv, c, 2, 2, "ANTHROPIC", "UN DÉBUT EN BOURSE RECORD", TXT['ant_fait'],
           [("ARGENT LEVÉ", f"{fmt(eur(81.3), 0)}{NB}Md€", "81,3 Md$, record mondial", None, GD),
            ("1ER JOUR, À LA CLÔTURE", "+17,1 %", f"{fmt(eur(97.17), 2)}{NB}€ (97,17 $)", None, GR),
            ("DEPUIS LA 1RE COTATION", "−12,9 %", "ouverture à 111,50 $", None, RD)],
-          'or', TXT['ant_lect'], 'etoiles', "Quel départ !", tsize=82, emo='ANTH')
+          'or', TXT['ant_lect'], 'etoiles', "Quel départ !", tsize=82, emo='ANTH', ch='auto')
 def s_gta(cv, c):
     sujet(cv, c, 3, 3, "TAKE-TWO", "GTA 6 CARTONNE, L'ACTION RECULE", TXT['gta_fait'],
           [("MERCREDI 18/11", "+6,2 %", "critiques : 99 sur 100", None, GR),
            ("JEUDI 19/11", TT_19, TT_19_SUB, None, RD),
            ("DEPUIS LE 1ER JANVIER", "≈ −15 %", None, None, RD)],
-          'bleu', TXT['gta_lect'], 'haussement', "Déjà dans le prix ?", glow='35D6FF', tsize=70, emo='TTWO')
+          'bleu', TXT['gta_lect'], 'haussement', "Déjà dans le prix ?", glow='35D6FF', tsize=70, emo='TTWO', ch='auto')
 def s_wmt(cv, c):
     sujet(cv, c, 4, 4, "WALMART ET HOME DEPOT", "LES BONS ÉLÈVES PUNIS", TXT['wmt_fait'],
           [("WALMART, JEUDI 19/11", WM_19, WM_19_SUB, None, RD),
            ("HOME DEPOT, MARDI 17/11", "−2,45 %", f"{fmt(eur(339.01), 2)}{NB}€ (339,01 $)", None, RD)],
-          'orange', TXT['wmt_lect'], 'reflechit', "Mieux, mais pas assez ?", tsize=80, emo='🛒')
+          'orange', TXT['wmt_lect'], 'reflechit', "Mieux, mais pas assez ?", tsize=80, emo='🛒', ch='auto')
 def s_ws(cv, c):
     sujet(cv, c, 5, 5, "MARCHÉS", "UNE SEMAINE SOUS LA PLUIE", TXT['ws_fait'],
           [("DOW JONES, SUR LA SEMAINE", "−6,2 %", f"49{NB}097 pts, hors dividendes", None, RD),
            ("CAC 40, SUR LA SEMAINE", "−3,44 %", f"8{NB}080,74 pts, hors dividendes", None, RD),
-           ("TAUX AMÉRICAIN À 10 ANS", "5,10 %", "hausse de la Fed attendue en décembre", None, OR),
-           ("PÉTROLE (BRENT)", "93 $", "le baril, mardi 17/11", None, OR)],
-          'rouge', TXT['ws_lect'], 'sueur', "Ça secoue…", glow='35D6FF', tsize=78, emo='US')
+           ("TAUX À 10 ANS US  /  BRENT", f"5,10{NB}%  /  93{NB}$", "hausse de la Fed attendue en décembre", None, OR)],
+          'rouge', TXT['ws_lect'], 'sueur', "Ça secoue…", glow='35D6FF', tsize=78, emo='US', ch='auto')
 def s_fin(cv, c):
     glow_text(cv, "ET TOI,", 540, 320, 124, top='FFFFFF', bottom='CFF4FF', glow='35D6FF', ga=.5)
     glow_text(cv, "QUELLE NEWS", 540, 455, 96, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
     glow_text(cv, "T'A SURPRIS ?", 540, 570, 104, top='FFFFFF', bottom='FFE3A0', glow='FFB020', ga=.7)
     text(c, "Dis-le en commentaire", 540, 690, 'sb', 34, ICE, 'c', .85); put_emoji(cv, '👇', 540, 745, 48)
     gpill(c, "ENREGISTRE-LE POUR LA SEMAINE PROCHAINE", 540, 840, GD, 30); put_emoji(cv, '📌', 540+375, 835, 40)
-    bloc_abonne(cv, c, 1060); coin(cv, 'salut_chapeau', 540, 1440, 230); mention_pedago(c)
+    bloc_abonne(cv, c, 1060); coin(cv, 'salut_chapeau', 540, 1505, 320); mention_pedago(c)
 
 SLIDES = [s_cover, s_nvda, s_ant, s_gta, s_wmt, s_ws, s_fin]
 FONDS = ['couverture', 'nvidia', 'anthropic', 'gta6', 'walmart', 'wallstreet', 'couverture']

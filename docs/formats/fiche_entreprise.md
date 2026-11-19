@@ -7,20 +7,22 @@ Idée du 19/11/2026, inspirée des carrousels « Que vaut l'entreprise qui… »
 - Idéalement en complément d'un sujet déjà sourcé (vidéo ou News du vendredi), pour réutiliser les chiffres vérifiés.
 - Premiers candidats : Walmart, Anthropic (première publication de résultats comme société cotée), Nvidia.
 
-## Structure (7 diapos, gabarit `lib/carrousel.py`)
+## Structure (8 diapos, gabarit `lib/carrousel.py`)
 1. Couverture : « Que vaut [entreprise] ? », l'accroche d'actualité en une ligne, Mister Coin `reflechit` ou `lit_journal_v2_titre`, décor 1930 lié au métier de l'entreprise.
 2. Carte d'identité : ce qu'elle fait (3 lignes), où elle gagne son argent (répartition du chiffre d'affaires par activité ou par région), date d'entrée en bourse, capitalisation en euros.
 3. Croissance : chiffre d'affaires sur 5 exercices en barres (lib `dataviz`), croissance annuelle moyenne, encadré « ce qu'il faut retenir » en 3 lignes.
 4. Rentabilité : résultat net et marge nette sur 5 exercices ; si l'entreprise perd de l'argent, expliquer pourquoi en une phrase (dépréciation, investissements…).
-5. Solidité : dette nette, flux de trésorerie disponible (free cash flow), dividende ou rachats d'actions. Une ligne d'explication par notion (lexique maison).
-6. Face à son secteur : croissance de l'entreprise contre celle de son marché, ou ratios comparés à 2 concurrents (PER, marge). Source du chiffre de marché obligatoire.
-7. Fin : « Ce qu'il faut surveiller » (2 ou 3 faits à venir, datés : prochains résultats, sortie, échéance), question d'engagement, « enregistre-le », `bloc_abonne`, `mention_pedago`.
+5. Solidité : dette nette, flux de trésorerie disponible (free cash flow). Une ligne d'explication par notion (lexique maison).
+6. Dividende : dividende par action sur 10 ans en barres (en euros), rendement au cours retenu, taux de distribution (dividende / bénéfice par action), nombre d'années de hausse ou de maintien d'affilée, dates de détachement et de versement à venir. S'il n'y a pas de dividende, le dire et expliquer ce que l'entreprise fait de son argent à la place (rachats d'actions, investissements, désendettement), avec les montants.
+7. Face à son secteur : croissance de l'entreprise contre celle de son marché, ou ratios comparés à 2 concurrents (PER, marge). Source du chiffre de marché obligatoire.
+8. Fin : « Ce qu'il faut surveiller » (2 ou 3 faits à venir, datés : prochains résultats, sortie, échéance), question d'engagement, « enregistre-le », `bloc_abonne`, `mention_pedago`.
 
 ## Règles
 - Pas de note sur 10, pas de « cours revalorisé », pas d'objectif de cours, pas d'avis « bon ou mauvais investissement ». La dernière diapo liste des faits à venir, pas une opinion.
 - Exercices fiscaux nommés tels quels (« exercice clos fin mars 2026 ») ; ne jamais mélanger année civile et exercice sans le dire.
 - Une seule devise par graphique : montants convertis en euros au taux BCE du jour de clôture retenu, montant d'origine en dollars en petit.
 - Sources : rapports annuels et communiqués de l'entreprise (10-K, 10-Q, S-1, document d'enregistrement) en priorité, puis presse financière ; tout dans `sources.md`.
+- Dividendes : montants bruts, devise d'origine précisée ; dividende exceptionnel séparé du dividende ordinaire sur le graphique ; rappeler que la fiscalité dépend de l'enveloppe (PEA, CTO) sans entrer dans le détail.
 - Ratios calculés nous-mêmes, formule écrite dans `sources.md` (ex. marge nette = résultat net / chiffre d'affaires).
 - Un graphique par diapo au plus, toujours accompagné d'un encadré de 3 ou 4 lignes qui le traduit en français simple.
 

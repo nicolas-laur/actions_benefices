@@ -59,3 +59,7 @@ Test rapide : `python3 mister_coin.py voix.wav` produit `apercu_mister_coin.png`
 - La voix reste celle de Thomas (ElevenLabs).
 
 Rendu : comptez environ 45 min pour 42 s en 60 i/s sur 2 cœurs, en deux segments rendus en parallèle.
+
+## Poses fixes partagées (carrousels, couvertures)
+
+`mister_coin/poses/` : poses détourées (PNG RGBA recadré, 900 px de haut) communes à tous les épisodes, ajoutées le 19/11 : applaudit, assis, doigt_leve, etoiles, haussement, lit_journal, reflechit, salut_chapeau, sceptique, sueur. Détourage : `python3 mister_coin/detoure_poses.py src.jpg nom` (enlève aussi l'ombre portée verte). Les 9 poses historiques (choc, facepalm, inquiet, joie, montre, pouce, question, rire, triste) restent dans les dossiers `coin/` des épisodes.

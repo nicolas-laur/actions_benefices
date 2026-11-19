@@ -82,11 +82,11 @@ def wrap(c, s_, f, size, maxw):
         else: cur = t
     return lines+[cur]
 # ---------- verre épais : le panneau est calculé sur l'image en cours (il réfracte le globe et le ciel) ----------
-def tp(cv, w, h, draw, cx, cy, mood='or', rx=.05, ry=0.0, bev=None):
+def tp(cv, w, h, draw, cx, cy, mood='or', rx=.05, ry=0.0, bev=None, frost=30, dim=.42):
     bev = bev or (34 if min(w, h) > 200 else 24); P = bev-10; W2, H2 = w+2*P, h+2*P
     base = np.asarray(cv.convert('RGB')).astype(np.float32)/255
     def dd(k, ww, hh): k.translate(P, P); draw(k, w, h)
-    tplace(cv, base, W2, H2, dd, tilt_quad(cx, cy, W2, H2, ry=ry, rx=rx), 1.0, mood, bevel=bev, r=44 if min(w, h) > 200 else 30, frost=30, dim=.42, cache=False)   # image fixe : plateau plus dépoli et plus sombre pour la lecture
+    tplace(cv, base, W2, H2, dd, tilt_quad(cx, cy, W2, H2, ry=ry, rx=rx), 1.0, mood, bevel=bev, r=44 if min(w, h) > 200 else 30, frost=frost, dim=dim, cache=False)   # image fixe : plateau plus dépoli et plus sombre pour la lecture
 def feu(cv, titre, etat, valeur, cx, cy, ry, w=410, h=150):
     def dr(k, w, h):
         text(k, titre, w/2, 30, 'xb', 23, ICE, 'c', .9, 3)

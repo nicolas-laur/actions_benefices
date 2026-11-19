@@ -1,7 +1,7 @@
 # Sources : Les News du 20/11/2026 (chiffres arrêtés à la clôture du jeudi 19/11)
 
 Conversion : taux de référence BCE du 19/11/2026, 1 € = 1,0992 $ (https://www.ecb.europa.eu/home/html/index.fr.html). Indices hors dividendes.
-Statut : [OK] vérifié, [À CONFIRMER] clôture exacte encore manquante (vendredi matin).
+Statut : [OK] vérifié, [À CONFIRMER] non utilisé sur les diapos tant que non recoupé.
 
 ## 1. Nvidia
 - [OK] CA T3 (clos le 25/10/2026) 115,8 Md$ (105,35 Md€), +20 % sur le trimestre, +103 % sur un an ; Colette Kress PDG par intérim. https://www.techpowerup.com/354965/nvidia-reports-q3-2026-earnings-of-usd-115-8-billion
@@ -10,7 +10,7 @@ Statut : [OK] vérifié, [À CONFIRMER] clôture exacte encore manquante (vendre
 - [OK] Règle du 16/11 (BIS) : licence obligatoire pour exporter des puces avancées vers l'Indonésie, la Malaisie, Singapour, la Thaïlande et le Brésil (restriction, pas une ouverture). https://w.media/?p=45404 ; https://aljazeera.com/economy/2026/11/17/us-moves-to-block-chinas-remote-access-to-ai-chips-amid-nvidia-scandal
 - [OK] Indice des semi-conducteurs (SOX) −5,3 % le 16/11. https://www.zacks.com/stock/news/3031068/stock-market-news-for-nov-17-2026
 - [OK] Action : 162,85 $ le 13/11 ; 18/11 −2,89 % à 150,96 $ (hausse de début de séance effacée). https://www.stocktitan.net/articles/stock-market-today-live-november-18-2026 ; https://coffeegroundstrading.substack.com/p/the-coffee-grounds-newsletter-november-5e3
-- [À CONFIRMER] 19/11 : 150,49 $ (136,91 €), 6e séance de baisse, plus bas du jour 147,82 $ (plus bas depuis juin 2025) ; semaine −7,6 %. Yahoo historique (150,49) contre StockTitan (−3,30 %) : à recouper. https://au.finance.yahoo.com/quote/NVDA/history/ ; https://finance.yahoo.com/markets/stocks/articles/wall-street-ends-sharply-lower-210028386.html
+- [OK] 19/11 : 145,98 $ (132,81 €), −3,30 %, 6e séance de baisse d'affilée ; semaine 145,98 / 162,85 = −10,4 %. (La page historique Yahoo affichait 150,49 en cours de séance : écartée.) https://finance.yahoo.com/quote/NVDA/ ; https://www.investing.com/news/stock-market-news/wall-street-ends-sharply-lower-asanthropics-debut-fails-to-revive-ai-fervor-5040108
 
 ## 2. Anthropic (ANT)
 - [OK] Prix d'introduction 83 $ (75,51 €), 980 millions d'actions, 81,3 Md$ levés (73,96 Md€), plus grosse introduction en bourse de l'histoire. https://www.tmgm.com/en/academy/trading-academy/when-is-anthropic-ipo-everything-you-need-to-know ; https://www.forbes.com/sites/fionariley/2026/11/19/anthropic-ipo-live-stock-closes-day-at-97-up-more-than-17/
@@ -22,11 +22,11 @@ Statut : [OK] vérifié, [À CONFIRMER] clôture exacte encore manquante (vendre
 - [OK] 18/11 : +6,2 % à 216,61 $ sur les premières critiques (99 sur Metacritic). https://www.foxbusiness.com/markets/take-two-stock-jumps-over-6-rockstars-long-awaited-gta-vi-arrives-after-13-year-wait
 - [OK] Sensor Tower : 19,1 millions d'exemplaires et 1,84 Md$ (1,67 Md€) au matin du 19/11, plus du double des ~800 M$ de GTA V le premier jour (2013). https://finance.yahoo.com/media-advertising/articles/two-set-shatter-sales-records-162847652.html
 - [OK] Environ −15 % depuis le 1er janvier. https://www.thestreet.com/investing/gta-6-review-take-two-stock-stuck
-- [À CONFIRMER] Clôture du 19/11 (≈ −3,7 % à 15 h 57). https://www.fool.com/investing/2026/11/19/should-you-buy-take-two-interactive-after-gta-vi-release/
+- [OK] Clôture du 19/11 : 208,65 $ (189,82 €), −3,67 % ; depuis le 1er janvier −18,5 % (Finviz « Perf YTD », remplace le « ≈ −15 % » de la veille). https://finviz.com/stock?t=TTWO
 
 ## 4. Walmart / Home Depot
 - [OK] Walmart T3 exercice 2027 : CA 188,8 Md$ (171,76 Md€), +5,2 % ; BPA ajusté 0,65 $ ; ventes comparables +2,9 % ; prévision de BPA annuel relevée à 2,84–2,89 $ (3e relèvement de l'année). https://www.sec.gov/Archives/edgar/data/104169/000010416926000168/earningsreleasefy27q3.htm ; https://www.therepublic.com/2026/11/19/walmart-raises-its-outlook-for-the-year-for-the-3rd-time-after-a-solid-quarter/
-- [À CONFIRMER] Walmart clôture 19/11 (126,19 $, −0,92 % à 15 h 45 ; veille 127,36 $). https://stock.walmart.com/
+- [OK] Walmart clôture 19/11 : 126,04 $, −1,04 % (veille 127,36 $). https://finance.yahoo.com/quote/WMT/ ; https://www.marketbeat.com/instant-alerts/price-walmart-nasdaq-wmt-stock-falls-1-time-to-sell-2026-11-19/
 - [OK] Home Depot T3 : CA 43,4 Md$ (39,48 Md€), +4,9 % ; ventes comparables +2,2 % ; BPA ajusté 3,86 $ ; Richard McPhail PDG au 23/11. https://fourweekmba.com/ai-home-depot-names-mcphail-ceo-as-q3-sales-rise-4-9-to-43-4b/ ; https://corporate.homedepot.com/node/2041
 - [OK] Home Depot clôture 17/11 : 339,01 $ (308,42 €), −2,45 % (veille 347,51 $). https://www.forbes.com/companies/home-depot/
 

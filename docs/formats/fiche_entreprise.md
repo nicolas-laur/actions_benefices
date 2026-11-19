@@ -18,7 +18,9 @@ Idée du 19/11/2026, inspirée des carrousels « Que vaut l'entreprise qui… »
 8. Fin : « Ce qu'il faut surveiller » (2 ou 3 faits à venir, datés : prochains résultats, sortie, échéance), question d'engagement, « enregistre-le », `bloc_abonne`, `mention_pedago`.
 
 ## Style graphique (retour du 19/11 : « vraiment bien », à adapter à nos couleurs)
-Repris des carrousels de référence, parce qu'il est clair et dense sans être chargé :
+Captures de référence partagées par Nicolas le 19/11 (Les Finances de Papa, Take-Two) : `docs/formats/references/fiche_entreprise/` (1_points_cles, 2_resultats, 3_cours_valorisation, 4_secteur, 5_avis). Les rouvrir avant chaque maquette de ce format pour viser juste. On en reprend la mise en page, pas le contenu (pas de note, pas de cours revalorisé, pas d'avis : voir Règles).
+
+Repris de ces carrousels, parce qu'il est clair et dense sans être chargé :
 - Tableau de bord en tuiles : indicateurs rangés par familles (croissance, rentabilité, santé financière, tendances), une tuile par chiffre avec son libellé, la valeur en gras et le contexte en petit gris (« +18,1 % vs 2025 »), une pastille ✓ / ✗ / – à gauche.
 - Titres de famille en petites capitales espacées, suivis de 2 ou 3 points de couleur qui résument la famille d'un coup d'œil.
 - Graphiques épurés : barres avec la valeur écrite au-dessus, négatifs en rouge sous l'axe, une courbe secondaire (marge) sous les barres, légende en bas, grille très légère.
@@ -30,6 +32,7 @@ Adaptation Actions_Bénéfices :
 - Couleurs maison (`lib/carrousel.py`) : or `GD` pour les titres et le filet de l'encadré, vert `GR` pour ✓ et les hausses, rouge `RD` pour ✗ et les baisses, cyan `CY` pour la courbe secondaire et les barres « tendance », blanc et `ICE` pour les textes. Barres principales en or dégradé (`GD` → `GD2`).
 - Pastilles : nos émojis Noto (✅ ❌ ➖) ou des ronds pleins dans nos couleurs, au choix après maquette.
 - Police : Inter Display (pas de police condensée hors couverture), chiffres en ExtraBold.
+- Mister Coin sur chaque fiche, à la place du personnage de la référence : en bas à gauche, à côté de l'encadré de lecture (comme le présentateur sur 1_points_cles), dans une pose qui colle au chiffre (`reflechit`, `doigt_leve`, `sceptique`, `sueur`, `applaudit`, `etoiles`…), bulle courte sur le ton maison. Jamais devant un graphique ou une tuile.
 - Une seule fonction de graphique à ajouter à `lib/carrousel.py` (barres + courbe, valeurs étiquetées), réutilisable dans les News pour la diapo bonus « tendance longue ».
 
 ## Règles

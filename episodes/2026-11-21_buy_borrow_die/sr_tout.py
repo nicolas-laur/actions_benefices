@@ -23,6 +23,6 @@ def job(name, nmax, step=24):
     lst = f'{pd}/liste.txt'; open(lst, 'w').write(''.join(f"file '{p}'\n" for p in parts))
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', lst, '-c', 'copy', out], check=True); print('ok', name, flush=True)
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['coffres', 'manoir', 'guichet', 'krach', 'hemicycle', 'salon']
+    todo = sys.argv[1:] or ['coffres', 'manoir', 'guichet', 'notaire', 'krach', 'hemicycle', 'salon']
     N = dict(coffres=150)
     for d in todo: job(d, N.get(d, 240))

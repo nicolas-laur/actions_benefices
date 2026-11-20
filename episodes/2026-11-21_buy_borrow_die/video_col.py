@@ -111,17 +111,17 @@ def prop(c, name, x, y, h=None, w=None, k=1.0, rot=0.0, a=1.0, shadow=True, ax=.
         c.save(); c.translate(10/s, 16/s); c.set_source_surface(sf, -iw*ax, -ih*ay); c.paint_with_alpha(.0); c.restore()
     c.set_source_surface(sf, -iw*ax, -ih*ay); c.paint_with_alpha(a); c.restore()
     return iw*s, ih*s
-def paint(c, s_, x, y, size, fill=CREAM, a=1.0, align='c', rot=0.0, fam='Alfa Slab One'):
+def paint(c, s_, x, y, size, fill=CREAM, a=1.0, align='c', rot=0.0, fam='Inter Display'):
     """lettres peintes : crème/or, contour brun chaud, ombre portée"""
     if a <= 0: return
-    c.save(); c.select_font_face(fam, 0, 0); c.set_font_size(size); e = c.text_extents(s_)
+    c.save(); c.select_font_face(fam, 0, 1); c.set_font_size(size); e = c.text_extents(s_)
     xx = -e.x_advance/2 if align == 'c' else (-e.x_advance if align == 'r' else 0)
     c.translate(x, y); c.rotate(rot); c.translate(xx, size*.35); ol = max(3, size*.09)
     c.move_to(ol*.6, ol*.9); c.text_path(s_); c.set_source_rgba(0, 0, 0, .5*a); c.fill()
     c.move_to(0, 0); c.text_path(s_); c.set_line_join(cairo.LINE_JOIN_ROUND); c.set_line_width(ol*2); col(c, BROWN, a); c.stroke_preserve(); col(c, fill, a); c.fill()
     c.restore()
-def fit(c, s_, size, maxw, fam='Alfa Slab One'):
-    c.save(); c.select_font_face(fam, 0, 0); c.set_font_size(size); w = c.text_extents(s_).x_advance; c.restore()
+def fit(c, s_, size, maxw, fam='Inter Display'):
+    c.save(); c.select_font_face(fam, 0, 1); c.set_font_size(size); w = c.text_extents(s_).x_advance; c.restore()
     return size if w <= maxw else int(size*maxw/w)
 YEL = 'FFE27A'; PINK = 'FF8A8A'
 def title(c, s_, t, t0, y=290, size=64, fill=CREAM, t1=None, maxw=920):
@@ -149,7 +149,7 @@ def pop_text(c, s_, x, y, size, t, t0, fill=CREAM, rot=0.0, a=1.0, maxw=None):
     sc = back(k/.35); c.save(); c.translate(x, y); c.rotate(rot); c.scale(sc, sc); paint(c, s_, 0, 0, size, fill, a=a); c.restore()
 def ink(c, s_, x, y, size, colr, a=1.0, maxw=None):
     """lettres peintes à l'encre sur un support (pancarte, certificat) : pleines, sans contour"""
-    c.select_font_face('Alfa Slab One', 0, 0); c.set_font_size(size); e = c.text_extents(s_)
+    c.select_font_face('Inter Display', 0, 1); c.set_font_size(size); e = c.text_extents(s_)
     if maxw and e.x_advance > maxw: size *= maxw/e.x_advance; c.set_font_size(size); e = c.text_extents(s_)
     c.move_to(x-e.x_advance/2, y+e.height/2-(e.height+e.y_bearing)/2); c.text_path(s_); col(c, colr, a); c.fill()
 BOARD = (30, 975, 1195, 1715)                                           # planche seule de la pancarte (sans les cordes), coordonnées de pancarte.png
@@ -258,7 +258,7 @@ def _glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None):
             x += L*fr
         if note: S.text(kk, note, ww/2, hh-24, 'sb', 28, S.ICE, 'c', .8*ent(k-.6, .3))
     S.tp(cv, w, h, d, 540, cy+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=30)
-LETTERBOX = {'notaire': (215, 1025, 380)}      # (haut, bas, centre x) de l'image utile dans le décor d'origine 720×1280
+LETTERBOX = {}                                # décors sortis en paysage à recadrer (aucun : le notaire a été refait en 9:16)
 GOLDC = ('FFE27A', 'B97A12'); REDC = ('FF8A8A', 'B3161B'); MINTC = ('9DF2B5', '2E8B57'); GREYC = ('C9C2D6', '6E6680')
 def num(v, d=0): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',').replace(' ', NB)
 def glass_value(cv, t, t0, v1, t_a, t_b, fmt, sub, cy=700, w=860, h=220, colr=None, t1=None, head=None):
@@ -287,7 +287,7 @@ def stamp(c, s_, x, y, size, t, t0, colr='D7262B', rot=-.12, a=1.0):
     if k <= 0 or a <= 0: return
     sc = 1+1.2*(1-ent(k, .22)); al = a*ent(k, .12)
     c.save(); c.translate(x, y); c.rotate(rot); c.scale(sc, sc)
-    c.select_font_face('Alfa Slab One', 0, 0); c.set_font_size(size); e = c.text_extents(s_); pw, ph = e.x_advance+size*.7, size*1.45
+    c.select_font_face('Inter Display', 0, 1); c.set_font_size(size); e = c.text_extents(s_); pw, ph = e.x_advance+size*.7, size*1.45
     rr(c, -pw/2, -ph/2, pw, ph, size*.18); c.set_line_width(size*.11); col(c, colr, al); c.stroke()
     c.move_to(-e.x_advance/2, size*.36); c.text_path(s_); col(c, colr, al); c.fill(); c.restore()
 def row(cv, c, t, t0, y, txt, colr=CREAM, emo=None, sub=None, a=1.0, size=48, w=980):
@@ -367,19 +367,19 @@ def b_guichet(cv, c, t, k):
     else:
         title(c, "EXEMPLE RÉEL", t, t1+.1, 250, 80, CREAM)
         tp_ = sh(37.3)
-        polaroid(c, 285, 505, t, tp_)
+        polaroid(c, 280, 488, t, tp_, w=280)
         if t > tp_+.35:
-            al = ent(t-tp_-.35, .3); plate(c, 735, 505, 470, 300, al)
-            pop_text(c, "LARRY ELLISON", 735, 400, 46, t, tp_+.35, YEL, maxw=430)
+            al = ent(t-tp_-.35, .3); plate(c, 735, 488, 470, 300, al)
+            pop_text(c, "LARRY ELLISON", 735, 383, 46, t, tp_+.35, YEL, maxw=430)
             for i, l_ in enumerate(("cofondateur d'Oracle (1977)", "président du conseil", "et directeur technique", "né en 1944")):
-                paint(c, l_, 735, 470+i*46, 30, a=ent(t-tp_-.6-i*.12, .3))
+                paint(c, l_, 735, 453+i*46, 30, a=ent(t-tp_-.6-i*.12, .3))
         tv = sh(43.6)
-        glass_value(cv, t, sh(40.8), 413e6, sh(41.0), sh(42.6), lambda v: num(v), "actions Oracle en garantie de prêts", cy=775, w=860, h=200, t1=tv+.3)
+        glass_value(cv, t, sh(40.8), 413e6, sh(41.0), sh(42.6), lambda v: num(v), "actions Oracle en garantie de prêts", cy=800, w=860, h=200, t1=tv+.3)
         def d41(kk, ww, hh):
             S.text(kk, f"SOIT 41,5 MILLIARDS D'EUROS", ww/2, 70, 'a', 64, S.GD, 'c')
             S.text(kk, "36 % de ses actions · cours du 19/11/2026", ww/2, 132, 'sb', 28, S.ICE, 'c', .9)
             S.text(kk, "source : rapport d'Oracle du 25/09/2026", ww/2, 170, 'sb', 24, S.ICE, 'c', .7)
-        glass_card(cv, t, tv, d41, cy=775, w=900, h=200)
+        glass_card(cv, t, tv, d41, cy=800, w=900, h=200)
 PHOTO = f'{D}/photos/ellison.jpg'
 @functools.lru_cache(maxsize=1)
 def _photo_surf(w, h):

@@ -366,15 +366,45 @@ def b_guichet(cv, c, t, k):
         if t > sh(35.9): row(cv, c, t, sh(35.9), 905, f"= 0{NB}€ D'IMPÔT", MINT, w=560, a=a)
     else:
         title(c, "EXEMPLE RÉEL", t, t1+.1, 250, 80, CREAM)
-        def card(kk, ww, hh):
-            S.text(kk, "LARRY ELLISON", ww/2, 78, 'a', 70, S.GD, 'c')
-            S.text(kk, "fondateur d'Oracle", ww/2, 140, 'sb', 32, S.ICE, 'c', .9)
-        glass_card(cv, t, sh(38.3), card, cy=440, w=760, h=190)
-        glass_value(cv, t, sh(40.8), 413e6, sh(41.0), sh(42.6), lambda v: num(v), "actions Oracle en garantie (cours du 19/11/2026)", cy=680, w=860, h=210)
-        if t > sh(43.6):
-            plate(c, 540, 878, 980, 140, ent(t-sh(43.6), .2))
-            pop_text(c, f"≈ 41,5 MILLIARDS D'EUROS", 540, 852, 58, t, sh(43.65), YEL, rot=-.02, maxw=920)
-            paint(c, "36 % de ses actions · rapport d'Oracle du 25/09/2026", 540, 912, 28, a=ent(t-sh(44.0), .3))
+        tp_ = sh(37.3)
+        polaroid(c, 285, 505, t, tp_)
+        if t > tp_+.35:
+            al = ent(t-tp_-.35, .3); plate(c, 735, 505, 470, 300, al)
+            pop_text(c, "LARRY ELLISON", 735, 400, 46, t, tp_+.35, YEL, maxw=430)
+            for i, l_ in enumerate(("cofondateur d'Oracle (1977)", "président du conseil", "et directeur technique", "né en 1944")):
+                paint(c, l_, 735, 470+i*46, 30, a=ent(t-tp_-.6-i*.12, .3))
+        tv = sh(43.6)
+        glass_value(cv, t, sh(40.8), 413e6, sh(41.0), sh(42.6), lambda v: num(v), "actions Oracle en garantie de prêts", cy=775, w=860, h=200, t1=tv+.3)
+        def d41(kk, ww, hh):
+            S.text(kk, f"SOIT 41,5 MILLIARDS D'EUROS", ww/2, 70, 'a', 64, S.GD, 'c')
+            S.text(kk, "36 % de ses actions · cours du 19/11/2026", ww/2, 132, 'sb', 28, S.ICE, 'c', .9)
+            S.text(kk, "source : rapport d'Oracle du 25/09/2026", ww/2, 170, 'sb', 24, S.ICE, 'c', .7)
+        glass_card(cv, t, tv, d41, cy=775, w=900, h=200)
+PHOTO = f'{D}/photos/ellison.jpg'
+@functools.lru_cache(maxsize=1)
+def _photo_surf(w, h):
+    if os.path.exists(PHOTO):
+        im = Image.open(PHOTO).convert('RGB'); k = max(w/im.width, h/im.height); im = im.resize((int(im.width*k)+1, int(im.height*k)+1), Image.LANCZOS)
+        x0 = (im.width-w)//2; y0 = int((im.height-h)*.25); im = im.crop((x0, y0, x0+w, y0+h))
+        a = np.asarray(im).astype(np.float32); g = a.mean(2, keepdims=True); a = a*.8+g*.2; a = a*np.array([1.04, 1.0, .9])     # léger virage chaud, façon tirage ancien
+        rgba = np.dstack([np.clip(a, 0, 255), np.full((h, w, 1), 255.)]).astype(np.uint8)
+    else:
+        rgba = np.zeros((h, w, 4), np.uint8); rgba[..., :3] = (70, 62, 58); rgba[..., 3] = 255
+    buf = np.ascontiguousarray(rgba[..., [2, 1, 0, 3]])
+    return cairo.ImageSurface.create_for_data(bytearray(buf.tobytes()), cairo.FORMAT_ARGB32, w, h)
+def polaroid(c, x, y, t, t0, w=300, rot=-.07):
+    """tirage instantané : cadre blanc cassé, marge large en bas, ombre portée ; arrive en rebond, légère oscillation"""
+    k = t-t0
+    if k <= 0: return
+    pw, ph = w-36, int((w-36)*1.12); H_ = 18+ph+70; sc = back(k/.35)
+    c.save(); c.translate(x, y); c.rotate(rot+.015*math.sin(t*1.3)); c.scale(sc, sc)
+    rr(c, -w/2+8, -H_/2+12, w, H_, 6); c.set_source_rgba(0, 0, 0, .35); c.fill()
+    rr(c, -w/2, -H_/2, w, H_, 6); col(c, 'F7F3EA'); c.fill_preserve(); c.set_line_width(2); col(c, 'C9BFA8'); c.stroke()
+    c.set_source_surface(_photo_surf(pw, ph), -pw/2, -H_/2+18); c.paint()
+    if not os.path.exists(PHOTO): paint(c, "PHOTO", 0, -H_/2+18+ph/2, 40, a=.6)
+    c.select_font_face('Rye', 0, 0); c.set_font_size(30); e = c.text_extents("Larry Ellison")
+    c.move_to(-e.x_advance/2, H_/2-26); c.text_path("Larry Ellison"); col(c, '3B2412', .85); c.fill()
+    c.restore()
 # ================= 4. Die (bureau du notaire) =================
 def b_notaire(cv, c, t, k):
     t0 = V.T['die']; tE = sh(51.48); tS = sh(53.0)
@@ -507,7 +537,7 @@ def events():
     ev += [(T['trois']+.1, 'thud')]+[(sh(x), 'bonk') for x in (22.9, 23.6, 24.41)]
     ev += [(T['buy']+.1, 'impact'), (T['buy']+.4, 'pop'), (sh(27.0), 'clack'), (sh(28.5), 'pop'), (sh(29.3), 'coin')]
     ev += [(T['borrow']+.1, 'impact'), (sh(31.6), 'pop'), (sh(32.4), 'swish'), (sh(32.9), 'pop'), (sh(34.6), 'thud'), (sh(35.9), 'coin')]
-    ev += [(T['ellison']+.1, 'thud'), (sh(38.3), 'swish'), (sh(40.8), 'swish'), (sh(41.0), 'tick'), (sh(43.65), 'impact'), (sh(44.0), 'glint')]
+    ev += [(T['ellison']+.1, 'thud'), (sh(37.3), 'pop'), (sh(37.65), 'swish'), (sh(40.8), 'swish'), (sh(41.0), 'tick'), (sh(43.65), 'impact'), (sh(44.0), 'glint')]
     ev += [(T['die']+.1, 'impact'), (T['die']+.6, 'pop'), (sh(50.3), 'pop'), (sh(51.48), 'fill1'), (sh(51.48)+.9, 'whoosh'), (sh(51.48)+1.3, 'gavel'), (sh(53.1), 'swish'), (sh(54.9), 'impact')]
     ev += [(T['france']+.1, 'thud'), (sh(59.4), 'pop'), (sh(61.2), 'pop'), (sh(63.3), 'bonk'), (sh(66.4), 'thud'), (sh(68.4), 'pop'), (sh(69.3), 'gavel'), (sh(70.15), 'pop')]
     ev += [(T['pea']+.1, 'thud'), (sh(76.4), 'pop'), (sh(77.0), 'swish'), (sh(78.4), 'fill2'), (sh(80.5), 'fill0'), (sh(84.7)+.3, 'pop'), (sh(84.7)+.6, 'glint')]

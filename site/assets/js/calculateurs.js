@@ -1,4 +1,4 @@
-// Calculateurs d'actions-benefices.com : tout est calculé dans le navigateur, rien n'est envoyé.
+// Calculateurs d'actionsbenefices.com : tout est calculé dans le navigateur, rien n'est envoyé.
 (function () {
   // Barème 2026 : prélèvements sociaux 18,6 % ; PFU 31,4 % (12,8 % d'impôt + 18,6 %)
   var PS = 0.186, PFU = 0.314;

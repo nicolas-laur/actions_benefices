@@ -1,6 +1,5 @@
-"""Générateur du site actions-benefices.com. Usage : python3 site/build.py  →  site/_site/ (publié par GitHub Pages).
-Toutes les pages sont des dossiers avec index.html ; les liens sont relatifs (variable r), donc le site marche aussi
-sur nicolas-laur.github.io/actions_benefices/ avant l'achat du domaine."""
+"""Générateur du site actionsbenefices.com. Usage : python3 site/build.py  →  site/_site/ (publié par GitHub Pages).
+Toutes les pages sont des dossiers avec index.html ; les liens sont relatifs (variable r)."""
 import re, shutil, sys
 from datetime import date
 from html import escape
@@ -13,7 +12,7 @@ from composants import tuile, grille, lecture, carte, fr
 import fiche_nvidia
 from donnees import NEWS, LEXIQUE, VIDEOS, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
 
-SITE = dict(nom='Actions_Bénéfices', url='https://actions-benefices.com',
+SITE = dict(nom='Actions_Bénéfices', url='https://actionsbenefices.com',
             menu=[('fiches/', 'Fiches entreprises'), ('news/', 'Les News'), ('lexique/', 'Lexique'), ('calculateurs/', 'Calculateurs'),
                   ('videos/', 'Vidéos'), ('produits/', 'Nos produits')],
             tiktok='https://www.tiktok.com/@actions_bnfices', instagram='https://www.instagram.com/actions_benefices/',
@@ -23,8 +22,9 @@ SORTIE = ICI/'_site'
 env = Environment(loader=FileSystemLoader(ICI/'templates'), autoescape=True)
 PAGES = []
 
-# racine absolue, utile seulement pour la page 404 (servie à n'importe quelle adresse) : '/' une fois le domaine branché
-RACINE = '/actions_benefices/'
+# racine absolue, utile seulement pour la page 404 (servie à n'importe quelle adresse)
+RACINE = '/'
+DOMAINE = 'actionsbenefices.com'
 def page(chemin, titre, description, corps, rubrique=None, r=None, **kw):
     """chemin : '/' ou '/a/b/' ; corps : fonction(r) → HTML"""
     prof = chemin.strip('/').count('/') + 1 if chemin != '/' else 0
@@ -179,6 +179,7 @@ def construire():
                                       + ''.join(f'  <url><loc>{SITE["url"]}{p}</loc><lastmod>{auj}</lastmod></url>\n' for p in PAGES) + '</urlset>\n')
     (SORTIE/'robots.txt').write_text(f'User-agent: *\nAllow: /\nSitemap: {SITE["url"]}/sitemap.xml\n')
     (SORTIE/'.nojekyll').write_text('')
+    (SORTIE/'CNAME').write_text(DOMAINE + '\n')
     print(f'{len(PAGES)} pages dans {SORTIE}')
 
 if __name__ == '__main__': construire()

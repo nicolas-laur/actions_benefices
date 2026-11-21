@@ -1,4 +1,4 @@
-# Publie le site actions-benefices.com sur GitHub Pages à chaque modification de site/ sur main
+# Publie le site actionsbenefices.com sur GitHub Pages à chaque modification de site/ sur main
 name: Site
 on:
   push:

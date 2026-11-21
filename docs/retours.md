@@ -44,3 +44,5 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Graphiques interactifs : chaque barre, bloc ou ruban donne son détail au survol (et au toucher sur mobile) ; reprendre les pictogrammes des carrousels dans les graphiques du site.
 - Aucun chiffre caché par un tracé : étiquettes au-dessus des points, avec halo blanc.
 - Marque affichée « Actions Bénéfices » (sans tiret bas) ; favicon rond, Mister Coin seul.
+- Retours v2 (21/11) : les News doivent avoir du punch, kiosque en couverture et toutes les infos des diapos (galerie des diapos + texte) ; lexique en pop-up avec un exemple concret chiffré et un quiz ; courbe pour les intérêts composés ; comparateur PEA/CTO détaillé (durée, barème, titres d'avant 2018, dividendes US) ; vidéos consultables au choix TikTok ou Instagram (lecteur chargé au clic) ; lettre du dimanche signalée « en préparation ».
+- Poses de Mister Coin jugées moches et retirées du site : « applaudit » (mains jointes) et « doigt levé ». Les expressions des carrousels sont appréciées.

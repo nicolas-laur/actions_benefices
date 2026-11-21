@@ -1,6 +1,6 @@
 """Générateur du site actionsbenefices.com. Usage : python3 site/build.py  →  site/_site/ (publié par GitHub Pages).
 Toutes les pages sont des dossiers avec index.html ; les liens sont relatifs (variable r)."""
-import re, shutil, sys
+import json, re, shutil, sys
 from datetime import date
 from html import escape
 from pathlib import Path
@@ -10,7 +10,8 @@ ICI = Path(__file__).resolve().parent
 sys.path[:0] = [str(ICI), str(ICI/'contenu')]
 from composants import tuile, grille, lecture, carte, fr
 import fiche_nvidia
-from donnees import NEWS, LEXIQUE, VIDEOS, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
+from news import NEWS
+from donnees import LEXIQUE, VIDEOS, QUIZ, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
 
 SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
             menu=[('fiches/', 'Fiches entreprises'), ('news/', 'Les News'), ('lexique/', 'Lexique'), ('calculateurs/', 'Calculateurs'),
@@ -52,16 +53,27 @@ def liens(src): return ' · '.join(f'<a href="{u}">{escape(n)}</a>' for n, u in 
 # ---------- accueil ----------
 def accueil(r):
     f = FICHES[0].META; n = NEWS[0]
+    vids = ''.join(f'<a class="mini-video" href="{r}videos/"><img src="{r}assets/videos/{vig}" alt="" loading="lazy"><span class="badge{" or" if ty == "Carrousel" else ""}">{ty}</span><b>{escape(t)}</b></a>'
+                   for d, t, ty, tk, ig, vig in [v for v in VIDEOS if v[5]][:4])
     return (f'<div class="hero"><div><div class="surtitre">La bourse sans jargon</div><h1>COMPRENDRE LA BOURSE <em>AVEC MISTER COIN</em></h1>'
-            '<p class="chapo">Des fiches entreprises épurées, les News de la semaine, un lexique et des calculateurs. Chiffres exacts, sources en lien, jamais de conseil.</p>'
-            f'<div class="pastilles"><a class="bouton" href="{r}fiches/{f["slug"]}/">Lire la fiche {f["nom"]}</a><a class="bouton or" href="{r}lettre/">La lettre du dimanche</a></div></div>'
+            '<p class="chapo">Les News de chaque vendredi, des fiches entreprises, un lexique avec son quiz et des calculateurs. Chiffres exacts, sources en lien, jamais de conseil.</p>'
+            f'<div class="pastilles"><a class="bouton" href="{r}news/{n["slug"]}/">Les News du {n["date_txt"][:5]}</a><a class="bouton clair" href="{r}fiches/{f["slug"]}/">La fiche {f["nom"]}</a></div></div>'
             f'<img src="{r}assets/img/salut.png" alt="Mister Coin salue"></div>'
-            '<section class="section"><h2>À LA <em>UNE</em></h2>'
-            + grille(vignette(r, f'fiches/{f["slug"]}/', 'Fiche entreprise', f['titre'], f['accroche'], 'Chiffres au ' + f['chiffres_au'], logo=f['logo']),
-                     vignette(r, f'news/{n["slug"]}/', 'Les News', n['titre'], n['chapo'], n['date_txt'], 'journal'),
-                     vignette(r, 'calculateurs/', 'Calculateur', 'Combien pour vivre de tes dividendes ?', 'Le capital nécessaire selon le rendement et ton enveloppe (PEA ou CTO).', pose='reflechit'), mn=300)
-            + '</section><section class="section"><h2>LE PETIT <em>LEXIQUE</em></h2><div class="pastilles">'
-            + ''.join(f'<a class="bouton" style="background:#E9EEF4;color:var(--marine)" href="{r}lexique/{s}/">{sig}</a>' for s, sig, *_ in LEXIQUE)
+            # News à la une, avec le kiosque
+            f'<section class="section une"><a class="kiosque" href="{r}news/{n["slug"]}/"><img src="{r}assets/news/{n["slug"]}/01.webp" alt="Couverture des News du {n["date_txt"]}"><span>Voir le carrousel</span></a>'
+            f'<div class="pile" style="gap:14px"><div class="surtitre">À la une · Les News du {n["date_txt"]}</div><h2>{escape(n["titre"].upper())}</h2><p class="chapo">{escape(n["chapo"])}</p>'
+            + '<ul class="liste-une">' + ''.join(f'<li><a href="{r}news/{n["slug"]}/#n{i}"><b>{escape(it["sujet"])}</b> · {escape(phrase_(it["titre"]))}</a></li>' for i, it in enumerate(n['items'], 1)) + '</ul>'
+            f'<div class="pastilles"><a class="bouton" href="{r}news/{n["slug"]}/">Lire les News</a><a class="bouton clair" href="{r}news/">Toutes les semaines</a></div></div></section>'
+            # trois portes d'entrée
+            '<section class="section"><h2>À DÉCOUVRIR <em>AUSSI</em></h2>'
+            + grille(vignette(r, f'fiches/{f["slug"]}/', 'Fiche entreprise', f['titre'], "Graphiques interactifs : passe la souris sur chaque barre pour le détail.", 'Chiffres au ' + f['chiffres_au'], logo=f['logo']),
+                     vignette(r, 'calculateurs/', 'Calculateur', 'La force des intérêts composés', "Ta courbe année par année, et le comparateur PEA ou CTO selon ta situation.", pose='reflechit'),
+                     vignette(r, 'lexique/#quiz', 'Lexique et quiz', 'Tu parles la bourse ?', "Dix sigles expliqués avec un exemple concret, et un quiz pour vérifier.", pose='question'), mn=300)
+            + '</section>'
+            f'<section class="section"><h2>NOS DERNIÈRES <em>VIDÉOS</em></h2><div class="grille" style="--min:200px">{vids}</div>'
+            f'<div class="pastilles"><a class="bouton" href="{r}videos/">Toutes les vidéos</a></div></section>'
+            '<section class="section"><h2>LE PETIT <em>LEXIQUE</em></h2><div class="pastilles">'
+            + ''.join(f'<a class="bouton clair" href="{r}lexique/#{s_}">{sig}</a>' for s_, sig, *_ in LEXIQUE)
             + '</div></section>')
 
 # ---------- fiches ----------
@@ -71,33 +83,94 @@ def fiches(r):
                        for i, m in enumerate(FICHES)], mn=320))
 
 # ---------- news ----------
+SIGLES = ('US', 'IA', 'PDG', 'CAC', 'S&P', 'BCE', 'ETF', 'EBITDA', 'FTC', 'ANT', 'GTA', 'DKK', 'TV')
+def phrase_(t):
+    """« RACHAT D'ACTIONS EN PLUS » → « Rachat d'actions en plus », en gardant les sigles"""
+    m = t[0] + t[1:].lower() if t.isupper() else t
+    for sg in SIGLES: m = re.sub(rf'\b{re.escape(sg.lower())}\b', sg, m, flags=re.I) if sg != 'ANT' else m
+    for a, b in (('états-unis', 'États-Unis'), ('nasdaq', 'Nasdaq'), ('coreweave', 'CoreWeave'), ('walmart', 'Walmart'), ('home depot', 'Home Depot'),
+                 ('dow jones', 'Dow Jones'), ('fed', 'Fed'), ('total /', 'Total /'), ('sanofi', 'Sanofi'), ('lvmh', 'LVMH'), ('brent', 'Brent'),
+                 ('ftc', 'FTC'), ('ebitda', 'EBITDA'), ('noël', 'Noël'), ('iphone', 'iPhone'), ('wegovy', 'Wegovy')):
+        m = re.sub(rf'\b{a}\b', b, m, flags=re.I)
+    return m
+def diapo(n, i): return f'assets/news/{n["slug"]}/{i:02d}.webp'
+def galerie(r, n):
+    ims = ''.join(f'<button class="gal-diapo" type="button" data-i="{i-1}" aria-label="Agrandir la diapo {i} sur {n["diapos"]}">'
+                  f'<img src="{r}{diapo(n, i)}" alt="Diapo {i} du carrousel Les News du {n["date_txt"]}" loading="lazy" width="720" height="1280"></button>' for i in range(1, n['diapos']+1))
+    return (f'<div class="galerie" data-galerie><button class="gal-fleche prec" type="button" aria-label="Diapos précédentes">‹</button>'
+            f'<div class="gal-piste" tabindex="0" aria-label="Diapos du carrousel">{ims}</div>'
+            f'<button class="gal-fleche suiv" type="button" aria-label="Diapos suivantes">›</button></div>')
+def coin_bulle(r, pose, bulle):
+    return (f'<figure class="coin"><span class="bulle">{escape(bulle)}</span><img src="{r}assets/img/{pose}.png" alt="Mister Coin" loading="lazy"></figure>')
 def news_liste(r):
-    return (entete('Chaque vendredi', 'LES', 'NEWS', "La semaine en bourse en 5 actus : ce qui s'est passé, et comment la bourse a réagi.", 'journal', r)
-            + grille(*[vignette(r, f'news/{n["slug"]}/', 'Semaine du ' + n['date_txt'], n['titre'], n['chapo']) for n in NEWS], mn=320))
+    cartes = ''.join(f'<a class="vignette news" href="{r}news/{n["slug"]}/"><img class="couv" src="{r}{diapo(n, 1)}" alt="Couverture des News du {n["date_txt"]}" loading="lazy">'
+                     f'<div class="pile" style="gap:8px"><span class="badge">Semaine {escape(n["semaine"])}</span><h3>{escape(n["titre"])}</h3>'
+                     f'<span class="gris">{escape(n["chapo"])}</span><span class="date">Les News du {n["date_txt"]} · {len(n["items"])} sujets · {n["diapos"]} diapos</span></div></a>' for n in NEWS)
+    return (entete('Chaque vendredi', 'LES', 'NEWS', "La semaine en bourse : ce qui s'est passé, les chiffres, et comment la bourse a réagi. Le carrousel complet et tous les détails.", 'lit_journal_v2_titre', r)
+            + f'<div class="grille" style="--min:330px">{cartes}</div>')
 def news_page(n):
     def c(r):
-        it = ''.join(f'<section class="section" id="n{i}"><div class="surtitre">{i:02d} · {escape(s)}</div><h2>{escape(t)}</h2>'
-                     + lecture(r, escape(x), p) + f'<p class="source">Sources : {liens(src)}</p></section>' for i, (s, t, x, p, src) in enumerate(n['items'], 1))
+        som = ''.join(f'<a href="#n{i}">{escape(it["sujet"])}</a>' for i, it in enumerate(n['items'], 1))
+        it_html = ''
+        for i, it in enumerate(n['items'], 1):
+            tu = grille(*[tuile(e, escape(phrase_(l)), escape(v), escape(x)) for l, v, x, e in it["chiffres"]], mn=200)
+            it_html += (f'<section class="section" id="n{i}"><div><div class="surtitre">{i:02d} · {escape(it["sujet"])}</div><h2>{escape(it["titre"].upper())}</h2></div>'
+                        f'<p class="fait">{escape(it["fait"])}</p>{tu}'
+                        + (f'<p class="texte" style="margin:0">{escape(it["detail"])}</p>' if it['detail'] else '')
+                        + f'<div class="lecture">{coin_bulle(r, it["pose"], it["bulle"])}<p><span aria-hidden="true">💡 </span>{escape(it["lecture"])}</p></div>'
+                        + (f'<p class="source">Sources : {liens(it["sources"])}</p>' if it['sources'] else '') + '</section>')
+        bilan = (f'<section class="section"><div><div class="surtitre">À retenir</div><h2>LE MATCH DE <em>LA SEMAINE</em></h2></div>'
+                 + carte(f'<p style="margin:0;font-size:18px">{escape(n["bilan"])}</p>') + '</section>') if n['bilan'] else ''
         return (f'<p class="fil"><a href="{r}news/">Les News</a> › {n["date_txt"]}</p>'
-                + entete(f'Les News du {n["date_txt"]}', n['titre'].upper(), '', n['chapo'], 'journal', r)
-                + f'<p class="gris petit">{n["note"]}</p>' + it)
+                f'<div class="hero news-hero"><div><div class="surtitre">Les News du {n["date_txt"]} · {escape(n["semaine"])}</div>'
+                f'<h1>{escape(n["titre"].upper())}</h1><p class="chapo">{escape(n["chapo"])}</p>'
+                f'<nav class="sommaire" aria-label="Les sujets">{som}</nav><p class="gris petit" style="margin:0">{escape(n["note"])}</p></div>'
+                f'<button class="kiosque gal-ouvre" type="button" data-i="0" aria-label="Ouvrir le carrousel"><img src="{r}{diapo(n, 1)}" alt="Couverture : le kiosque des News"><span>Voir les {n["diapos"]} diapos</span></button></div>'
+                f'<section class="section" id="carrousel"><div><div class="surtitre">Tel que publié sur TikTok et Instagram</div><h2>LE <em>CARROUSEL</em></h2></div>{galerie(r, n)}</section>'
+                + it_html + bilan
+                + f'<p class="gris petit">Contenu pédagogique, pas un conseil en investissement. Les performances passées ne préjugent pas des performances futures.</p>'
+                + f'<script src="{r}assets/js/galerie.js" defer></script>')
     return c
 
 # ---------- lexique ----------
+def lex_voir(r, voir, pop=False):
+    out = []
+    for x in voir:
+        if x == 'interets-composes':
+            out.append(f'<a class="bouton clair" href="{r}calculateurs/#composes">Intérêts composés</a>')
+        else:
+            sig = next(l[1] for l in LEXIQUE if l[0] == x)
+            out.append(f'<a class="bouton clair" href="{r}lexique/{x}/"{f" data-terme={chr(34)}{x}{chr(34)}" if pop else ""}>{sig}</a>')
+    return ''.join(out)
+def lex_contenu(r, e, pop=False):
+    """corps d'une définition : utilisé dans la pop-up de la liste et dans la page du terme"""
+    s_, sig, dev, expl, exemple, src, voir = e
+    return (f'<p class="lex-expl">{escape(expl)}</p>'
+            f'<div class="exemple"><div class="surtitre">Exemple concret</div><p>{escape(exemple)}</p></div>'
+            + (f'<p class="source">Source : {liens(src)}</p>' if src else '')
+            + (f'<div><div class="surtitre" style="margin-bottom:10px">Voir aussi</div><div class="pastilles">{lex_voir(r, voir, pop)}</div></div>' if voir else ''))
+def quiz(r):
+    data = json.dumps([dict(q=q, c=c, b=b, e=e) for q, c, b, e in QUIZ], ensure_ascii=False).replace('</', '<\\/')
+    return (f'<section class="section" id="quiz"><div><div class="surtitre">Teste-toi</div><h2>LE <em>QUIZ</em></h2>'
+            f'<p class="gris" style="margin:6px 0 0">{len(QUIZ)} questions sur les mots de la bourse. Réponds, Mister Coin te corrige.</p></div>'
+            f'<div class="carte quiz" data-quiz data-r="{r}"><noscript>Le quiz a besoin de JavaScript.</noscript></div>'
+            f'<script type="application/json" id="quiz-donnees">{data}</script></section>')
 def lex_liste(r):
-    return (entete('Les sigles de la bourse', 'LE', 'LEXIQUE', "Dix mots pour comprendre ce qu'on raconte, dont un piège.", 'doigt_leve', r)
-            + grille(*[f'<a class="vignette" href="{r}lexique/{s}/"><span class="terme">{sig}</span><b>{escape(dev)}</b><span class="gris">{escape(ex)}</span></a>'
-                       for s, sig, dev, ex, *_ in LEXIQUE], mn=260))
+    cartes = ''.join(f'<a class="vignette terme-carte" href="{r}lexique/{e[0]}/" data-terme="{e[0]}"><span class="terme">{e[1]}</span><b>{escape(e[2])}</b>'
+                     f'<span class="gris">{escape(e[3])}</span><span class="date">Voir la définition et un exemple →</span></a>' for e in LEXIQUE)
+    tpl = ''.join(f'<template id="t-{e[0]}"><div class="surtitre">Lexique</div><h2 class="lex-sigle">{e[1]}</h2><p class="lex-dev">{escape(e[2])}</p>{lex_contenu(r, e, True)}</template>' for e in LEXIQUE)
+    return (entete('Les sigles de la bourse', 'LE', 'LEXIQUE', "Dix mots pour comprendre ce qu'on raconte, dont un piège. Clique sur un sigle pour sa définition et un exemple concret, puis teste-toi avec le quiz.", 'question', r)
+            + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Faire le quiz</a></div>'
+            + f'<div class="grille" style="--min:250px">{cartes}</div>' + tpl
+            + f'<dialog class="fiche-terme" aria-label="Définition"><button class="v-fermer sombre" type="button" aria-label="Fermer">×</button><div class="fiche-corps"></div>'
+              f'<img src="{r}assets/img/montre.png" alt="" class="fiche-coin"></dialog>'
+            + quiz(r) + f'<script src="{r}assets/js/lexique.js" defer></script>')
 def lex_page(e):
-    s, sig, dev, expl, exemple, src, voir = e
+    s_, sig, dev, expl, exemple, src, voir = e
     def c(r):
-        v = ''.join(f'<a class="bouton" style="background:#E9EEF4;color:var(--marine)" href="{r}lexique/{x}/">{next(l[1] for l in LEXIQUE if l[0] == x)}</a>' if x != 'interets-composes'
-                    else f'<a class="bouton" style="background:#E9EEF4;color:var(--marine)" href="{r}calculateurs/#composes">Intérêts composés</a>' for x in voir)
         return (f'<p class="fil"><a href="{r}lexique/">Lexique</a> › {sig}</p><div class="hero"><div><div class="surtitre">Lexique</div><h1>{sig}</h1>'
-                f'<p class="chapo"><b>{escape(dev)}</b></p></div></div><div class="pile texte">'
-                + carte(f'<p style="margin:0">{escape(expl)}</p>') + lecture(r, 'Exemple : ' + escape(exemple), 'doigt_leve')
-                + (f'<p class="source">Source : {liens(src)}</p>' if src else '')
-                + (f'<div><div class="surtitre" style="margin-bottom:10px">Voir aussi</div><div class="pastilles">{v}</div></div>' if v else '') + '</div>')
+                f'<p class="chapo"><b>{escape(dev)}</b></p></div><img src="{r}assets/img/montre.png" alt="Mister Coin montre la définition"></div>'
+                f'<div class="pile texte">{lex_contenu(r, e)}<p><a class="bouton or" href="{r}lexique/#quiz">Faire le quiz du lexique</a></p></div>')
     return c
 
 # ---------- calculateurs ----------
@@ -111,39 +184,73 @@ def calculateurs(r):
     return (entete('Fais tes calculs', 'LES', 'CALCULATEURS', "Trois outils simples pour te faire une idée. Ce sont des simulations : aucun rendement n'est garanti.", 'reflechit', r)
             + bloc('composes', 'LES INTÉRÊTS', 'COMPOSÉS', "Ce que devient une épargne placée chaque mois",
                    [('c-init', 'Départ (€)', 1000, 100, 'n'), ('c-mois', 'Chaque mois (€)', 100, 10, 'n'), ('c-taux', 'Rendement par an (%)', 7, .1, 'n'), ('c-ans', 'Durée (ans)', 30, 1, 'n')],
-                   '<div class="surtitre">Capital à la fin</div><div class="resultat" id="c-res">–</div><p class="gris" id="c-det" style="margin:4px 0 0"></p>',
+                   '<div class="surtitre">Capital à la fin</div><div class="resultat" id="c-res">–</div><p class="gris" id="c-det" style="margin:4px 0 0"></p>'
+                   '<figure class="graph-composes"><div id="c-graph"></div><figcaption class="legende"><span><i style="background:#2E8C38"></i>Ton capital</span>'
+                   '<span><i style="background:#17375E"></i>Ce que tu as versé</span><span class="gris">Passe la souris (ou le doigt) sur la courbe pour le détail de chaque année.</span></figcaption></figure>',
                    "Calcul mensuel, rendement constant, avant impôts et frais. 7 % par an est une hypothèse, pas une promesse : les actions ont des années de baisse.")
             + bloc('dividendes', 'VIVRE DE SES', 'DIVIDENDES', "Le capital nécessaire pour un revenu mensuel après impôts",
                    [('d-rev', 'Revenu voulu par mois (€)', 2000, 100, 'n'), ('d-rdt', 'Rendement du dividende (%)', 4, .1, 'n'), ('d-env', 'Enveloppe', env_opt, 0, 's')],
                    '<div class="surtitre">Capital nécessaire</div><div class="resultat" id="d-res">–</div><p class="gris" id="d-det" style="margin:4px 0 0"></p>',
                    "Fiscalité 2026 : prélèvements sociaux de 18,6 % sur un PEA de plus de 5 ans, PFU de 31,4 % sur un compte-titres. Le PEA est plafonné à 150 000 € de versements. "
                    "Le dividende peut baisser ou disparaître.")
-            + bloc('pea-cto', 'PEA OU', 'CTO ?', "Ce que l'État prend sur une plus-value",
-                   [('p-gain', 'Plus-value (€)', 1000, 100, 'n')],
-                   '<div class="grille" style="--min:220px"><div><div class="surtitre">PEA de plus de 5 ans</div><div class="resultat" id="p-pea">–</div></div>'
-                   '<div><div class="surtitre">Compte-titres</div><div class="resultat" id="p-cto" style="color:var(--rouge)">–</div></div></div><p class="gris" id="p-det" style="margin:4px 0 0"></p>',
-                   "Barème 2026 : PEA de plus de 5 ans, 18,6 % de prélèvements sociaux ; compte-titres, PFU de 31,4 % (12,8 % d'impôt et 18,6 % de prélèvements sociaux). "
-                   f'Sources : {liens([SP_PEA_, SP_PFU_])}.')
+            + pea_cto(r)
             + f'<script src="{r}assets/js/calculateurs.js" defer></script>')
 
+def pea_cto(r):
+    sel = lambda i, lab, opts: f'<div><label for="{i}">{lab}</label><select id="{i}">' + ''.join(f'<option value="{v}"{" selected" if k == 0 else ""}>{t}</option>' for k, (v, t) in enumerate(opts)) + '</select></div>'
+    champs = ('<div class="champs">'
+              f'<div><label for="p-gain">Montant du gain (€)</label><input id="p-gain" type="number" inputmode="decimal" value="1000" min="0" step="100"></div>'
+              + sel('p-nature', 'Type de gain', [('pv', 'Plus-value à la revente'), ('div', 'Dividende')])
+              + sel('p-origine', 'Actions', [('eu', 'Européennes (éligibles au PEA)'), ('us', 'Américaines')])
+              + sel('p-duree', 'Détention (titres ou plan)', [('8p', 'Plus de 8 ans'), ('5-8', 'De 5 à 8 ans'), ('2-5', 'De 2 à 5 ans'), ('m2', 'Moins de 2 ans')])
+              + sel('p-tmi', "Ta tranche d'impôt (TMI)", [('30', '30 %'), ('0', '0 %'), ('11', '11 %'), ('41', '41 %'), ('45', '45 %')])
+              + '<div id="p-ligne-2018" class="case"><input id="p-2018" type="checkbox"><label for="p-2018">Titres achetés avant le 1er janvier 2018</label></div>'
+              + '</div>')
+    sortie = ('<div class="grille" style="--min:260px">'
+              '<div class="colonne"><div class="surtitre">PEA</div><div class="resultat" id="p-pea">–</div><p class="net" id="p-pea-net"></p><p class="gris petit" id="p-pea-txt"></p></div>'
+              '<div class="colonne"><div class="surtitre">Compte-titres (meilleure option)</div><div class="resultat" id="p-cto" style="color:var(--rouge)">–</div><p class="net" id="p-cto-net"></p>'
+              '<div class="choix-impot"><div id="p-ch-pfu"><span>Flat tax (31,4 %)</span><b id="p-cto-pfu">–</b></div><div id="p-ch-bar"><span>Barème + prélèvements sociaux</span><b id="p-cto-bar">–</b></div></div></div>'
+              '</div><p class="gris" id="p-det" style="margin:0"></p>')
+    note = ("Barème 2026 : prélèvements sociaux de 18,6 % ; flat tax (PFU) de 31,4 % (12,8 % d'impôt et 18,6 % de prélèvements sociaux). "
+            "Abattement pour durée de détention (50 % de 2 à 8 ans, 65 % au-delà) réservé aux titres achetés avant 2018, et seulement si tu choisis le barème. "
+            "Dividendes américains : retenue de 15 % aux États-Unis, compensée par un crédit d'impôt (simulation simplifiée : il efface au plus l'impôt français). "
+            "Le choix du barème vaut pour tous tes revenus de placement de l'année ; la CSG déductible n'est pas comptée. Simulation pédagogique, pas un conseil fiscal. "
+            f'Sources : {liens([SP_PFU_, ("impots.gouv.fr, abattement pour durée de détention", "https://www.impots.gouv.fr/particulier/questions/jai-realise-des-plus-values-ai-je-droit-un-abattement-pour-duree-de-detention"), ("service-public.gouv.fr, revenus de placement 2026", "https://www.service-public.gouv.fr/particuliers/vosdroits/F34913"), ("BOFiP, convention France–États-Unis", "https://bofip.impots.gouv.fr/bofip/3042-PGP.html")])}.')
+    return (f'<section class="section" id="pea-cto"><div><h2>PEA OU <em>CTO ?</em></h2><p class="gris" style="margin:6px 0 0">Ce que l\'État prend sur ton gain, selon ton compte, tes actions et depuis quand tu les as</p></div>'
+            + carte(f'<div class="pile">{champs}<div aria-live="polite" class="pile" style="gap:14px">{sortie}</div></div>') + f'<p class="source">{note}</p></section>')
+
 # ---------- vidéos ----------
+POSES_VID = ['salut', 'court', 'etoiles', 'reflechit', 'joie', 'loupe', 'rire', 'pouce', 'montre', 'question']
 def videos(r):
-    rows = ''.join(f'<tr><td class="gris" style="white-space:nowrap">{jj(d)}</td><td><b>{escape(t)}</b></td><td><span class="badge{" or" if ty == "Carrousel" else ""}">{ty}</span></td></tr>'
-                   for d, t, ty in VIDEOS)
-    return (entete('TikTok et Instagram', 'NOS', 'VIDÉOS', f"{len(VIDEOS)} vidéos et carrousels depuis le 17/10/2026. Toutes sont à voir sur nos comptes.", 'rocking', r)
-            + f'<div class="pastilles" style="margin-bottom:20px"><a class="bouton" href="{SITE["tiktok"]}">Voir sur TikTok</a><a class="bouton" href="{SITE["instagram"]}">Voir sur Instagram</a></div>'
-            + carte(f'<div class="tableau"><table><thead><tr><th scope="col">Date</th><th scope="col">Sujet</th><th scope="col">Format</th></tr></thead><tbody>{rows}</tbody></table></div>'))
+    cartes = []
+    for k, (d, t, ty, tk, ig, vig) in enumerate(VIDEOS):
+        visu = (f'<img src="{r}assets/videos/{vig}" alt="" loading="lazy" width="360" height="640">' if vig else
+                f'<div class="sans-vig"><span>{escape(t)}</span><img src="{r}assets/img/{POSES_VID[k % len(POSES_VID)]}.png" alt="" loading="lazy"></div>')
+        bt = ''.join(x for x in (
+            f'<button class="bouton lecteur tiktok" type="button" data-src="https://www.tiktok.com/embed/v2/{tk}" data-lien="https://www.tiktok.com/@actions_bnfices/video/{tk}">TikTok</button>' if tk else '',
+            f'<button class="bouton lecteur insta" type="button" data-src="https://www.instagram.com/{ig}/embed/" data-lien="https://www.instagram.com/{ig}/">Instagram</button>' if ig else ''))
+        cartes.append(f'<article class="video" data-type="{"carrousel" if ty == "Carrousel" else "video"}"><div class="ecran">{visu}<span class="badge{" or" if ty == "Carrousel" else ""}">{ty}</span></div>'
+                      f'<div class="pile" style="gap:8px;padding:14px 16px 16px"><span class="date">{jj(d)}</span><h3>{escape(t)}</h3><div class="choix-lecteur">{bt}</div><a class="ouvrir" href="#" hidden target="_blank" rel="noopener">Ouvrir dans l\'appli ↗</a></div></article>')
+    filtres = ('<div class="pastilles filtres" role="group" aria-label="Filtrer"><button class="bouton clair actif" data-filtre="tout">Tout</button>'
+               '<button class="bouton clair" data-filtre="video">Vidéos</button><button class="bouton clair" data-filtre="carrousel">Carrousels</button></div>')
+    return (entete('TikTok et Instagram', 'NOS', 'VIDÉOS', f"{len(VIDEOS)} vidéos et carrousels depuis le 15/10/2026. Choisis ta plateforme et regarde-les directement ici.", 'rocking', r)
+            + f'<div class="pastilles" style="margin-bottom:14px"><a class="bouton" href="{SITE["tiktok"]}">Nous suivre sur TikTok</a><a class="bouton" href="{SITE["instagram"]}">Nous suivre sur Instagram</a></div>'
+            + filtres + f'<p class="gris petit">Le lecteur TikTok ou Instagram ne se charge que quand tu cliques sur un bouton : ce service peut alors déposer ses propres cookies.</p>'
+            + f'<div class="grille videos" style="--min:240px">{"".join(cartes)}</div><script src="{r}assets/js/videos.js" defer></script>')
 
 # ---------- produits, lettre, mentions ----------
 def produits(r):
-    p = [('Le guide des premiers pas', "Ouvrir son PEA, choisir un ETF, mettre en place un versement mensuel : le pas à pas, sans jargon.", 'doigt_leve'),
+    p = [('Le guide des premiers pas', "Ouvrir son PEA, choisir un ETF, mettre en place un versement mensuel : le pas à pas, sans jargon.", 'montre'),
          ('Les fiches entreprises en PDF', "Toutes les fiches, mises à jour à chaque trimestre, à garder et à imprimer.", 'loupe'),
          ('Le tableau de suivi', "Un tableau pour suivre tes versements, tes dividendes et tes frais, mois après mois.", 'reflechit')]
-    return (entete('Bientôt', 'NOS', 'PRODUITS', "Des outils pour passer à l'action, en préparation. Abonne-toi à la lettre du dimanche pour être prévenu de leur sortie.", 'applaudit', r)
+    return (entete('Bientôt', 'NOS', 'PRODUITS', "Des outils pour passer à l'action, en préparation. Ils arriveront après la lettre du dimanche, elle aussi en préparation : suis-nous sur TikTok ou Instagram pour être prévenu.", 'pouce', r)
             + grille(*[carte(f'<div class="pile" style="gap:10px"><span class="badge or">En préparation</span><h3>{t}</h3><p class="gris" style="margin:0">{x}</p>'
                              f'<img src="{r}assets/img/{po}.png" alt="" style="height:110px;width:auto;align-self:flex-end"></div>') for t, x, po in p], mn=280))
 def lettre(r):
-    return entete('Chaque dimanche matin', 'LA LETTRE', 'DU DIMANCHE', "Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Gratuit, sans publicité, désinscription en un clic.", 'journal', r)
+    return (entete('Chaque dimanche matin', 'LA LETTRE', 'DU DIMANCHE', "Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Gratuite, sans publicité, désinscription en un clic.", 'lit_journal_v2_titre', r)
+            + carte('<div class="pile" style="gap:10px"><span class="badge or">En cours de préparation</span><h3>La lettre n\'est pas encore ouverte</h3>'
+                    '<p style="margin:0">On y travaille et elle arrive bientôt. En attendant, toutes nos publications sont sur TikTok et Instagram, et les News de chaque vendredi sont sur ce site.</p>'
+                    f'<div class="pastilles"><a class="bouton" href="{r}news/">Lire les News</a><a class="bouton clair" href="{SITE["tiktok"]}">TikTok</a><a class="bouton clair" href="{SITE["instagram"]}">Instagram</a></div></div>'))
 def mentions(r):
     return ('<div class="pile texte" style="padding:28px 0"><h1>MENTIONS <em>LÉGALES</em></h1>'
             '<h3>Éditeur</h3><p>Nicolas LAUR, Toulouse. Contact : [À COMPLÉTER].</p>'
@@ -151,6 +258,7 @@ def mentions(r):
             '<h3>Contenu</h3><p>Les contenus d\'Actions Bénéfices sont pédagogiques. Ils ne constituent pas un conseil en investissement ni une recommandation d\'achat ou de vente. '
             'Investir comporte un risque de perte en capital ; les performances passées ne préjugent pas des performances futures. Quand l\'auteur détient un titre présenté, la fiche le précise.</p>'
             '<h3>Données personnelles et cookies</h3><p>Ce site ne dépose aucun cookie et n\'utilise aucun outil de mesure d\'audience. Les polices sont hébergées sur le site. '
+            'Sur la page Vidéos, les lecteurs TikTok et Instagram ne se chargent que si tu cliques sur leur bouton : ces services peuvent alors déposer leurs propres cookies, selon leurs règles. '
             'L\'adresse e-mail donnée pour la lettre du dimanche sert uniquement à l\'envoyer ; tu peux te désinscrire à tout moment depuis chaque lettre.</p>'
             '<h3>Marques</h3><p>Les logos d\'entreprises appartiennent à leurs propriétaires et servent uniquement à illustrer les fiches. Mister Coin et le nom Actions Bénéfices appartiennent à l\'éditeur.</p></div>')
 
@@ -164,7 +272,7 @@ def construire():
     for m in FICHES:
         page(f'/fiches/{m.META["slug"]}/', m.META['titre'], m.META['description'], m.corps, 'fiches/', image_og=m.META['logo'])
     page('/news/', 'Les News', "La semaine en bourse en 5 actus, chaque vendredi.", news_liste, 'news/')
-    for n in NEWS: page(f'/news/{n["slug"]}/', f'Les News du {n["date_txt"]} : {n["titre"]}', n['chapo'], news_page(n), 'news/', image_og='journal.png')
+    for n in NEWS: page(f'/news/{n["slug"]}/', f'Les News du {n["date_txt"]} : {n["titre"]}', n['chapo'], news_page(n), 'news/', image_og=f'../news/{n["slug"]}/01.webp')
     page('/lexique/', 'Lexique de la bourse', "PEA, CTO, ETF, PFU, PER… les sigles de la bourse expliqués simplement.", lex_liste, 'lexique/')
     for e in LEXIQUE: page(f'/lexique/{e[0]}/', f'{e[1]} : {e[2]}', e[3], lex_page(e), 'lexique/')
     page('/calculateurs/', 'Calculateurs', "Intérêts composés, vivre de ses dividendes, PEA ou CTO : trois simulateurs simples.", calculateurs, 'calculateurs/')

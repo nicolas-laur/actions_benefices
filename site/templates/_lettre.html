@@ -1,6 +1,7 @@
 <section class="lettre" aria-labelledby="titre-lettre">
   <img src="{{ r }}assets/img/salut.png" alt="Mister Coin salue">
   <div>
+    <span class="badge or" style="align-self:flex-start">En cours de préparation</span>
     <h2 id="titre-lettre">LA LETTRE DU DIMANCHE</h2>
     <p>Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Sans jargon, sans conseil.</p>
     {% if SITE.lettre_action %}
@@ -10,7 +11,7 @@
       <button class="bouton or" type="submit">Je m'abonne</button>
     </form>
     {% else %}
-    <p class="note">Les inscriptions ouvrent très bientôt. En attendant, retrouve-nous sur <a style="color:#fff" href="{{ SITE.tiktok }}">TikTok</a> et <a style="color:#fff" href="{{ SITE.instagram }}">Instagram</a>.</p>
+    <p class="note">La lettre est en cours de préparation : on y travaille et elle arrive bientôt. En attendant, retrouve-nous sur <a style="color:#fff" href="{{ SITE.tiktok }}">TikTok</a> et <a style="color:#fff" href="{{ SITE.instagram }}">Instagram</a>.</p>
     {% endif %}
   </div>
 </section>

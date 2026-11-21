@@ -48,7 +48,7 @@ SRC = [((0.04, 2.15), f"Comment vivre comme un [milliardaire]…", GD),
     ((94.30, 96.59), f"depuis son sommet des 12 derniers mois.", RD),
     ((97.10, 98.90), f"Maintenant que tu sais tout,", GD),
     ((99.20, 100.45), f"qu'est-ce que tu penses de [tout ça]{NB}?", GD)]
-CAPS = [(sh(a), sh(b), s_, hl) for (a, b), s_, hl in SRC]
+CAPS = [(sh(a), sh(b), s_, hl) for (a, b), s_, hl in SRC[2:]]   # la question d'accroche est déjà écrite en grand à l'écran : pas de sous-titre doublé
 # scènes (temps de la vidéo)
 T = dict(chiffre=4.5, trois=sh(20.7), buy=sh(25.25), borrow=sh(30.7), ellison=sh(36.95), die=sh(47.05), france=sh(58.1), pea=sh(73.5), risque=sh(87.4), fin=sh(96.95))
 FEET = 1650

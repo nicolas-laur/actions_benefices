@@ -379,7 +379,7 @@ def b_guichet(cv, c, t, k):
             S.text(kk, f"SOIT 41,5 MILLIARDS D'EUROS", ww/2, 70, 'a', 64, S.GD, 'c')
             S.text(kk, "36 % de ses actions · cours du 19/11/2026", ww/2, 132, 'sb', 28, S.ICE, 'c', .9)
             S.text(kk, "source : rapport d'Oracle du 25/09/2026", ww/2, 170, 'sb', 24, S.ICE, 'c', .7)
-        glass_card(cv, t, tv, d41, cy=800, w=900, h=200)
+        glass_card(cv, t, tv+.35, d41, cy=800, w=900, h=200)                 # après la disparition complète du compteur : jamais de texte sur du texte
 PHOTO = f'{D}/photos/ellison.jpg'
 @functools.lru_cache(maxsize=1)
 def _photo_surf(w, h):

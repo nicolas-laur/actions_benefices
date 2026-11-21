@@ -1,4 +1,4 @@
-"""Bande son du Loto : voix, bruitages, ambiances (tabac, tirage, atelier, verger) ; mix.wav avec une musique douce, mix_sans_musique.wav sans."""
+"""Bande son de buy, borrow, die : voix, bruitages, ambiances (feu du manoir, salle des coffres, hall de banque, notaire sous la pluie, hémicycle, petit salon, salle de bourse sous l'orage) ; mix.wav avec une musique douce, mix_sans_musique.wav sans."""
 import sys
 sys.argv = ['x', 'info']
 import numpy as np
@@ -36,7 +36,7 @@ def shaker():
 # Fmaj9  Em7  Dm9  Cmaj9 : progression douce et ouverte
 PROG = [(48, [60, 64, 67, 72]), (43, [59, 62, 67, 71]), (45, [60, 64, 69, 72]), (41, [60, 65, 69, 72])]   # Do Sol Lam Fa : joyeux
 MEL = [[79, 76, 72], [79, 74, 71], [76, 72, 69], [77, 72, 69]]
-calm = []   # krach : musique voilée, batterie coupée
+calm = [(V.T['risque'], V.T['fin'])]   # salle de bourse sous l'orage : musique voilée, batterie coupée
 quiet = []
 def inside(t, sp): return any(a <= t < b for a, b in sp)
 keys, bass, drums, bells = (np.zeros(N) for _ in range(4))
@@ -321,11 +321,14 @@ def crackle(d):   # four à bois : crépitements doux + souffle chaud du feu
 def G(a, b, x): seg(a, b, x(b-a))
 import video_col as VC2
 _B = VC2.BLOCS_MIX
-G(0, _B[0][0], lambda d: babble(d)*.45+hum(d)*.5)                          # accroche : public du tirage
-G(_B[0][0], _B[0][1], lambda d: babble(d)*.3+ticktock(d)*.5)            # bureau de tabac : clients, pendule
-G(_B[1][0], _B[1][1], lambda d: babble(d)*.45+hum(d)*.5)                 # scène de tirage : public
-G(_B[2][0], _B[2][1], lambda d: crackle(d)*.3+ticktock(d)*.6)            # atelier de la machine
-G(_B[3][0], DUR, lambda d: birds(d)*.9+windy(d)*.2)                      # verger au coucher du soleil
+G(_B[0][0], _B[0][1], lambda d: crackle(d)*.5)   # manoir
+G(_B[1][0], _B[1][1], lambda d: hum(d)*.6)   # coffres
+G(_B[2][0], _B[2][1], lambda d: babble(d)*.18+ticktock(d)*.5)   # guichet
+G(_B[3][0], _B[3][1], lambda d: rain(d)*.6+ticktock(d)*.7)   # notaire
+G(_B[4][0], _B[4][1], lambda d: babble(d)*.22+hum(d)*.3)   # hemicycle
+G(_B[5][0], _B[5][1], lambda d: crackle(d)*.4+birds(d)*.4)   # salon
+G(_B[6][0], _B[6][1], lambda d: rain(d)*.9+windy(d)*.5)   # krach
+G(_B[7][0], _B[7][1], lambda d: crackle(d)*.5)   # manoir
 d = int(.08*SR); fL, fR = fx.copy(), fx.copy(); fL[d:] += .15*fx[:-d]; fR[int(1.3*d):] += .12*fx[:-int(1.3*d)]
 sr_v, vo = wavfile.read(V.VOICE); vo = vo.astype(np.float32)/32768
 assert sr_v == SR, f'voice_full.wav doit être en {SR} Hz (trouvé {sr_v} Hz) : sinon la voix est accélérée et plus aiguë'

@@ -27,7 +27,10 @@ Repris de ces carrousels, parce qu'il est clair et dense sans être chargé :
 - Encadré de lecture : bloc à filet vertical coloré à gauche, 3 ou 4 lignes, chiffres clés en gras.
 - Mention « Source : … » sous chaque graphique, en petit, alignée à droite.
 
-Adaptation Actions_Bénéfices :
+Décision du 21/11 (fiche Nvidia) : format clair, au plus près de la référence. Fond crème uni, cartes claires, accents or et vert ; aucun décor Gemini (un décor assombri derrière des panneaux qui couvrent tout l'écran ne se voyait presque pas et brouillait la lecture). Les points ci-dessous sur le verre et le décor sont remplacés par ce choix ; les couleurs sont à recalibrer pour un fond clair (or et vert plus foncés pour le contraste).
+Retours du 21/11 sur la fiche Nvidia : rangées de tuiles alignées sur les bords des cartes principales (x = 40 → 1040) et gardées au-dessus de y = 1000 ; encadré de lecture du bas en carte blanche simple, sans filet doré (« trop signé Anthropic ») ; sources alignées à gauche ; graphique de flux en mise en page inspirée de App Economy Insights, avec logo et pictogrammes, crédit en bas de diapo.
+
+Adaptation Actions_Bénéfices (avant le 21/11) :
 - Les tuiles et les graphiques vivent dans nos panneaux de verre épais (`tp`), sur le décor 1930 assombri, pas sur un fond blanc.
 - Couleurs maison (`lib/carrousel.py`) : or `GD` pour les titres et le filet de l'encadré, vert `GR` pour ✓ et les hausses, rouge `RD` pour ✗ et les baisses, cyan `CY` pour la courbe secondaire et les barres « tendance », blanc et `ICE` pour les textes. Barres principales en or dégradé (`GD` → `GD2`).
 - Pastilles : nos émojis Noto (✅ ❌ ➖) ou des ronds pleins dans nos couleurs, au choix après maquette.

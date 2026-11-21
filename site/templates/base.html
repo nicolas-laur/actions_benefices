@@ -12,7 +12,9 @@
 <meta property="og:url" content="{{ SITE.url }}{{ chemin }}">
 <meta property="og:image" content="{{ SITE.url }}/assets/img/{{ image_og or 'profil.png' }}">
 <meta property="og:locale" content="fr_FR">
-<link rel="icon" href="{{ r }}assets/img/profil.png">
+<link rel="icon" href="{{ r }}favicon.ico" sizes="48x48">
+<link rel="icon" href="{{ r }}assets/img/favicon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="{{ r }}assets/img/apple-touch-icon.png">
 <link rel="preload" href="{{ r }}assets/fonts/Anton-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ r }}assets/css/site.css">
 </head>
@@ -20,7 +22,7 @@
 <a class="sr" href="#contenu">Aller au contenu</a>
 <header class="entete">
   <div class="conteneur">
-    <a class="marque" href="{{ r }}"><img src="{{ r }}assets/img/profil.png" alt=""><span>ACTIONS<b>_BÉNÉFICES</b></span></a>
+    <a class="marque" href="{{ r }}"><img src="{{ r }}assets/img/profil.png" alt=""><span>ACTIONS <b>BÉNÉFICES</b></span></a>
     <nav class="menu" aria-label="Rubriques">
       {% for lien, nom in SITE.menu %}<a href="{{ r }}{{ lien }}"{% if rubrique == lien %} aria-current="page"{% endif %}>{{ nom }}</a>{% endfor %}
     </nav>
@@ -37,6 +39,7 @@
     <span><a href="{{ SITE.tiktok }}">TikTok</a> · <a href="{{ SITE.instagram }}">Instagram</a> · <a href="{{ r }}mentions-legales/">Mentions légales</a></span>
   </div>
 </footer>
+<script src="{{ r }}assets/js/infobulles.js" defer></script>
 <script>document.querySelectorAll("figure.fin").forEach(function(f){f.scrollLeft=f.scrollWidth});</script>
 </body>
 </html>

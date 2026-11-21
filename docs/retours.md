@@ -38,3 +38,9 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Le sujet lié à l'actualité et la qualité priment sur le rythme de publication. Les séries d'entreprises sont en réserve.
 - Le style cartoon 1930 marche (dividendes, loto). Sujets provocateurs d'éducation financière simple.
 - Carrousels : les sigles utilisés dans nos vidéos (lexique du 17/11) et les News du vendredi.
+
+## Site actionsbenefices.com (retours v1 du 21/11)
+- Affichage mobile jugé pauvre : chantier important à mener (menu, en-têtes, graphiques, tuiles), suivi dans `site/A_FAIRE.md`. Vérifier chaque page en 390 px de large avant de livrer.
+- Graphiques interactifs : chaque barre, bloc ou ruban donne son détail au survol (et au toucher sur mobile) ; reprendre les pictogrammes des carrousels dans les graphiques du site.
+- Aucun chiffre caché par un tracé : étiquettes au-dessus des points, avec halo blanc.
+- Marque affichée « Actions Bénéfices » (sans tiret bas) ; favicon rond, Mister Coin seul.

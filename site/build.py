@@ -12,7 +12,7 @@ from composants import tuile, grille, lecture, carte, fr
 import fiche_nvidia
 from donnees import NEWS, LEXIQUE, VIDEOS, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
 
-SITE = dict(nom='Actions_Bénéfices', url='https://actionsbenefices.com',
+SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
             menu=[('fiches/', 'Fiches entreprises'), ('news/', 'Les News'), ('lexique/', 'Lexique'), ('calculateurs/', 'Calculateurs'),
                   ('videos/', 'Vidéos'), ('produits/', 'Nos produits')],
             tiktok='https://www.tiktok.com/@actions_bnfices', instagram='https://www.instagram.com/actions_benefices/',
@@ -148,16 +148,17 @@ def mentions(r):
     return ('<div class="pile texte" style="padding:28px 0"><h1>MENTIONS <em>LÉGALES</em></h1>'
             '<h3>Éditeur</h3><p>Nicolas LAUR, Toulouse. Contact : [À COMPLÉTER].</p>'
             '<h3>Hébergement</h3><p>GitHub Pages, GitHub Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, États-Unis.</p>'
-            '<h3>Contenu</h3><p>Les contenus d\'Actions_Bénéfices sont pédagogiques. Ils ne constituent pas un conseil en investissement ni une recommandation d\'achat ou de vente. '
+            '<h3>Contenu</h3><p>Les contenus d\'Actions Bénéfices sont pédagogiques. Ils ne constituent pas un conseil en investissement ni une recommandation d\'achat ou de vente. '
             'Investir comporte un risque de perte en capital ; les performances passées ne préjugent pas des performances futures. Quand l\'auteur détient un titre présenté, la fiche le précise.</p>'
             '<h3>Données personnelles et cookies</h3><p>Ce site ne dépose aucun cookie et n\'utilise aucun outil de mesure d\'audience. Les polices sont hébergées sur le site. '
             'L\'adresse e-mail donnée pour la lettre du dimanche sert uniquement à l\'envoyer ; tu peux te désinscrire à tout moment depuis chaque lettre.</p>'
-            '<h3>Marques</h3><p>Les logos d\'entreprises appartiennent à leurs propriétaires et servent uniquement à illustrer les fiches. Mister Coin et le nom Actions_Bénéfices appartiennent à l\'éditeur.</p></div>')
+            '<h3>Marques</h3><p>Les logos d\'entreprises appartiennent à leurs propriétaires et servent uniquement à illustrer les fiches. Mister Coin et le nom Actions Bénéfices appartiennent à l\'éditeur.</p></div>')
 
 # ---------- assemblage ----------
 def construire():
     if SORTIE.exists(): shutil.rmtree(SORTIE)
     shutil.copytree(ICI/'assets', SORTIE/'assets')
+    shutil.move(SORTIE/'assets'/'favicon.ico', SORTIE/'favicon.ico')  # les navigateurs le cherchent à la racine
     page('/', SITE['nom'], "Comprendre la bourse sans jargon avec Mister Coin : fiches entreprises, News de la semaine, lexique et calculateurs. Contenu pédagogique.", accueil)
     page('/fiches/', 'Fiches entreprises', "Les comptes des grandes entreprises remis à plat, en euros, sources en lien.", fiches, 'fiches/')
     for m in FICHES:
@@ -167,10 +168,10 @@ def construire():
     page('/lexique/', 'Lexique de la bourse', "PEA, CTO, ETF, PFU, PER… les sigles de la bourse expliqués simplement.", lex_liste, 'lexique/')
     for e in LEXIQUE: page(f'/lexique/{e[0]}/', f'{e[1]} : {e[2]}', e[3], lex_page(e), 'lexique/')
     page('/calculateurs/', 'Calculateurs', "Intérêts composés, vivre de ses dividendes, PEA ou CTO : trois simulateurs simples.", calculateurs, 'calculateurs/')
-    page('/videos/', 'Nos vidéos', "Toutes les vidéos et carrousels d'Actions_Bénéfices sur TikTok et Instagram.", videos, 'videos/')
+    page('/videos/', 'Nos vidéos', "Toutes les vidéos et carrousels d'Actions Bénéfices sur TikTok et Instagram.", videos, 'videos/')
     page('/produits/', 'Nos produits', "Guide des premiers pas, fiches en PDF, tableau de suivi : bientôt disponibles.", produits, 'produits/')
     page('/lettre/', 'La lettre du dimanche', "Les News, la prochaine fiche et un mot du lexique, chaque dimanche.", lettre)
-    page('/mentions-legales/', 'Mentions légales', "Mentions légales du site Actions_Bénéfices.", mentions, sans_lettre=True)
+    page('/mentions-legales/', 'Mentions légales', "Mentions légales du site Actions Bénéfices.", mentions, sans_lettre=True)
     # 404, plan du site, robots
     page('/404/', 'Page introuvable', "Cette page n'existe pas.", lambda r: entete('Erreur 404', 'PAGE', 'INTROUVABLE', f'Retour à <a href="{r}">l\'accueil</a>.', 'reflechit', r), sans_lettre=True, r=RACINE)
     shutil.move(SORTIE/'404'/'index.html', SORTIE/'404.html'); (SORTIE/'404').rmdir(); PAGES.remove('/404/')

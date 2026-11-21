@@ -131,3 +131,16 @@ figure{margin:0}
   .carte figure::after{content:"Fais glisser le graphique →";display:block;font-size:12px;color:var(--gris);margin-top:6px}
   .hero>img{height:170px}
 }
+
+/* graphiques interactifs : infobulle au survol (assets/js/infobulles.js), les autres éléments s'estompent */
+[data-tip]{cursor:pointer;outline:none;transition:opacity .15s}
+svg.interactif:has([data-tip]:hover) [data-tip]:not(:hover),
+svg.interactif:has([data-tip].survol) [data-tip]:not(.survol){opacity:.4}
+[data-tip]:focus-visible .zone{stroke:#F5C451;stroke-width:3}
+.zone{fill:transparent}
+.infobulle{position:fixed;z-index:50;max-width:280px;pointer-events:none;background:var(--encre);color:#fff;border-radius:12px;padding:10px 14px;
+  box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:14px;line-height:1.45;display:flex;flex-direction:column;gap:2px}
+.infobulle strong{font-size:15px;margin-bottom:2px}
+.infobulle span:nth-child(2){font-weight:700;font-size:16px;color:#F5C451}
+.infobulle[hidden]{display:none}
+.carte figure figcaption.astuce{font-size:12px;color:var(--gris);margin-top:6px}

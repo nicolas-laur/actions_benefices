@@ -42,69 +42,107 @@ def carte(html, style=''):
     return f'<div class="carte" style="{style}">{html}</div>'
 
 # ---------- graphiques ----------
-def _t(x, y, s, sz=14, c=INK, w=600, a='middle'):
-    return f'<text x="{x:.1f}" y="{y:.1f}" font-size="{sz}" fill="{c}" font-weight="{w}" text-anchor="{a}" style="{F}">{escape(str(s))}</text>'
+# Interactivité : chaque élément portant data-tip (lignes séparées par « \n », la 1re est le titre) affiche une infobulle
+# au survol, au focus clavier ou au toucher (assets/js/infobulles.js) ; le SVG porte la classe « interactif ».
+from pictos import PICTOS
 
-def barres_empilees(data, aria, groupes=4, premier=2022, conv=1.0, etiq=None):
-    """barres empilées (2 séries, bas = data[i][0]) ; groupes de 4 trimestres étiquetés « Ex. AAAA » ; valeurs divisées par conv"""
+def _t(x, y, s, sz=14, c=INK, w=600, a='middle', halo=False):
+    h = ' stroke="#fff" stroke-width="5" stroke-linejoin="round" paint-order="stroke"' if halo else ''
+    return f'<text x="{x:.1f}" y="{y:.1f}" font-size="{sz}" fill="{c}" font-weight="{w}" text-anchor="{a}"{h} style="{F}">{escape(str(s))}</text>'
+
+def _tip(texte):
+    """attributs d'un élément interactif : infobulle, focus clavier, libellé pour les lecteurs d'écran"""
+    t = escape(texte, quote=True)
+    return f'data-tip="{t}" tabindex="0" role="img" aria-label="{t.replace(chr(10), " · ")}"'
+
+def _picto(nom, cx, cy, taille, coul):
+    k = taille/24
+    return f'<path d="{PICTOS[nom]}" fill="{coul}" transform="translate({cx-taille/2:.1f},{cy-taille/2:.1f}) scale({k:.3f})"/>'
+
+def _svg(W, H, aria):
+    return f'<svg class="interactif" viewBox="0 0 {W} {H}" width="100%" role="group" aria-label="{escape(aria)}">'
+
+def barres_empilees(data, aria, groupes=4, premier=2022, conv=1.0, etiq=None, tips=None):
+    """barres empilées (2 séries, bas = data[i][0]) ; groupes de 4 trimestres étiquetés « Ex. AAAA » ; valeurs divisées par conv ;
+    tips : un texte d'infobulle par barre"""
     W, H = 1000, 400; x0, base, top = 40, 340, 40; n = len(data); st = (W-x0-10)/n; bw = st*.72
     vals = [(a/conv, b/conv) for a, b in data]; k = (base-top)/max(a+b for a, b in vals)
-    s = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="{escape(aria)}">']
+    s = [_svg(W, H, aria)]
     for g in (25, 50, 75, 100):
         y = base-g*k
         if y > top-10: s += [f'<line x1="{x0}" x2="{W}" y1="{y:.1f}" y2="{y:.1f}" stroke="{LINE}"/>', _t(x0-6, y+4, g, 11, GREY, 500, 'end')]
     for i, (a, b) in enumerate(vals):
-        x = x0+i*st+(st-bw)/2; ha, hb = a*k, b*k
-        s.append(f'<rect x="{x:.1f}" y="{base-ha:.1f}" width="{bw:.1f}" height="{ha:.1f}" rx="3" fill="{TEAL}"/>')
-        s.append(f'<rect x="{x:.1f}" y="{base-ha-hb-2:.1f}" width="{bw:.1f}" height="{hb:.1f}" rx="3" fill="{LIME}"/>')
-        if (etiq or (lambda i: i % groupes == groupes-1 or i >= n-4))(i): s.append(_t(x+bw/2, base-ha-hb-9, fr(a+b), 11, INK, 700))
         if i % groupes == 0:
             s.append(f'<line x1="{x0+i*st:.1f}" x2="{x0+i*st:.1f}" y1="{base+6}" y2="{base+32}" stroke="{LINE}"/>')
             s.append(_t(x0+(i+min(groupes, n-i)/2)*st, base+24, f'Ex. {premier+i//groupes}', 12, GREY, 500))
+    for i, (a, b) in enumerate(vals):
+        x = x0+i*st+(st-bw)/2; ha, hb = a*k, b*k
+        s.append(f'<g {_tip(tips[i])}>' if tips else '<g>')
+        s.append(f'<rect class="zone" x="{x0+i*st:.1f}" y="{top-20}" width="{st:.1f}" height="{base-top+20}"/>')
+        s.append(f'<rect x="{x:.1f}" y="{base-ha:.1f}" width="{bw:.1f}" height="{ha:.1f}" rx="3" fill="{TEAL}"/>')
+        s.append(f'<rect x="{x:.1f}" y="{base-ha-hb-2:.1f}" width="{bw:.1f}" height="{hb:.1f}" rx="3" fill="{LIME}"/>')
+        if (etiq or (lambda i: i % groupes == groupes-1 or i >= n-4))(i): s.append(_t(x+bw/2, base-ha-hb-9, fr(a+b), 11, INK, 700))
+        s.append('</g>')
     return ''.join(s+['</svg>'])
 
-def flux(nodes, links, vals, k, labels, aria, W=1100, H=600, nw=18):
+def flux(nodes, links, vals, k, labels, aria, W=1100, H=600, nw=18, tips=None, noms=None, pictos=None):
     """compte de résultat en rubans, mise en page inspirée de App Economy Insights (How They Make Money).
     nodes : {id: (x, y, couleur)} (y = haut du nœud) ; links : (source, cible, valeur, couleur du ruban) dans l'ordre haut → bas ;
-    vals : {id: valeur} ; labels : {id: (côté 't'/'b'/'l'/'r', [(texte, 'n' nom | 'v' valeur | 's' grisé), …])}"""
-    s = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="{escape(aria)}">']
+    vals : {id: valeur} ; labels : {id: (côté 't'/'b'/'l'/'r', [(texte, 'n' nom | 'v' valeur | 's' grisé), …])} ;
+    tips : {id: infobulle du nœud} ; noms : {id: nom court} pour les infobulles des rubans ;
+    pictos : {id: [noms de pictogrammes]}, posés au-dessus de l'étiquette (en dessous pour le côté 'b')"""
+    s = [_svg(W, H, aria)]
     out = {n: 0 for n in nodes}; inn = {n: 0 for n in nodes}
     for a, b, v, c in links:
         xa, ya, _ = nodes[a]; xb, yb, _ = nodes[b]; h = v*k; m = (xa+nw+xb)/2; y0 = ya+out[a]; y1 = yb+inn[b]
-        s.append(f'<path d="M{xa+nw},{y0:.1f} C{m},{y0:.1f} {m},{y1:.1f} {xb},{y1:.1f} L{xb},{y1+h:.1f} C{m},{y1+h:.1f} {m},{y0+h:.1f} {xa+nw},{y0+h:.1f} Z" fill="{c}"/>')
+        t = f' {_tip(f"{noms[a]} → {noms[b]}" + chr(10) + f"{fr(v)} Md€" + chr(10) + f"soit {fr(100*v/vals[a], 0)} % de « {noms[a]} »")}' if noms else ''
+        s.append(f'<path{t} d="M{xa+nw},{y0:.1f} C{m},{y0:.1f} {m},{y1:.1f} {xb},{y1:.1f} L{xb},{y1+h:.1f} C{m},{y1+h:.1f} {m},{y0+h:.1f} {xa+nw},{y0+h:.1f} Z" fill="{c}"/>')
         out[a] += h; inn[b] += h
-    for n, (x, y, c) in nodes.items(): s.append(f'<rect x="{x}" y="{y}" width="{nw}" height="{max(vals[n]*k, 3):.1f}" fill="{c}"/>')
-    for n, (side, lines) in labels.items():
-        x, y, c = nodes[n]; h = vals[n]*k; lh = 17; m = len(lines)
+    for n, (x, y, c) in nodes.items():
+        side, lines = labels.get(n, ('r', []))
+        h = vals[n]*k; lh = 17; m = len(lines)
         if side == 't': ty, tx, a = y-10-lh*(m-1), x+nw/2, 'middle'
         elif side == 'b': ty, tx, a = y+h+20, x+nw/2, 'middle'
         elif side == 'l': ty, tx, a = y+h/2-lh*(m-1)/2+5, x-10, 'end'
         else: ty, tx, a = y+h/2-lh*(m-1)/2+5, x+nw+10, 'start'
+        g = [f'<g {_tip(tips[n])}>' if tips and n in tips else '<g>',
+             f'<rect class="zone" x="{x-6}" y="{y-6}" width="{nw+12}" height="{max(h, 3)+12:.1f}"/>',
+             f'<rect x="{x}" y="{y}" width="{nw}" height="{max(h, 3):.1f}" fill="{c}"/>']
         for j, (txt, kind) in enumerate(lines):
             sz, w, cc = {'n': (15, 700, c), 'v': (17, 800, c), 's': (12, 500, GREY)}[kind]
-            s.append(_t(tx, ty+j*lh, txt, sz, cc, w, a))
+            g.append(_t(tx, ty+j*lh, txt, sz, cc, w, a))
+        if pictos and n in pictos:
+            noms_p = pictos[n]; ps = 26; pas = 30; larg = pas*(len(noms_p)-1)
+            py = ty+(m-1)*lh+12+ps/2 if side == 'b' else ty-17-ps/2
+            px0 = {'middle': tx-larg/2, 'end': tx-ps/2-larg, 'start': tx+ps/2}[a]
+            g += [_picto(p, px0+j*pas, py, ps, c) for j, p in enumerate(noms_p)]
+        s.append(''.join(g) + '</g>')
     return ''.join(s+['</svg>'])
 
-def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident='h'):
+def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident='h', tips=None, nom_courbe='Marge nette'):
     """barres avec valeur au-dessus (négatifs en rouge sous l'axe), courbe secondaire facultative dans sa propre bande sous les barres,
-    hachure sur la barre d'indice hach (période en cours)"""
+    hachure sur la barre d'indice hach (période en cours) ; tips : un texte d'infobulle par barre (colonne entière, courbe comprise)"""
     W = 1000; x0 = 20; base = H-(110 if courbe else 40); top = 40; n = len(vals); st = (W-2*x0)/n; bw = st*.5
     vmax = max(max(vals), 0); vmin = min(min(vals), 0); k = (base-top)/((vmax-vmin) or 1); y0 = base+vmin*k
-    s = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="{escape(aria)}">',
+    s = [_svg(W, H, aria),
          f'<defs><pattern id="{ident}" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="{color}"/>'
          f'<line x1="0" y1="0" x2="0" y2="10" stroke="#fff" stroke-width="4" opacity=".45"/></pattern></defs>',
          f'<line x1="{x0}" x2="{W-x0}" y1="{y0:.1f}" y2="{y0:.1f}" stroke="{LINE}" stroke-width="2"/>']
+    pts = []
+    if courbe:
+        cb = H-22; ct = base+56; mn, mx = min(courbe), max(courbe); kc = (cb-ct)/((mx-mn) or 1)
+        pts = [(x0+st*(i+.5), cb-(c-mn)*kc) for i, c in enumerate(courbe)]
+        s.append(f'<polyline fill="none" stroke="{TEAL}" stroke-width="3" points="' + ' '.join(f'{x:.1f},{y:.1f}' for x, y in pts) + '"/>')
+        s.append(_t(x0, base+44, nom_courbe, 13, TEAL, 700, 'start'))
     for i, (v, lb) in enumerate(zip(vals, labels)):
         cx = x0+st*(i+.5); h = abs(v)*k; y = y0-h if v >= 0 else y0
         fill = f'url(#{ident})' if hach == i else (color if v >= 0 else RED)
-        s.append(f'<rect x="{cx-bw/2:.1f}" y="{y:.1f}" width="{bw:.1f}" height="{max(h, 2):.1f}" rx="5" fill="{fill}"/>')
-        s.append(_t(cx, (y-10) if v >= 0 else (y+h+20), fmt_(v), 16, INK if v >= 0 else RED, 800))
-        s.append(_t(cx, base+24, lb, 14, GREY, 500))
-    if courbe:
-        cb = H-14; ct = base+50; mn, mx = min(courbe), max(courbe); kc = (cb-ct)/((mx-mn) or 1)
-        pts = [(x0+st*(i+.5), cb-(c-mn)*kc) for i, c in enumerate(courbe)]
-        s.append(f'<polyline fill="none" stroke="{TEAL}" stroke-width="3" points="' + ' '.join(f'{x:.1f},{y:.1f}' for x, y in pts) + '"/>')
-        for (x, y), c in zip(pts, courbe):
-            s += [f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" fill="#fff" stroke="{TEAL}" stroke-width="3"/>', _t(x+30, y+5, fr(c, 0)+' %', 13, TEAL, 700)]
-        s.append(_t(x0, base+48, 'Marge nette', 13, TEAL, 700, 'start'))
+        g = [f'<g {_tip(tips[i])}>' if tips else '<g>', f'<rect class="zone" x="{x0+st*i:.1f}" y="{top-30}" width="{st:.1f}" height="{H-top+30-4}"/>',
+             f'<rect x="{cx-bw/2:.1f}" y="{y:.1f}" width="{bw:.1f}" height="{max(h, 2):.1f}" rx="5" fill="{fill}"/>',
+             _t(cx, (y-10) if v >= 0 else (y+h+20), fmt_(v), 16, INK if v >= 0 else RED, 800), _t(cx, base+24, lb, 14, GREY, 500)]
+        if courbe:
+            (px, py), c = pts[i], courbe[i]
+            # valeur au-dessus du point, avec un halo blanc : elle ne se mêle plus à la courbe
+            g += [f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5" fill="#fff" stroke="{TEAL}" stroke-width="3"/>', _t(px, py-13, fr(c, 0)+' %', 13, TEAL, 700, halo=True)]
+        s.append(''.join(g) + '</g>')
     return ''.join(s+['</svg>'])

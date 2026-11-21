@@ -11,6 +11,17 @@ def e(x): return x/EUR
 Q = [(2.05, 3.61), (2.37, 4.14), (2.94, 4.16), (3.26, 4.38), (3.75, 4.54), (3.81, 2.89), (3.83, 2.10), (3.62, 2.43), (4.28, 2.91), (10.32, 3.19), (14.51, 3.61),
      (18.40, 3.70), (22.56, 3.48), (26.27, 3.77), (30.77, 4.31), (35.58, 3.75), (39.11, 4.95), (41.10, 5.64), (51.2, 5.8), (62.3, 5.8), (75.2, 6.4), (89.0, 7.2), (107.6, 8.2)]
 
+FIN_T = ['avril', 'juillet', 'octobre', 'janvier']
+def _tips_croissance():
+    t = []
+    for i, (dc, au) in enumerate(Q):
+        ex, q = 2022+i//4, i % 4; an = ex if q == 3 else ex-1; tot = dc+au
+        l = [f"T{q+1} de l'exercice {ex}", f"{fr(e(tot))} Md€ ({fr(tot)} Md$)", f"Centres de données : {fr(e(dc))} Md€", f"Jeux, PC, auto et autres : {fr(e(au))} Md€",
+             f"Trimestre clos fin {FIN_T[q]} {an}"]
+        if i >= 4: l.insert(2, f"{'+' if tot >= sum(Q[i-4]) else ''}{fr(100*(tot/sum(Q[i-4])-1), 0).replace('-', '−')} % sur un an")
+        t.append('\n'.join(l))
+    return t
+
 def _flux():
     v = dict(hy=e(60.1), ac=e(47.5), dc=e(107.6), ed=e(8.2), ca=e(115.844), mb=e(86.676), cv=e(29.168), re=e(77.52), ch=e(9.156), au=e(1.497), rn=e(65.287), im=e(13.73))
     N = {'hy': (130, 120, TEAL), 'ac': (130, 330, TEAL), 'dc': (300, 170, TEAL), 'ed': (300, 500, LIME), 'ca': (470, 200, INK), 'mb': (640, 150, GREEN), 'cv': (640, 440, RED),
@@ -29,7 +40,27 @@ def _flux():
            'au': ('r', [('Autres +'+fr(v['au']), 'n')]),
            'rn': ('r', [('Résultat net', 'n'), (fr(v['rn']), 'v'), ('56 % des ventes', 's')]),
            'im': ('r', [('Impôts', 'n'), ('('+fr(v['im'])+')', 'v')])}
-    return flux(N, L, v, 2.75, lab, "Compte de résultat de Nvidia au 3e trimestre en rubans : du chiffre d'affaires au résultat net")
+    d = dict(hy=60.1, ac=47.5, dc=107.6, ed=8.2, ca=115.844, mb=86.676, cv=29.168, re=77.52, ch=9.156, au=1.497, rn=65.287, im=13.73)
+    def m(i): return f"{fr(v[i])} Md€ ({fr(d[i])} Md$)"
+    def pc(i): return f"{fr(100*d[i]/d['ca'])} % des ventes"
+    T = {'hy': ["Géants du cloud (« Hyperscale »)", m('hy'), "+71 % sur un an", "Les grands fournisseurs de cloud, qui louent la puissance de calcul de leurs centres de données."],
+         'ac': ["Clouds IA, industrie, entreprises", m('ac'), "+195 % sur un an", "Les nouveaux clouds spécialisés dans l'IA, les industriels et les entreprises qui s'équipent eux-mêmes."],
+         'dc': ["Centres de données", m('dc'), "+110 % sur un an", f"{fr(100*d['dc']/d['ca'], 0)} % du chiffre d'affaires : les puces et systèmes pour l'IA."],
+         'ed': ["Jeux, PC, auto et robotique (« Edge »)", m('ed'), "+42 % sur un an", f"{fr(100*d['ed']/d['ca'], 0)} % du chiffre d'affaires : cartes graphiques, PC, voitures, robots."],
+         'ca': ["Chiffre d'affaires du trimestre", m('ca'), "+103 % sur un an", "3e trimestre de l'exercice 2027, clos le 25/10/2026."],
+         'cv': ["Coût des ventes", m('cv'), pc('cv'), "Ce que coûtent les produits vendus, dont la fabrication confiée surtout à TSMC."],
+         'mb': ["Marge brute", m('mb'), pc('mb') + ", +1 pt sur un an", "Ce qui reste une fois les produits vendus payés."],
+         'ch': ["Recherche et frais", m('ch'), pc('ch'), "Recherche et développement, frais commerciaux et administratifs."],
+         're': ["Résultat d'exploitation", m('re'), pc('re') + ", +4 pts sur un an", "Ce que rapporte l'activité elle-même, avant éléments financiers et impôts."],
+         'au': ["Autres produits", "+" + m('au'), "Éléments financiers et autres, nets."],
+         'im': ["Impôts", m('im'), f"{fr(100*d['im']/(d['re']+d['au']))} % du résultat avant impôts"],
+         'rn': ["Résultat net", m('rn'), pc('rn'), "Le bénéfice du trimestre, celui qui revient aux actionnaires."]}
+    noms = dict(hy='Géants du cloud', ac='Clouds IA, entreprises', dc='Centres de données', ed='Jeux, PC, auto', ca="Chiffre d'affaires", mb='Marge brute',
+                cv='Coût des ventes', re="Résultat d'exploitation", ch='Recherche et frais', au='Autres produits', rn='Résultat net', im='Impôts')
+    P = {'hy': ['cloud-outline'], 'ac': ['domain'], 'dc': ['server'], 'ed': ['gamepad-variant', 'laptop', 'car-side', 'robot-industrial'],
+         'cv': ['factory'], 'ch': ['flask-outline'], 'im': ['bank'], 'rn': ['cash-multiple']}
+    return flux(N, L, v, 2.75, lab, "Compte de résultat de Nvidia au 3e trimestre en rubans : du chiffre d'affaires au résultat net",
+                H=640, tips={i: '\n'.join(x) for i, x in T.items()}, noms=noms, pictos=P)
 
 SOURCES = [("Nvidia, résultats du 3e trimestre de l'exercice 2027 (17/11/2026)", "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-Financial-Results-for-Third-Quarter-Fiscal-2027/default.aspx"),
            ("Nvidia, commentaire financier du 3e trimestre (SEC)", "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000088/q3fy27cfocommentary.htm"),
@@ -56,7 +87,7 @@ def corps(R):
         R, 'loupe', "9 euros de ventes sur 10 viennent des centres de données. Les comptes publiés par Nvidia sont examinés par la SEC (enquête en cours, aucune conclusion à ce jour).",
         "Source : Nvidia, rapport annuel 10-K de l'exercice 2026 ; cours Nasdaq ; 1 € = 1,0990 $ (BCE, 20/11/2026). Capitalisation = cours × 24,1 milliards d'actions (moyenne du 3e trimestre)."))
     S.append(section(2, 'LA', 'CROISSANCE', "Chiffre d'affaires par trimestre, en milliards d'euros",
-        carte('<figure class="fin">' + barres_empilees(Q, "Chiffre d'affaires trimestriel de Nvidia en milliards d'euros, de l'exercice 2022 au 3e trimestre 2027", conv=EUR)
+        carte('<figure class="fin">' + barres_empilees(Q, "Chiffre d'affaires trimestriel de Nvidia en milliards d'euros, de l'exercice 2022 au 3e trimestre 2027", conv=EUR, tips=_tips_croissance())
               + f'<figcaption class="petit" style="display:flex;gap:22px;flex-wrap:wrap;margin-top:8px"><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:{TEAL};margin-right:6px"></i>Centres de données</span>'
               f'<span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:{LIME};margin-right:6px"></i>Jeux, PC, auto et autres</span></figcaption></figure>')
         + grille(tuile('ok', 'Sur 4 ans', '+68 %/an', '2022 → 2026'), tuile('ok', 'Dernier trimestre', '+103 %', 'sur un an'), tuile('ok', '12 derniers mois', '329 Md€', '361,8 Md$')),
@@ -66,7 +97,9 @@ def corps(R):
         "Source : Nvidia, résultats du 17/11/2026 (CA 115,8 Md$). Mise en page inspirée de App Economy Insights (How They Make Money)."))
     S.append(section(4, 'LA', 'RENTABILITÉ', "Résultat net (Md€) et marge nette, par exercice",
         carte('<figure>' + barres([e(x) for x in (9.752, 4.368, 29.760, 72.880, 120.067)], ['2022', '2023', '2024', '2025', '2026'], fr, GREEN,
-                                  "Résultat net de Nvidia par exercice en milliards d'euros et marge nette", [36.2, 16.2, 48.8, 55.8, 55.6], H=420, ident='hr') + '</figure>')
+                                  "Résultat net de Nvidia par exercice en milliards d'euros et marge nette", [36.2, 16.2, 48.8, 55.8, 55.6], H=420, ident='hr',
+                                  tips=[f"Exercice {a} (clos fin janvier {a})\n{fr(e(rn))} Md€ de résultat net ({fr(rn)} Md$)\nMarge nette : {fr(mg)} %\nBPA : {fr(b/EUR, 2)} € ({fr(b, 2)} $)"
+                                        for a, rn, mg, b in zip(range(2022, 2027), (9.752, 4.368, 29.760, 72.880, 120.067), (36.2, 16.2, 48.8, 55.8, 55.6), (0.39, 0.17, 1.19, 2.94, 4.90))]) + '</figure>')
         + grille(tuile('ok', 'BPA 2026', '4,46 €', '×13 depuis 2022'), tuile('ok', 'BPA, 12 derniers mois', '8,47 €', '9,31 $'), mn=300),
         R, None, "Sur 100 € de ventes, Nvidia garde 56 € de bénéfice net. Le creux de 2023 : ventes de cartes pour joueurs en chute et 1,35 Md$ de charge après l'abandon du rachat d'Arm.",
         "Source : Nvidia, 10-K. BPA (bénéfice par action) ajusté des divisions d'actions (×4 en 2021, ×10 en 2024)."))
@@ -78,7 +111,9 @@ def corps(R):
         "Source : Nvidia, communiqué et commentaire financier du 3e trimestre (17/11/2026)."))
     S.append(section(6, 'LE', 'DIVIDENDE', "Par action et par exercice, en euros (actions d'aujourd'hui)",
         carte('<figure>' + barres([e(x) for x in (0.0143, 0.0153, 0.016, 0.016, 0.016, 0.016, 0.016, 0.034, 0.04, 0.76)], [str(y) for y in range(2018, 2027)] + ['2027*'],
-                                  lambda x: fr(x, 2), GOLD, "Dividende de Nvidia par action et par exercice, en euros", H=320, hach=9, ident='hd')
+                                  lambda x: fr(x, 2), GOLD, "Dividende de Nvidia par action et par exercice, en euros", H=320, hach=9, ident='hd',
+                                  tips=[f"Exercice {a}{' (en cours)' if a == 2027 else ''}\n{fr(x/EUR, 3)} € par action ({fr(x, 4 if x < .1 else 2)} $)" + ("\ndont 0,25 $ versé le 23/12" if a == 2027 else "\nAjusté des divisions d'actions")
+                                        for a, x in zip(range(2018, 2028), (0.0143, 0.0153, 0.016, 0.016, 0.016, 0.016, 0.016, 0.034, 0.04, 0.76))])
               + '<figcaption class="source">* exercice en cours, dont 0,25 $ versé le 23/12. Ajusté des divisions d\'actions (×4 en 2021, ×10 en 2024).</figcaption></figure>')
         + grille(tuile('ok', 'Dividende ×25 en mai', '0,25 $', 'par trimestre'), tuile('neutre', 'Rendement au 20/11', '0,8 %', '1 $ par an'),
                  tuile('neutre', 'Part du bénéfice versée', '11 %'), tuile('ok', 'Prochain versement', '23/12', 'détachement vers le 2/12'), mn=240),
@@ -97,7 +132,7 @@ def corps(R):
     S.append(section(8, "CE QU'IL FAUT", 'SURVEILLER', "Trois rendez-vous datés", f'<ul class="carte" style="list-style:none;margin:0;padding:4px 24px">{surv}</ul>'))
     src = ''.join(f'<li><a href="{u}">{n}</a></li>' for n, u in SOURCES)
     S.append(f'<section class="section" id="sources"><h3 style="font-size:22px">Sources et méthode</h3><ul style="margin:0;padding-left:20px;line-height:1.9;font-size:15px">{src}</ul>'
-             '<p class="gris petit" style="margin:0">Ratios calculés par Actions_Bénéfices : marge nette = résultat net ÷ chiffre d\'affaires ; PER = cours ÷ bénéfice par action des 12 derniers mois ; '
+             '<p class="gris petit" style="margin:0">Ratios calculés par Actions Bénéfices : marge nette = résultat net ÷ chiffre d\'affaires ; PER = cours ÷ bénéfice par action des 12 derniers mois ; '
              'BPA et dividendes ajustés des divisions d\'actions. Montants convertis au taux de référence BCE du 20/11/2026. Le détail de chaque chiffre est dans le fichier de sources de l\'épisode.</p></section>')
     toc = ''.join(f'<a href="#s{i}">{x}</a>' for i, x in enumerate(['Identité', 'Croissance', "D'où vient l'argent", 'Rentabilité', 'Solidité', 'Dividende', 'Rivaux', 'À surveiller'], 1))
     tete = (f'<p class="fil"><a href="{R}fiches/">Fiches entreprises</a> › {m["nom"]}</p><div class="hero"><div>'

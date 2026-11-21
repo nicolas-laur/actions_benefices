@@ -58,10 +58,10 @@ def _veo(nom):
     return nom if os.path.exists(f'{D}/../../mister_coin/veo/{nom}.mp4') else None
 NEUTRE = _veo('classique_parle_neutre') or EX
 MC = VeoCoin([(0.0, [QU], 'voix'), (T['chiffre'], [EX, CP], 'voix'), (T['trois'], [CO], 'voix'), (T['buy'], [EN], 'voix'), (T['borrow'], [BI], 'voix'),
-              (T['ellison'], [CP, SW], 'voix'), (T['die'], [IN, TR], 'voix'), (T['france'], [NEUTRE, PR], 'voix'), (T['pea'], [EN, SW], 'voix'),
+              (T['ellison'], [CP, SW], 'voix'), (T['die'], [EX, CO], 'voix'), (sh(53.04)-.05, [IN], 'voix'), (T['france'], [NEUTRE, PR], 'voix'), (T['pea'], [EN, SW], 'voix'),
               (T['risque'], [PR, IN], 'voix'), (T['fin'], [QU], 'voix')],
              voix=VOICE, duree=DUR, x=540, pieds=FEET, largeur_piece=170, lisse=True, variete=1.5, silence_min=7, coupe_silence=True)
 # réactions muettes jouées dans les silences (images f0 à f1 du clip, accélérées) : la banque lisse ne les gère pas, video_col les substitue
-RX = [(sh(19.37)+.08, 'classique_choc', 56, 160), (sh(52.68)+.1, 'classique_facepalm', 70, 170), (DUR_VOIX+.1, 'classique_pouce', 60, 165)]
+RX = [(sh(19.37)+.08, 'classique_choc', 56, 160), (sh(52.68)+.1, 'classique_joie', 88, 192), (DUR_VOIX+.1, 'classique_pouce', 60, 165)]
 RX_FIN = [sh(20.82)-.1, sh(53.04)-.1, DUR-.05]
 def events(): return sorted([(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops)])

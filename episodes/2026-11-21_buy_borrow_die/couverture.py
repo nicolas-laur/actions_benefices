@@ -1,5 +1,5 @@
 """Couverture de buy, borrow, die (style maison, lib/cards_lib.py) : salon du manoir assombri en haut, titre « BUY, BORROW, DIE »,
-sous-titre « LA MÉTHODE DES MILLIARDAIRES », question « Et toi, tu en penses quoi ? », Mister Coin choqué en bas avec un halo doré."""
+sous-titre « LA MÉTHODE DES MILLIARDAIRES », question « Et toi, tu en penses quoi ? », Mister Coin qui confie un secret en bas avec un halo doré."""
 import cairo, numpy as np, sys, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin')
@@ -27,7 +27,7 @@ cards.put = _q
 import veo_coin as VC
 path = f'{HERE}/couverture.png'; cards.card("BUY, BORROW, DIE", False, path, sub=("LA MÉTHODE DES MILLIARDAIRES",))
 im = Image.open(path).convert('RGBA')
-a, m = VC._key(np.asarray(still(f'{ROOT}/mister_coin/veo/classique_choc.mp4', 120, f'{TMP}/choc_couv.png')))
+a, m = VC._key(np.asarray(still(f'{ROOT}/mister_coin/veo/classique_parle_confidence.mp4', 130, f'{TMP}/confidence_couv.png')))
 ch = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGBA'); ch.putalpha(Image.fromarray((m*255).astype(np.uint8))); ch = ch.crop(ch.getbbox())
 hh = 640; ch = ch.resize((int(ch.width*hh/ch.height), hh), Image.LANCZOS)
 x0, y0 = (W-ch.width)//2, 1240

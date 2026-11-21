@@ -219,10 +219,13 @@ def twinkle(c, t, pts, r=22):
 def _fade(cv, f, a):
     tmp = cv.copy(); f(tmp); cv.paste(Image.blend(cv.convert('RGBA'), tmp.convert('RGBA'), clamp(a)))
 
-def plate(c, x, y, w, h, a):
-    """pastille sombre derrière un texte posé sur un décor chargé (lisibilité)"""
-    if a <= 0: return
-    rr(c, x-w/2, y-h/2, w, h, h/2); c.set_source_rgba(.13, .06, .16, .6*a); c.fill()
+_CV = None                                                    # image du décor en cours (posée par raw) : les plaques de verre s'y dessinent sous les textes
+def plate(c, x, y, w, h, a, mood='or'):
+    """plaque de verre 3D (scenes.tp, notre signature) derrière un texte, apparition et disparition en fondu"""
+    if a <= 0 or _CV is None: return
+    f = lambda cv_: S.tp(cv_, w, h, lambda kk, ww, hh: None, x, y, mood, rx=.03, bev=int(max(12, min(26, h*.3))))
+    if a < .999: _fade(_CV, f, a)
+    else: f(_CV)
 # ================= panneaux de verre (compteurs, jauges) =================
 def glass_counter(cv, t, t0, v1, t_a, t_b, sub, cy=780, w=860, h=230, colr=None, a=1.0, t1=None):
     k = t-t0
@@ -300,13 +303,23 @@ def row(cv, c, t, t0, y, txt, colr=CREAM, emo=None, sub=None, a=1.0, size=48, w=
     if sub: paint(c, sub, 520 if emo else 540, y+34, 28, a=ent(k-.2, .3)*a)
     if emo and k > .15: EMO.append((emo, 540+w/2-62, y, 58, al))
 EMO = []
-def smoke(c, t, t0, x0, x1, y):
-    """la barre se dissout en fumée : particules qui montent et s'estompent"""
-    for i in range(70):
-        u = (t-t0-(i % 10)*.05)/1.3
-        if not 0 < u < 1: continue
-        x = x0+(x1-x0)*((i*37) % 70)/70+30*math.sin(u*4+i); yy = y-260*ease(u)-(i % 5)*8; r_ = 10+30*u
-        c.arc(x, yy, r_, 0, 2*math.pi); c.set_source_rgba(.85, .8, .72, .45*(1-u)); c.fill()
+def dissolve_bar(c, t, t0, x0, x1, y, h, lab, dur=1.2, a=1.0):
+    """la barre « PLUS-VALUE » se désagrège de gauche à droite en poussière d'or qui s'envole (et scintille), au lieu d'un simple fondu"""
+    cs = 12; nx, ny = int((x1-x0)/cs)+1, int(h/cs)+1; rng_ = np.random.default_rng(7); noise = rng_.random((nx, ny)); drift = rng_.random((nx, ny))
+    keep = []
+    for i in range(nx):
+        for j in range(ny):
+            d = (i/nx)*dur*.75+noise[i, j]*dur*.25; u = (t-t0-d)/.9
+            cx_, cy_ = x0+i*cs, y-h/2+j*cs
+            if u <= 0: keep.append((cx_, cy_))
+            elif u < 1:
+                px = cx_+140*u+25*math.sin(6*u+i); py = cy_-(120+160*drift[i, j])*u**1.2; r_ = cs*(1-.7*u)
+                c.rectangle(px, py, r_, r_); c.set_source_rgba(1.0, .80+.12*drift[i, j], .35, a*(1-u)); c.fill()
+                if drift[i, j] > .93: c.arc(px, py, 3+4*(1-u), 0, 2*math.pi); c.set_source_rgba(1, 1, .9, a*(1-u)); c.fill()
+    if keep:
+        c.save()
+        for (cx_, cy_) in keep: c.rectangle(cx_, cy_, cs+.5, cs+.5)
+        c.clip(); gold_bar(c, x0, x1, y, h, a, lab); c.restore()
 def gold_bar(c, x0, x1, y, h, a, lab):
     rr(c, x0, y-h/2, x1-x0, h, 18); g = cairo.LinearGradient(0, y-h/2, 0, y+h/2)
     for st, cc in ((0, 'FFE27A'), (1, 'B97A12')): r_, g_, b_ = rgb(cc)[:3]; g.add_color_stop_rgba(st, r_, g_, b_, a)
@@ -415,10 +428,9 @@ def b_notaire(cv, c, t, k):
         prop(c, 'testament', 540, 560, h=320, k=t-(t0+.6), rot=-.04+.02*math.sin(t*1.6), a=a)
         if t > sh(50.3): row(cv, c, t, sh(50.3), 790, "LES ACTIONS À LEUR VALEUR DU JOUR", CREAM, w=960, size=40, a=a)
         if t > tE:
-            ab = (1-ent(t-(tE+.9), .7))*a
-            if ab > 0: gold_bar(c, 200, 880, 905, 92, ab*ent(t-tE, .2), "PLUS-VALUE")
-            if t > tE+.9: smoke(c, t, tE+.9, 200, 880, 905)
-            stamp(c, "EFFACÉE", 540, 905, 70, t, tE+1.3, a=a)
+            if t < tE+.7: gold_bar(c, 200, 880, 905, 92, a*ent(t-tE, .2), "PLUS-VALUE")
+            else: dissolve_bar(c, t, tE+.7, 200, 880, 905, 92, "PLUS-VALUE", a=a)
+            stamp(c, "EFFACÉE", 540, 905, 70, t, tE+1.9, a=a)
     else:
         def d(kk, ww, hh):
             S.text(kk, "DROITS DE SUCCESSION (ÉTATS-UNIS)", ww/2, 48, 'xb', 30, S.ICE, 'c', .9, 2)
@@ -450,10 +462,12 @@ def b_salon(cv, c, t, k):
         title(c, "PEA DE PLUS DE 5 ANS", t, sh(76.4), 350, 56, YEL)
     if t < tc+.3:
         a = 1-ent(t-tc, .3) if t > tc else 1
-        if t > sh(78.4): row(cv, c, t, sh(78.4), 450, f"0{NB}€ D'IMPÔT SUR LE REVENU", MINT, emo='✅', w=900, size=44, a=a)
-        if t > sh(80.0): paint(c, f"sur 100{NB}€ de gains retirés", 540, 578, 34, a=ent(t-sh(80.0), .3)*a)
-        glass_bar(cv, t, sh(80.0), [(.814, *MINTC, f"81,40{NB}€", "pour toi", sh(80.3), 'l'),
-                                    (.186, *REDC, f"18,60{NB}€", "prélèvements sociaux", sh(80.6), 'r')], cy=760, h=330, t1=tc+.3)
+        if t > sh(78.4): row(cv, c, t, sh(78.4), 430, f"0{NB}€ D'IMPÔT SUR LE REVENU", MINT, emo='✅', w=900, size=44, a=a)
+        if t > sh(79.9):
+            plate(c, 540, 540, 820, 88, ent(t-sh(79.9), .25)*a)
+            pop_text(c, f"SUR 100{NB}€ DE GAINS RETIRÉS", 540, 540, 48, t, sh(79.9), YEL, a=a, maxw=760)
+        glass_bar(cv, t, sh(80.2), [(.814, *MINTC, f"81,40{NB}€", "pour toi", sh(80.5), 'l'),
+                                    (.186, *REDC, f"18,60{NB}€", "prélèvements sociaux", sh(80.8), 'r')], cy=775, h=330, t1=tc+.3)
     if t > tc:
         pop_text(c, "TON CAPITAL", 540, 520, 64, t, tc+.3, CREAM)
         pop_text(c, "CONTINUE DE COMPOSER", 540, 610, 64, t, tc+.6, YEL, rot=-.02)
@@ -505,7 +519,8 @@ def raw(t):
     i = max(j for j, s_ in enumerate(SC) if t >= s_[0] or j == 0); a, b, f, dec = SC[i]
     img = decor_c(dec, t)
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
-    s, c = surface(); EMO.clear(); f(cv, c, t, max(0.0, t-a)); cv.alpha_composite(to_img(s))
+    global _CV
+    s, c = surface(); EMO.clear(); _CV = cv; f(cv, c, t, max(0.0, t-a)); _CV = None; cv.alpha_composite(to_img(s))
     for (ch, x, y, sz, al) in EMO:
         if al > .01:
             e = S.emoji(ch, int(sz)).copy()
@@ -538,7 +553,7 @@ def events():
     ev += [(T['buy']+.1, 'impact'), (T['buy']+.4, 'pop'), (sh(27.0), 'clack'), (sh(28.5), 'pop'), (sh(29.3), 'coin')]
     ev += [(T['borrow']+.1, 'impact'), (sh(31.6), 'pop'), (sh(32.4), 'swish'), (sh(32.9), 'pop'), (sh(34.6), 'thud'), (sh(35.9), 'coin')]
     ev += [(T['ellison']+.1, 'thud'), (sh(37.3), 'pop'), (sh(37.65), 'swish'), (sh(40.8), 'swish'), (sh(41.0), 'tick'), (sh(43.65), 'impact'), (sh(44.0), 'glint')]
-    ev += [(T['die']+.1, 'impact'), (T['die']+.6, 'pop'), (sh(50.3), 'pop'), (sh(51.48), 'fill1'), (sh(51.48)+.9, 'whoosh'), (sh(51.48)+1.3, 'gavel'), (sh(53.1), 'swish'), (sh(54.9), 'impact')]
+    ev += [(T['die']+.1, 'impact'), (T['die']+.6, 'pop'), (sh(50.3), 'pop'), (sh(51.48), 'fill1'), (sh(51.48)+.7, 'whoosh'), (sh(51.48)+1.0, 'glint'), (sh(51.48)+1.9, 'gavel'), (sh(53.1), 'swish'), (sh(54.9), 'impact')]
     ev += [(T['france']+.1, 'thud'), (sh(59.4), 'pop'), (sh(61.2), 'pop'), (sh(63.3), 'bonk'), (sh(66.4), 'thud'), (sh(68.4), 'pop'), (sh(69.3), 'gavel'), (sh(70.15), 'pop')]
     ev += [(T['pea']+.1, 'thud'), (sh(76.4), 'pop'), (sh(77.0), 'swish'), (sh(78.4), 'fill2'), (sh(80.5), 'fill0'), (sh(84.7)+.3, 'pop'), (sh(84.7)+.6, 'glint')]
     ev += [(T['risque']+.1, 'impact'), (sh(89.9), 'pop'), (sh(92.0), 'swish'), (sh(92.0)+.3, 'fill2'), (sh(92.0)+1.1, 'crash'), (sh(92.0)+2.0, 'bonk')]

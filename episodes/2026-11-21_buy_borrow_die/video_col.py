@@ -135,7 +135,7 @@ def pop_text(c, s_, x, y, size, t, t0, fill=CREAM, rot=0.0, a=1.0):
     k = t-t0
     if k <= 0 or a <= 0: return
     sc = back(k/.35); c.save(); c.translate(x, y); c.rotate(rot); c.scale(sc, sc); paint(c, s_, 0, 0, size, fill, a=a); c.restore()
-YEL = 'FFE27A'; PINK = 'FF8A8A'; MINT = '9DF2B5'
+YEL = 'FFE27A'; PINK = 'FF8A8A'; MINT = '9DF2B5'; WHITE = 'FFFFFF'
 def title(c, s_, t, t0, y=290, size=64, fill=CREAM, t1=None, maxw=920):
     k = t-t0
     if k <= 0: return
@@ -219,13 +219,25 @@ def twinkle(c, t, pts, r=22):
 def _fade(cv, f, a):
     tmp = cv.copy(); f(tmp); cv.paste(Image.blend(cv.convert('RGBA'), tmp.convert('RGBA'), clamp(a)))
 
-_CV = None                                                    # image du décor en cours (posée par raw) : les plaques de verre s'y dessinent sous les textes
+_CV = None; _T = 0.0                                          # image du décor en cours et temps (posés par raw) : les plaques de verre s'y dessinent sous les textes
+_PC = {}
 def plate(c, x, y, w, h, a, mood='or'):
-    """plaque de verre 3D (scenes.tp, notre signature) derrière un texte, apparition et disparition en fondu"""
+    """plaque de verre 3D (scenes.tp, notre signature) derrière un texte, apparition et disparition en fondu.
+    Le verre est recalculé 12 fois par seconde (assez pour le décor flouté derrière) et posé avec son masque : rendu 4 à 5 fois plus rapide."""
     if a <= 0 or _CV is None: return
-    f = lambda cv_: S.tp(cv_, w, h, lambda kk, ww, hh: None, x, y, mood, rx=.03, bev=int(max(12, min(26, h*.3))))
-    if a < .999: _fade(_CV, f, a)
-    else: f(_CV)
+    key = (int(x), int(y), int(w), int(h), mood); b = int(_T*12)
+    hit = _PC.get(key)
+    if hit is None or hit[0] != b:
+        P = 260; x0, y0 = max(0, int(x-w/2-P)), max(0, int(y-h/2-P)); x1, y1 = min(W, int(x+w/2+P)), min(H, int(y+h/2+P))
+        tmp = _CV.copy(); S.tp(tmp, w, h, lambda kk, ww, hh: None, x, y, mood, rx=.03, bev=int(max(12, min(26, h*.3))))
+        o = np.asarray(_CV.convert('RGB').crop((x0, y0, x1, y1))).astype(np.int16); n_ = tmp.convert('RGB').crop((x0, y0, x1, y1))
+        m = (np.abs(np.asarray(n_).astype(np.int16)-o).max(2) > 2).astype(np.uint8)*255
+        m = cv2.GaussianBlur(cv2.dilate(m, np.ones((5, 5), np.uint8)), (0, 0), 1.5)
+        patch = n_.convert('RGBA'); patch.putalpha(Image.fromarray(m)); hit = (b, patch, (x0, y0)); _PC[key] = hit
+        if len(_PC) > 40: _PC.clear(); _PC[key] = hit
+    patch, pos = hit[1], hit[2]
+    if a < .999: patch = patch.copy(); patch.putalpha(Image.fromarray((np.asarray(patch.getchannel('A')).astype(np.float32)*a).astype(np.uint8)))
+    _CV.alpha_composite(patch, pos)
 # ================= panneaux de verre (compteurs, jauges) =================
 def glass_counter(cv, t, t0, v1, t_a, t_b, sub, cy=780, w=860, h=230, colr=None, a=1.0, t1=None):
     k = t-t0
@@ -237,18 +249,19 @@ def glass_counter(cv, t, t0, v1, t_a, t_b, sub, cy=780, w=860, h=230, colr=None,
         S.text(kk, euro(v), ww/2, hh/2-14, 'a', 92, colr or S.GD, 'c', ent(k, .3))
         S.text(kk, sub, ww/2, hh-36, 'sb', 34, S.ICE, 'c', .9*ent(k-.3, .3))
     S.tp(cv, w, h, d, 540, cy+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=26)
-def glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None, t1=None):
+def glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None, t1=None, head=None):
     """apparition en fondu sur 0,35 s, disparition en fondu sur 0,3 s avant t1"""
     a = ent(t-t0, .35)*(1-ent(t-(t1-.3), .3) if t1 else 1)
     if t-t0 <= 0 or a <= 0: return
-    if a < .999: return _fade(cv, lambda x: _glass_bar(x, t, t0, parts, cy, w, h, note), a)
-    _glass_bar(cv, t, t0, parts, cy, w, h, note)
-def _glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None):
+    if a < .999: return _fade(cv, lambda x: _glass_bar(x, t, t0, parts, cy, w, h, note, head), a)
+    _glass_bar(cv, t, t0, parts, cy, w, h, note, head)
+def _glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None, head=None):
     """barre empilée : parts = [(fraction, couleur haute, couleur basse, texte haut, sous-texte, t_apparition, côté)]"""
     k = t-t0
     if k <= 0: return
     def d(kk, ww, hh):
-        x0, x1 = 70, ww-70; y = 150; bh = 130; L = x1-x0; x = x0
+        x0, x1 = 70, ww-70; y = 150+(50 if head else 0); bh = 130; L = x1-x0; x = x0
+        if head and t > head[1]: S.text(kk, head[0], ww/2, 62, 'a', 54, S.GD, 'c', ent(t-head[1], .3))
         for (fr, c0, c1, lab, sub, ta, side) in parts:
             u = inout((t-ta)/1.0); bw = L*fr*u
             if bw > 2:
@@ -262,7 +275,8 @@ def _glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None):
         if note: S.text(kk, note, ww/2, hh-24, 'sb', 28, S.ICE, 'c', .8*ent(k-.6, .3))
     S.tp(cv, w, h, d, 540, cy+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=30)
 LETTERBOX = {}                                # décors sortis en paysage à recadrer (aucun : le notaire a été refait en 9:16)
-GOLDC = ('FFE27A', 'B97A12'); REDC = ('FF8A8A', 'B3161B'); MINTC = ('9DF2B5', '2E8B57'); GREYC = ('C9C2D6', '6E6680')
+GOLDC = ('FFE27A', 'B97A12'); REDC = ('FFFFFF', 'BDB6C8');   # pas de rouge dans le verre (21/11) : blanc
+MINTC = ('9DF2B5', '2E8B57'); GREYC = ('C9C2D6', '6E6680')
 def num(v, d=0): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',').replace(' ', NB)
 def glass_value(cv, t, t0, v1, t_a, t_b, fmt, sub, cy=700, w=860, h=220, colr=None, t1=None, head=None):
     """compteur en verre épais : la valeur monte de 0 à v1 entre t_a et t_b ; fmt(v) -> texte"""
@@ -333,66 +347,64 @@ def b_manoir(cv, c, t, k):
         plate(c, 540, 380, 1010, 380, a)
         title(c, "VIVRE COMME UN", t, -.5, 260, 64, CREAM, t1=4.25)
         title(c, "MILLIARDAIRE", t, -.5, 370, 104, YEL, t1=4.25)
-        title(c, "SANS PRESQUE PAYER D'IMPÔT ?", t, -.5, 490, 58, PINK, t1=4.25)
+        title(c, "SANS PRESQUE PAYER D'IMPÔT ?", t, -.5, 490, 58, WHITE, t1=4.25)
         if t > .8: EMO.append(('🤔', 930, 230, 70, a*ent(t-.8, .3)))
     elif t < V.T['trois']:
         t9 = sh(18.1)
         a = 1-ent(t-(V.T['trois']-.3), .25)
         title(c, "LES 25 AMÉRICAINS", t, 4.7, 250, 72, CREAM, t1=V.T['trois']-.3)
         title(c, "LES PLUS RICHES", t, 5.1, 340, 72, YEL, t1=V.T['trois']-.3)
-        if t > 5.7: plate(c, 540, 425, 720, 62, ent(t-5.7, .25)*a); paint(c, "2014-2018 · enquête ProPublica (2021)", 540, 425, 32, a=ent(t-5.7, .3)*a)
+        if t > 5.7: plate(c, 540, 430, 720, 62, ent(t-5.7, .25)*a); paint(c, "2014-2018 · enquête ProPublica (2021)", 540, 430, 32, a=ent(t-5.7, .3)*a)
         if t < t9+.3:
             glass_bar(cv, t, 8.1, [(1-12.4/364.8, *GOLDC, f"+364,8{NB}Md€", "de fortune en plus", 9.7, 'l'),
-                                   (12.4/364.8, *REDC, f"12,4{NB}Md€", "d'impôt sur le revenu", 16.45, 'r')], cy=680, h=380, t1=t9+.3)
+                                   (12.4/364.8, *REDC, f"12,4{NB}Md€", "d'impôt sur le revenu", 16.45, 'r')], cy=700, h=360, t1=t9+.3)
         if t > t9:
-            if t > t9+.3: plate(c, 540, 620, 760, 300, ent(t-t9-.3, .2)*a)
-            pop_text(c, "VRAI TAUX D'IMPOSITION", 540, 535, 46, t, t9+.35, CREAM, a=a)
-            pop_text(c, f"3,4{NB}%", 540, 660, 150, t, t9+.5, PINK, rot=-.04, a=a)
+            if t > t9+.3: plate(c, 540, 650, 760, 290, ent(t-t9-.3, .2)*a)
+            pop_text(c, "VRAI TAUX D'IMPOSITION", 540, 565, 46, t, t9+.35, CREAM, a=a)
+            pop_text(c, f"3,4{NB}%", 540, 690, 150, t, t9+.5, WHITE, rot=-.04, a=a)
     else:
         title(c, "LEUR MÉTHODE", t, V.T['trois']+.1, 250, 80, CREAM)
         for i, (w_, fr, ta) in enumerate((("BUY", "acheter", sh(22.9)), ("BORROW", "emprunter", sh(23.6)), ("DIE", "mourir", sh(24.41)))):
-            y = 450+i*175
+            y = 450+i*195
             if t > ta:
-                plate(c, 540, y+10, 640, 150, ent(t-ta, .2)); pop_text(c, w_, 540, y-10, 92, t, ta, YEL, rot=(-.03, .02, -.02)[i])
+                plate(c, 540, y+10, 600, 140, ent(t-ta, .2)); pop_text(c, w_, 540, y-10, 92, t, ta, YEL, rot=(-.03, .02, -.02)[i])
                 paint(c, fr, 540, y+58, 34, a=ent(t-ta-.15, .3))
 # ================= 2. Buy (salle des coffres) =================
 def b_coffres(cv, c, t, k):
     t0 = V.T['buy']
     title(c, "1. BUY", t, t0+.1, 250, 92, YEL)
-    if t > t0+.5: plate(c, 540, 345, 720, 66, ent(t-t0-.5, .25)); paint(c, "acheter, et ne jamais vendre", 540, 345, 38, a=ent(t-t0-.5, .3))
-    prop(c, 'certificat_action', 540, 560, w=560, k=t-(t0+.4), rot=-.04)
-    prop(c, 'cadenas', 560, 600, h=270, k=t-sh(27.0), rot=.08+.03*math.sin(t*2))
-    if t > sh(28.5): row(cv, c, t, sh(28.5), 820, "PAS DE VENTE", CREAM, w=640)
-    if t > sh(29.3): row(cv, c, t, sh(29.3), 920, f"= 0{NB}€ D'IMPÔT SUR LA PLUS-VALUE", MINT, w=900, size=40)
+    if t > t0+.5: plate(c, 540, 368, 720, 66, ent(t-t0-.5, .25)); paint(c, "acheter, et ne jamais vendre", 540, 368, 38, a=ent(t-t0-.5, .3))
+    prop(c, 'certificat_action', 540, 600, w=480, k=t-(t0+.4), rot=-.04)
+    prop(c, 'cadenas', 560, 630, h=240, k=t-sh(27.0), rot=.08+.03*math.sin(t*2))
+    if t > sh(28.5): row(cv, c, t, sh(28.5), 850, f"PAS DE VENTE = 0{NB}€ D'IMPÔT", MINT, sub="sur la plus-value", w=860, size=46)
 # ================= 3. Borrow et le cas réel (hall de banque) =================
 def b_guichet(cv, c, t, k):
     t0 = V.T['borrow']; t1 = V.T['ellison']
     if t < t1:
         a = 1-ent(t-(t1-.25), .25) if t > t1-.25 else 1
         title(c, "2. BORROW", t, t0+.1, 250, 92, YEL, t1=t1-.25)
-        if t > t0+.5: plate(c, 540, 345, 760, 66, ent(t-t0-.5, .25)*a); paint(c, "emprunter sur ses actions", 540, 345, 38, a=ent(t-t0-.5, .3)*a)
+        if t > t0+.5: plate(c, 540, 368, 760, 66, ent(t-t0-.5, .25)*a); paint(c, "emprunter sur ses actions", 540, 368, 38, a=ent(t-t0-.5, .3)*a)
         prop(c, 'certificat_action', 265, 560, w=380, k=t-sh(31.6), rot=-.05, a=a)
         arrow(c, 470, 560, 610, 560, ent(t-sh(32.4), .4)*(a > .01))
         prop(c, 'billet', 815, 560, w=340, k=t-sh(32.9), rot=.06+.03*math.sin(t*2.4), a=a)
-        if t > sh(32.9): paint(c, "un prêt", 815, 712, 36, a=ent(t-sh(33.0), .3)*a)
-        if t > sh(34.6): row(cv, c, t, sh(34.6), 800, "UN PRÊT N'EST PAS UN REVENU", CREAM, w=900, a=a)
-        if t > sh(35.9): row(cv, c, t, sh(35.9), 905, f"= 0{NB}€ D'IMPÔT", MINT, w=560, a=a)
+        if t > sh(32.9): paint(c, "un prêt", 815, 705, 36, a=ent(t-sh(33.0), .3)*a)
+        if t > sh(34.6): row(cv, c, t, sh(34.6), 850, "UN PRÊT N'EST PAS UN REVENU", CREAM, sub="donc 0 € d'impôt", w=900, a=a)
     else:
         title(c, "EXEMPLE RÉEL", t, t1+.1, 250, 80, CREAM)
         tp_ = sh(37.3)
         polaroid(c, 280, 488, t, tp_, w=280)
         if t > tp_+.35:
-            al = ent(t-tp_-.35, .3); plate(c, 735, 488, 470, 300, al)
-            pop_text(c, "LARRY ELLISON", 735, 383, 46, t, tp_+.35, YEL, maxw=430)
+            al = ent(t-tp_-.35, .3); plate(c, 740, 490, 440, 270, al)
+            pop_text(c, "LARRY ELLISON", 740, 398, 46, t, tp_+.35, YEL, maxw=430)
             for i, l_ in enumerate(("cofondateur d'Oracle (1977)", "président du conseil", "et directeur technique", "né en 1944")):
-                paint(c, l_, 735, 453+i*46, 30, a=ent(t-tp_-.6-i*.12, .3))
+                paint(c, l_, 740, 458+i*42, 28, a=ent(t-tp_-.6-i*.12, .3))
         tv = sh(43.6)
-        glass_value(cv, t, sh(40.8), 413e6, sh(41.0), sh(42.6), lambda v: num(v), "actions Oracle en garantie de prêts", cy=800, w=860, h=200, t1=tv+.3)
+        glass_value(cv, t, sh(40.8), 413e6, sh(41.0), sh(42.6), lambda v: num(v), "actions Oracle en garantie de prêts", cy=830, w=860, h=180, t1=tv+.3)
         def d41(kk, ww, hh):
             S.text(kk, f"SOIT 41,5 MILLIARDS D'EUROS", ww/2, 70, 'a', 64, S.GD, 'c')
             S.text(kk, "36 % de ses actions · cours du 19/11/2026", ww/2, 132, 'sb', 28, S.ICE, 'c', .9)
             S.text(kk, "source : rapport d'Oracle du 25/09/2026", ww/2, 170, 'sb', 24, S.ICE, 'c', .7)
-        glass_card(cv, t, tv+.35, d41, cy=800, w=900, h=200)                 # après la disparition complète du compteur : jamais de texte sur du texte
+        glass_card(cv, t, tv+.35, d41, cy=830, w=900, h=190)                 # après la disparition complète du compteur : jamais de texte sur du texte
 PHOTO = f'{D}/photos/ellison.jpg'
 @functools.lru_cache(maxsize=1)
 def _photo_surf(w, h):
@@ -424,9 +436,9 @@ def b_notaire(cv, c, t, k):
     title(c, "3. DIE", t, t0+.1, 250, 92, YEL)
     if t < tS:
         a = 1-ent(t-(tS-.3), .3) if t > tS-.3 else 1
-        if t > t0+.5: plate(c, 540, 345, 600, 66, ent(t-t0-.5, .25)*a); paint(c, "au décès", 540, 345, 38, a=ent(t-t0-.5, .3)*a)
+        if t > t0+.5: plate(c, 540, 368, 600, 66, ent(t-t0-.5, .25)*a); paint(c, "au décès", 540, 368, 38, a=ent(t-t0-.5, .3)*a)
         prop(c, 'testament', 540, 560, h=320, k=t-(t0+.6), rot=-.04+.02*math.sin(t*1.6), a=a)
-        if t > sh(50.3): row(cv, c, t, sh(50.3), 790, "LES ACTIONS À LEUR VALEUR DU JOUR", CREAM, w=960, size=40, a=a)
+        if t > sh(50.3): row(cv, c, t, sh(50.3), 765, "LES ACTIONS À LEUR VALEUR DU JOUR", CREAM, w=960, size=40, a=a)
         if t > tE:
             if t < tE+.7: gold_bar(c, 200, 880, 905, 92, a*ent(t-tE, .2), "PLUS-VALUE")
             else: dissolve_bar(c, t, tE+.7, 200, 880, 905, 92, "PLUS-VALUE", a=a)
@@ -434,7 +446,7 @@ def b_notaire(cv, c, t, k):
     else:
         def d(kk, ww, hh):
             S.text(kk, "DROITS DE SUCCESSION (ÉTATS-UNIS)", ww/2, 48, 'xb', 30, S.ICE, 'c', .9, 2)
-            if t > sh(54.9): S.text(kk, f"40{NB}%", ww/2, 160, 'a', 120, S.RD, 'c', ent(t-sh(54.9), .3))
+            if t > sh(54.9): S.text(kk, f"40{NB}%", ww/2, 160, 'a', 120, WHITE, 'c', ent(t-sh(54.9), .3))
             if t > sh(55.6): S.text(kk, f"au-delà de 13,6{NB}M€ par personne", ww/2, 265, 'sb', 34, S.ICE, 'c', .9*ent(t-sh(55.6), .3))
         glass_card(cv, t, tS+.1, d, cy=620, w=880, h=320, mood='orange')
 # ================= 5. En France (hémicycle) =================
@@ -443,31 +455,28 @@ def b_hemicycle(cv, c, t, k):
     if t < tz:
         a = 1-ent(t-(tz-.3), .3) if t > tz-.3 else 1
         title(c, "ET EN FRANCE ?", t, t0+.1, 250, 84, CREAM, t1=tz-.3)
-        row(cv, c, t, sh(59.4), 440, "LE CRÉDIT LOMBARD EXISTE", CREAM, emo='✅', a=a, size=44)
-        row(cv, c, t, sh(61.2), 585, "PLUS-VALUE EFFACÉE AU DÉCÈS", CREAM, emo='✅', a=a, size=44)
-        row(cv, c, t, sh(63.3), 740, f"DROITS DE SUCCESSION : JUSQU'À 45{NB}%", PINK, sub="après 100 000 € d'abattement par enfant", a=a, size=42)
+        row(cv, c, t, sh(59.4), 450, "LE CRÉDIT LOMBARD EXISTE", CREAM, emo='✅', a=a, size=44)
+        row(cv, c, t, sh(61.2), 620, "PLUS-VALUE EFFACÉE AU DÉCÈS", CREAM, emo='✅', a=a, size=44)
+        row(cv, c, t, sh(63.3), 805, f"DROITS DE SUCCESSION : JUSQU'À 45{NB}%", WHITE, sub="après 100 000 € d'abattement par enfant", a=a, size=42)
     else:
         title(c, "16 OCTOBRE 2026", t, tz+.1, 250, 80, CREAM)
-        if t > tz+.4: plate(c, 540, 340, 760, 62, ent(t-tz-.4, .25)); paint(c, "Assemblée nationale, budget 2027", 540, 340, 34, a=ent(t-tz-.4, .3))
-        board(c, 540, 545, 560, t-sh(68.4), lines=(("TAXE ZUCMAN", 150, BROWN),))
-        stamp(c, "REJETÉE", 540, 770, 62, t, sh(69.3), rot=-.08)
+        if t > tz+.4: plate(c, 540, 365, 760, 62, ent(t-tz-.4, .25)); paint(c, "Assemblée nationale, budget 2027", 540, 365, 34, a=ent(t-tz-.4, .3))
+        board(c, 540, 560, 540, t-sh(68.4), lines=(("TAXE ZUCMAN", 150, BROWN),))
+        stamp(c, "REJETÉE", 540, 775, 60, t, sh(69.3), rot=-.08)
         if t > sh(70.15): row(cv, c, t, sh(70.15), 892, f"2{NB}% PAR AN AU-DELÀ DE 100{NB}M€", YEL, sub="de patrimoine (impôt minimum proposé)", w=900, size=46)
 # ================= 6. À ton échelle (petit salon) =================
 def b_salon(cv, c, t, k):
     t0 = V.T['pea']; tc = sh(84.7)
     title(c, "À TON ÉCHELLE", t, t0+.1, 250, 84, MINT)
     if t < sh(76.3):
-        if t > sh(74.6): plate(c, 540, 345, 700, 66, ent(t-sh(74.6), .25)*(1-ent(t-(sh(76.3)-.25), .25))); paint(c, "ne pas vendre compte aussi", 540, 345, 38, a=ent(t-sh(74.6), .3)*(1-ent(t-(sh(76.3)-.25), .25)))
+        if t > sh(74.6): plate(c, 540, 368, 700, 66, ent(t-sh(74.6), .25)*(1-ent(t-(sh(76.3)-.25), .25))); paint(c, "ne pas vendre compte aussi", 540, 368, 38, a=ent(t-sh(74.6), .3)*(1-ent(t-(sh(76.3)-.25), .25)))
     else:
         title(c, "PEA DE PLUS DE 5 ANS", t, sh(76.4), 350, 56, YEL)
     if t < tc+.3:
         a = 1-ent(t-tc, .3) if t > tc else 1
-        if t > sh(78.4): row(cv, c, t, sh(78.4), 430, f"0{NB}€ D'IMPÔT SUR LE REVENU", MINT, emo='✅', w=900, size=44, a=a)
-        if t > sh(79.9):
-            plate(c, 540, 540, 820, 88, ent(t-sh(79.9), .25)*a)
-            pop_text(c, f"SUR 100{NB}€ DE GAINS RETIRÉS", 540, 540, 48, t, sh(79.9), YEL, a=a, maxw=760)
+        if t > sh(78.4): row(cv, c, t, sh(78.4), 450, f"0{NB}€ D'IMPÔT SUR LE REVENU", MINT, emo='✅', w=900, size=44, a=a)
         glass_bar(cv, t, sh(80.2), [(.814, *MINTC, f"81,40{NB}€", "pour toi", sh(80.5), 'l'),
-                                    (.186, *REDC, f"18,60{NB}€", "prélèvements sociaux", sh(80.8), 'r')], cy=775, h=330, t1=tc+.3)
+                                    (.186, *REDC, f"18,60{NB}€", "prélèvements sociaux", sh(80.8), 'r')], cy=748, h=376, t1=tc+.3, head=(f"SUR 100{NB}€ DE GAINS RETIRÉS", sh(79.9)))
     if t > tc:
         pop_text(c, "TON CAPITAL", 540, 520, 64, t, tc+.3, CREAM)
         pop_text(c, "CONTINUE DE COMPOSER", 540, 610, 64, t, tc+.6, YEL, rot=-.02)
@@ -476,8 +485,8 @@ def b_salon(cv, c, t, k):
 def b_krach(cv, c, t, k):
     t0 = V.T['risque']; tg = sh(92.0)
     title(c, "ATTENTION", t, t0+.1, 250, 92, PINK)
-    if t > t0+.5: plate(c, 540, 345, 780, 66, ent(t-t0-.5, .25)); paint(c, "emprunter sur ses actions", 540, 345, 38, a=ent(t-t0-.5, .3))
-    if t > sh(89.9): row(cv, c, t, sh(89.9), 450, "SI ELLES CHUTENT, LA BANQUE PEUT VENDRE", CREAM, w=1000, size=38)
+    if t > t0+.5: plate(c, 540, 368, 780, 66, ent(t-t0-.5, .25)); paint(c, "emprunter sur ses actions", 540, 368, 38, a=ent(t-t0-.5, .3))
+    if t > sh(89.9): row(cv, c, t, sh(89.9), 480, "SI ELLES CHUTENT, LA BANQUE PEUT VENDRE", CREAM, w=1000, size=38)
     if t > tg:
         def d(kk, ww, hh):
             S.text(kk, "ACTION ORACLE", ww/2, 44, 'xb', 30, S.ICE, 'c', .9, 3)
@@ -492,17 +501,16 @@ def b_krach(cv, c, t, k):
                         for st, cc_ in ((0, cc[0]), (1, cc[1])): r_, g_, b_ = rgb(cc_)[:3]; g.add_color_stop_rgba(st, r_, g_, b_, .96)
                         kk.set_source(g); kk.fill()
                     S.text(kk, val, x0+bw+20, y+24, 'a', 46, cc[0], 'l', ent(t-ta-.5, .3))
-            if t > tg+2.0: S.text(kk, f"−55,8{NB}%", x1, hh-52, 'a', 66, S.RD, 'r', ent(t-tg-2.0, .3))
-        glass_card(cv, t, tg, d, cy=730, w=920, h=340, mood='orange')
+            if t > tg+2.0: S.text(kk, f"−55,8{NB}%", x1, hh-52, 'a', 66, WHITE, 'r', ent(t-tg-2.0, .3))
+        glass_card(cv, t, tg, d, cy=760, w=920, h=320, mood='orange')
 # ================= 8. Question finale (salon du manoir) =================
 def b_fin(cv, c, t, k):
     t0 = V.T['fin']
-    plate(c, 540, 280, 900, 92, ent(t-t0-.1, .25))
-    if t > sh(99.2): plate(c, 540, 435, 1010, 200, ent(t-sh(99.2), .25))
+    plate(c, 540, 385, 1010, 300, ent(t-t0-.1, .25))
     title(c, "MAINTENANT QUE TU SAIS TOUT,", t, t0+.15, 280, 50, CREAM)
     title(c, "QU'EST-CE QUE TU PENSES", t, sh(99.2), 390, 66, YEL)
     title(c, "DE TOUT ÇA ?", t, sh(99.9), 480, 76, YEL)
-    if t > sh(100.5): plate(c, 540, 640, 640, 92, ent(t-sh(100.5), .3)); paint(c, "Dis-le en commentaire", 500, 640, 46, a=ent(t-sh(100.5), .3)); EMO.append(('👇', 835, 640+8*math.sin(t*5), 56, ent(t-sh(100.5), .3)))
+    if t > sh(100.5): plate(c, 540, 660, 640, 92, ent(t-sh(100.5), .3)); paint(c, "Dis-le en commentaire", 500, 660, 46, a=ent(t-sh(100.5), .3)); EMO.append(('👇', 835, 660+8*math.sin(t*5), 56, ent(t-sh(100.5), .3)))
     if t > t0+.6:
         a = ent(t-t0-.6, .4); plate(c, 540, 878, 1030, 110, a*.9)
         paint(c, "Contenu pédagogique, ni conseil fiscal ni conseil en investissement.", 540, 858, 26, a=a)
@@ -519,8 +527,8 @@ def raw(t):
     i = max(j for j, s_ in enumerate(SC) if t >= s_[0] or j == 0); a, b, f, dec = SC[i]
     img = decor_c(dec, t)
     cv = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert('RGBA')
-    global _CV
-    s, c = surface(); EMO.clear(); _CV = cv; f(cv, c, t, max(0.0, t-a)); _CV = None; cv.alpha_composite(to_img(s))
+    global _CV, _T
+    s, c = surface(); EMO.clear(); _CV = cv; _T = t; f(cv, c, t, max(0.0, t-a)); _CV = None; cv.alpha_composite(to_img(s))
     for (ch, x, y, sz, al) in EMO:
         if al > .01:
             e = S.emoji(ch, int(sz)).copy()

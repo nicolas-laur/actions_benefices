@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ titre }}{% if titre != SITE.nom %} · {{ SITE.nom }}{% endif %}</title>
+<meta name="description" content="{{ description }}">
+<link rel="canonical" href="{{ SITE.url }}{{ chemin }}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ titre }}">
+<meta property="og:description" content="{{ description }}">
+<meta property="og:url" content="{{ SITE.url }}{{ chemin }}">
+<meta property="og:image" content="{{ SITE.url }}/assets/img/{{ image_og or 'profil.png' }}">
+<meta property="og:locale" content="fr_FR">
+<link rel="icon" href="{{ r }}assets/img/profil.png">
+<link rel="preload" href="{{ r }}assets/fonts/Anton-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ r }}assets/css/site.css">
+</head>
+<body>
+<a class="sr" href="#contenu">Aller au contenu</a>
+<header class="entete">
+  <div class="conteneur">
+    <a class="marque" href="{{ r }}"><img src="{{ r }}assets/img/profil.png" alt=""><span>ACTIONS<b>_BÉNÉFICES</b></span></a>
+    <nav class="menu" aria-label="Rubriques">
+      {% for lien, nom in SITE.menu %}<a href="{{ r }}{{ lien }}"{% if rubrique == lien %} aria-current="page"{% endif %}>{{ nom }}</a>{% endfor %}
+    </nav>
+    <a class="bouton" href="{{ r }}lettre/">La lettre du dimanche</a>
+  </div>
+</header>
+<main id="contenu" class="conteneur">
+{% block contenu %}{% endblock %}
+{% if not sans_lettre %}{% include "_lettre.html" %}{% endif %}
+</main>
+<footer class="pied">
+  <div class="conteneur">
+    <span>Contenu pédagogique, pas un conseil en investissement. Les performances passées ne préjugent pas des performances futures.</span>
+    <span><a href="{{ SITE.tiktok }}">TikTok</a> · <a href="{{ SITE.instagram }}">Instagram</a> · <a href="{{ r }}mentions-legales/">Mentions légales</a></span>
+  </div>
+</footer>
+<script>document.querySelectorAll("figure.fin").forEach(function(f){f.scrollLeft=f.scrollWidth});</script>
+</body>
+</html>

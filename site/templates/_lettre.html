@@ -1,0 +1,16 @@
+<section class="lettre" aria-labelledby="titre-lettre">
+  <img src="{{ r }}assets/img/salut.png" alt="Mister Coin salue">
+  <div>
+    <h2 id="titre-lettre">LA LETTRE DU DIMANCHE</h2>
+    <p>Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Sans jargon, sans conseil.</p>
+    {% if SITE.lettre_action %}
+    <form action="{{ SITE.lettre_action }}" method="post">
+      <label class="sr" for="mail-{{ chemin|replace('/', '-') }}">Adresse e-mail</label>
+      <input id="mail-{{ chemin|replace('/', '-') }}" name="EMAIL" type="email" placeholder="ton@email.fr" required>
+      <button class="bouton or" type="submit">Je m'abonne</button>
+    </form>
+    {% else %}
+    <p class="note">Les inscriptions ouvrent très bientôt. En attendant, retrouve-nous sur <a style="color:#fff" href="{{ SITE.tiktok }}">TikTok</a> et <a style="color:#fff" href="{{ SITE.instagram }}">Instagram</a>.</p>
+    {% endif %}
+  </div>
+</section>

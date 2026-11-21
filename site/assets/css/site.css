@@ -1,0 +1,133 @@
+/* actions-benefices.com : thème clair des fiches entreprise (fond uni, cartes blanches, or et vert foncés) */
+@font-face{font-family:Anton;src:url(../fonts/Anton-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:Inter;src:url(../fonts/InterDisplay-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:Inter;src:url(../fonts/InterDisplay-SemiBold.woff2) format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:Inter;src:url(../fonts/InterDisplay-Bold.woff2) format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:Inter;src:url(../fonts/InterDisplay-ExtraBold.woff2) format('woff2');font-weight:800;font-display:swap}
+:root{
+  --fond:#F3F2EF; --carte:#FFFFFF; --encre:#111418; --gris:#5F5F66; --filet:#E2DFD8; --marine:#17375E;
+  --or:#B8860B; --or-fonce:#8A6408; --vert:#2E8C38; --rouge:#C9161D; --sarcelle:#0B7A5F;
+  --rayon:22px; --ombre:0 1px 3px rgba(0,0,0,.06);
+  --titre:Anton,Impact,"Arial Narrow",sans-serif; --texte:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--fond);color:var(--encre);font-family:var(--texte);font-size:17px;line-height:1.6}
+img{max-width:100%;height:auto}
+a{color:var(--marine)} a:hover{color:var(--or-fonce)}
+.conteneur{max-width:1120px;margin:0 auto;padding:0 24px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* en-tête */
+.entete{background:var(--carte);border-bottom:1px solid var(--filet);position:sticky;top:0;z-index:10}
+.entete .conteneur{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.marque{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--encre)}
+.marque img{width:40px;height:40px;border-radius:50%}
+.marque span{font-family:var(--titre);font-size:24px;letter-spacing:.02em}
+.marque b{color:var(--or);font-weight:400}
+.menu{display:flex;gap:6px 16px;flex-wrap:wrap;flex:1 1 auto}
+.menu a{color:var(--encre);text-decoration:none;font-weight:600;font-size:15px;padding:10px 2px;border-bottom:2px solid transparent}
+.menu a[aria-current="page"],.menu a:hover{border-color:var(--or);color:var(--encre)}
+.bouton{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:999px;border:0;background:var(--marine);color:#fff;text-decoration:none;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+.bouton:hover{color:#fff;background:#0F2743}
+.bouton.or{background:#F5C451;color:var(--encre)} .bouton.or:hover{background:#E8B43A;color:var(--encre)}
+
+/* titres */
+h1,h2{font-family:var(--titre);font-weight:400;letter-spacing:.01em;line-height:1.05;margin:0}
+h1{font-size:clamp(48px,8vw,84px)} h2{font-size:clamp(32px,5vw,44px)}
+h1 em,h2 em{font-style:normal;color:var(--or)}
+h3{margin:0;font-size:19px}
+.surtitre{font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--gris);text-transform:uppercase}
+.chapo{font-size:20px;line-height:1.5;max-width:680px;margin:0}
+.gris{color:var(--gris)} .petit{font-size:14px}
+.fil{font-size:14px;color:var(--gris);margin:20px 0 0}
+
+/* blocs */
+.carte{background:var(--carte);border-radius:var(--rayon);padding:24px;box-shadow:var(--ombre)}
+.grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--min,230px),1fr));gap:14px}
+.pile{display:flex;flex-direction:column;gap:18px}
+.section{display:flex;flex-direction:column;gap:18px;padding:40px 0;border-top:1px solid var(--filet)}
+.hero{display:flex;gap:28px;align-items:center;flex-wrap:wrap;padding:28px 0 16px}
+.hero>div{flex:1 1 520px;display:flex;flex-direction:column;gap:14px}
+.hero>img{height:240px;width:auto;flex:none}
+.pastilles{display:flex;gap:10px;flex-wrap:wrap;font-size:14px}
+.pastilles span{background:var(--carte);border:1px solid var(--filet);border-radius:999px;padding:8px 14px}
+.pastilles .alerte{background:#FFF6DB;border-color:#EBD9A6}
+.sommaire{display:flex;gap:8px;flex-wrap:wrap;padding:20px 0}
+.sommaire a{font-size:14px;text-decoration:none;padding:7px 13px;border-radius:999px;background:#E9EEF4;font-weight:600}
+
+/* tuiles à pastilles */
+.tuile{background:var(--carte);border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:var(--ombre)}
+.tuile svg{flex:none}
+.tuile .lib{font-size:14px;font-weight:700}
+.tuile .val{font-size:22px;font-weight:800}
+.tuile .ctx{font-size:13px;color:var(--gris);margin-left:6px}
+
+/* barres de pourcentage */
+.pbar{display:flex;flex-direction:column;gap:6px}
+.pbar div:first-child{display:flex;justify-content:space-between;font-size:15px}
+.pbar .rail{height:10px;border-radius:5px;background:#EEEBE4}
+.pbar .rail i{display:block;height:10px;border-radius:5px}
+
+/* encadré de lecture avec Mister Coin */
+.lecture{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.lecture img{height:150px;width:auto;flex:none}
+.lecture p{margin:0;flex:1 1 300px;background:var(--carte);border-radius:16px;padding:18px 22px;font-size:17px;box-shadow:var(--ombre)}
+figure{margin:0}
+.source{margin:0;font-size:13px;color:var(--gris)}
+
+/* cartes de liste */
+.vignette{display:flex;flex-direction:column;gap:10px;text-decoration:none;color:var(--encre);background:var(--carte);border-radius:var(--rayon);padding:22px;box-shadow:var(--ombre);transition:transform .15s}
+.vignette:hover{transform:translateY(-2px);color:var(--encre)}
+.vignette .date{font-size:13px;color:var(--gris);font-weight:600}
+.vignette img{height:110px;width:auto;align-self:flex-end;margin-top:auto}
+
+/* tableaux */
+.tableau{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);text-align:left;padding:8px 10px}
+td{padding:12px 10px;border-top:1px solid var(--filet)}
+
+/* formulaires et calculateurs */
+label{font-weight:600;font-size:15px}
+input,select{font-family:inherit;font-size:17px;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid #CFCBC2;background:#fff;width:100%}
+.champs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.champs div{display:flex;flex-direction:column;gap:6px}
+.resultat{font-family:var(--titre);font-size:clamp(40px,7vw,64px);color:var(--vert);line-height:1.1}
+.lettre{background:var(--marine);color:#fff;border-radius:24px;padding:32px;display:flex;gap:28px;align-items:center;flex-wrap:wrap;margin:16px 0 40px}
+.lettre img{height:160px;width:auto;flex:none}
+.lettre>div{flex:1 1 380px;display:flex;flex-direction:column;gap:12px}
+.lettre p{margin:0;opacity:.92}
+.lettre form{display:flex;gap:10px;flex-wrap:wrap}
+.lettre input{flex:1 1 240px;border:0;border-radius:999px}
+.lettre .note{font-size:13px;opacity:.75}
+
+/* pied */
+.pied{background:var(--carte);border-top:1px solid var(--filet);margin-top:20px}
+.pied .conteneur{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:24px;padding-bottom:24px;font-size:14px;color:var(--gris)}
+.pied a{color:var(--gris)}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .hero>img{height:170px}
+  .entete{position:static}
+  .lecture img{height:110px}
+}
+
+/* formulaires et pages outils */
+label{font-size:14px;font-weight:700}
+input,select{font:inherit;font-size:17px;padding:12px 14px;border:1px solid var(--filet);border-radius:12px;background:#fff;color:var(--encre);min-height:48px}
+input:focus,select:focus,a:focus-visible,button:focus-visible{outline:3px solid #F5C451;outline-offset:2px}
+.onglets{display:flex;gap:8px;flex-wrap:wrap}
+.texte{max-width:760px} .texte p,.texte li{font-size:18px}
+.terme{font-family:var(--titre);font-size:28px;letter-spacing:.01em}
+.badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:#E9EEF4;color:var(--marine);border-radius:999px;padding:4px 10px;align-self:flex-start}
+.badge.or{background:#FFF6DB;color:var(--or-fonce)}
+/* graphiques : sur petit écran, on garde une taille lisible et on fait défiler horizontalement */
+figure{margin:0}
+@media (max-width:760px){
+  .carte figure{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .carte figure>svg{min-width:720px}
+  .carte figure::after{content:"Fais glisser le graphique →";display:block;font-size:12px;color:var(--gris);margin-top:6px}
+  .hero>img{height:170px}
+}

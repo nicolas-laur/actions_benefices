@@ -54,14 +54,14 @@ def corps(R):
         + grille(tuile('neutre', 'En bourse depuis', '1999', 'Nasdaq'), tuile('neutre', 'Capitalisation', '≈ 2 750 Md€', '≈ 3 025 Md$'),
                  tuile('ko', 'Cours au 20/11', '114,22 €', '125,53 $, −14 % sur la séance')),
         R, 'loupe', "9 euros de ventes sur 10 viennent des centres de données. Les comptes publiés par Nvidia sont examinés par la SEC (enquête en cours, aucune conclusion à ce jour).",
-        "Source : Nvidia, rapport annuel 10-K de l'exercice 2026 ; cours Nasdaq ; 1 € = 1,0990 $ (BCE, 20/11/2026)."))
+        "Source : Nvidia, rapport annuel 10-K de l'exercice 2026 ; cours Nasdaq ; 1 € = 1,0990 $ (BCE, 20/11/2026). Capitalisation = cours × 24,1 milliards d'actions (moyenne du 3e trimestre)."))
     S.append(section(2, 'LA', 'CROISSANCE', "Chiffre d'affaires par trimestre, en milliards d'euros",
         carte('<figure class="fin">' + barres_empilees(Q, "Chiffre d'affaires trimestriel de Nvidia en milliards d'euros, de l'exercice 2022 au 3e trimestre 2027", conv=EUR)
               + f'<figcaption class="petit" style="display:flex;gap:22px;flex-wrap:wrap;margin-top:8px"><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:{TEAL};margin-right:6px"></i>Centres de données</span>'
               f'<span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:{LIME};margin-right:6px"></i>Jeux, PC, auto et autres</span></figcaption></figure>')
         + grille(tuile('ok', 'Sur 4 ans', '+68 %/an', '2022 → 2026'), tuile('ok', 'Dernier trimestre', '+103 %', 'sur un an'), tuile('ok', '12 derniers mois', '329 Md€', '361,8 Md$')),
         R, 'court', "En 4 ans, le chiffre d'affaires a été multiplié par 8. Le déclic : la course aux centres de données pour l'IA, lancée fin 2022 avec ChatGPT.",
-        "Source : Nvidia, communiqués trimestriels. Exercices clos fin janvier. 1 € = 1,0990 $."))
+        "Source : Nvidia, tableaux trimestriels « Revenue by market » et communiqués. Exercices clos fin janvier. 1 € = 1,0990 $."))
     S.append(section(3, "D'OÙ VIENT", "L'ARGENT", "3e trimestre clos le 25/10/2026, en milliards d'euros", carte('<figure>' + _flux() + '</figure>'), R, None, None,
         "Source : Nvidia, résultats du 17/11/2026 (CA 115,8 Md$). Mise en page inspirée de App Economy Insights (How They Make Money)."))
     S.append(section(4, 'LA', 'RENTABILITÉ', "Résultat net (Md€) et marge nette, par exercice",

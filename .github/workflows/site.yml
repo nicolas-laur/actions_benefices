@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths: ['site/**', '.github/workflows/site.yml']
   workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 2-6'   # chaque nuit après la clôture de Wall Street : données de marché à jour
 permissions:
   contents: read
   pages: write
@@ -20,7 +22,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install jinja2==3.1.6
+      - run: pip install jinja2==3.1.6 yfinance pandas
+      # cours Yahoo Finance pour le bandeau et le graphique ; si Yahoo ne répond pas, le site se construit sans
+      - run: python site/outils/marches.py || echo "::warning::Données de marché indisponibles, site construit sans"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marches
+          path: site/donnees/marches.json
+          if-no-files-found: ignore
+          retention-days: 7
       - run: python site/build.py
       - uses: actions/upload-pages-artifact@v3
         with:

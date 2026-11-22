@@ -6,7 +6,7 @@
   var REPOS = r + 'assets/img/salut.webp';
   // durée de chaque clip (images / 15 i/s) et son associé
   var CLIPS = { saut: [4000, 'saut'], joie: [4000, 'joie'], rire: [4000, 'rire'], danse: [4000, 'danse'], pouce: [3530, 's_bon'], choc: [3070, 's_rate'] };
-  var REACTIONS = ['joie', 'rire', 'danse', 'pouce', 'saut'], PHRASES = ['Hé hé !', 'Encore !', 'Ça chatouille !', 'Youpi !', 'Pas si fort !', 'Tu me cherches ?'];
+  var REACTIONS = ['joie', 'rire', 'danse', 'pouce', 'saut'];
   var son = false, occupe = false, minuteur = null, clics = 0, jeu = false, derniere = '';
   try { son = localStorage.getItem('coin-son') === '1'; } catch (e) {}
   function majSon() { btSon.textContent = son ? '🔊' : '🔇'; btSon.setAttribute('aria-label', son ? 'Couper le son' : 'Activer le son'); btSon.setAttribute('aria-pressed', son); }
@@ -47,8 +47,10 @@
     });
   }
   var calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!calme) { precharge('saut'); setTimeout(function () { anime('saut', function () { dit('Salut ! Clique sur moi 👋', 3500); }); }, 400); }
-  else dit('Salut ! Clique sur moi 👋', 3500);
+  // pas de bulle quand une annotation « Clique-moi ! » est déjà dessinée à côté de lui
+  var accueil = document.querySelector('.mq-note.n1') ? function () {} : function () { dit('Salut ! Clique sur moi 👋', 3500); };
+  if (!calme) { precharge('saut'); setTimeout(function () { anime('saut', accueil); }, 400); }
+  else accueil();
   setTimeout(function () { REACTIONS.forEach(precharge); }, 2500);
 
   img.addEventListener('click', clic); if (vid) vid.addEventListener('click', clic);
@@ -58,7 +60,6 @@
     clics++;
     if (clics === 5) { lancerJeu(); return; }
     var choix = REACTIONS.filter(function (x) { return x !== derniere; }); derniere = choix[Math.floor(Math.random() * choix.length)];
-    dit(clics === 4 ? 'Encore un clic… et surprise !' : PHRASES[Math.floor(Math.random() * PHRASES.length)], 1800);
     anime(derniere);
   }
 
@@ -66,8 +67,8 @@
   var zone = document.querySelector('.hero'), score = 0;
   function lancerJeu() {
     jeu = true; score = 0; clics = 0;
-    dit('Attrape un max de pièces ! 🪙', 2500); joue('s_pieces');
-    var tableau = document.createElement('div'); tableau.className = 'jeu-score'; tableau.innerHTML = '🪙 <b>0</b> · <span>15</span> s';
+    joue('s_pieces');
+    var tableau = document.createElement('div'); tableau.className = 'jeu-score'; tableau.innerHTML = 'Attrape les pièces ! 🪙 <b>0</b> · <span>15</span> s';
     zone.appendChild(tableau); zone.classList.add('en-jeu');
     var t0 = Date.now(), DUREE = 15000;
     var pluie = setInterval(function () {
@@ -90,11 +91,10 @@
       clearInterval(pluie); clearInterval(horloge);
       setTimeout(function () { zone.querySelectorAll('.piece').forEach(function (p) { p.remove(); }); }, 1500);
       var record = 0; try { record = +localStorage.getItem('coin-record') || 0; if (score > record) localStorage.setItem('coin-record', score); } catch (e) {}
-      var msg = score + ' pièce' + (score > 1 ? 's' : '') + ' ! ' + (score > record && record ? 'Nouveau record 🏆' : score >= 20 ? 'Quel talent !' : score >= 10 ? 'Bien joué !' : 'Retente ta chance !');
-      tableau.innerHTML = '🪙 <b>' + score + '</b> pièce' + (score > 1 ? 's' : '') + (record ? ' · record ' + Math.max(score, record) : '');
+      var msg = score > record && record ? 'Nouveau record 🏆' : score >= 20 ? 'Quel talent !' : score >= 10 ? 'Bien joué !' : 'Retente ta chance !';
+      tableau.innerHTML = msg + ' 🪙 <b>' + score + '</b>' + (record ? ' · record ' + Math.max(score, record) : '');
       anime(score >= 10 ? 'joie' : 'rire', function () { jeu = false; setTimeout(function () { tableau.remove(); zone.classList.remove('en-jeu'); }, 2500); });
       if (score >= 10) joue('s_fanfare');
-      dit(msg, 4000);
     }
   }
 })();

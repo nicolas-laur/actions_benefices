@@ -172,3 +172,64 @@
 }
 @media (prefers-reduced-motion:reduce){[data-vitesse],.mq-flottant.recit,.mq-recit .mq-cote .mq-visuel,.mq-recit .mq-pose{translate:none!important}.mq-flottant{animation:none}}
 .mq-flottant.loin{opacity:.3}
+
+/* ===== v3 : palette sombre et or (DA des vidéos : nuit, verre, or lumineux), pièces peintes ===== */
+:root{--nuit:#0B0E14; --nuit-bleu:#13233A; --or-lum:#FFC24A; --or-pale:#FFE3A0; --verre:rgba(255,255,255,.055); --filet-or:rgba(255,194,74,.28);
+  --vert-lum:#3FE08A; --rouge-lum:#FF4D5E; --cyan-lum:#35D6FF; --texte-clair:#C9D3E1; --halo:0 0 22px rgba(255,194,74,.45)}
+body:has(.mq-couverture){background:var(--nuit);color:#fff}
+body:has(.mq-couverture) .entete{background:rgba(11,14,20,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(255,255,255,.08)}
+body:has(.mq-couverture) .menu a,body:has(.mq-couverture) .marque{color:#fff}
+body:has(.mq-couverture) .entete .bouton{background:var(--or-lum);color:var(--nuit)}
+body:has(.mq-couverture) .pied{background:var(--nuit);color:var(--texte-clair);border-color:rgba(255,255,255,.08)}
+body:has(.mq-couverture) .pied a{color:var(--or-pale)}
+.mq-bandeau-maquette{background:var(--verre);color:var(--or-pale);border:1px solid var(--filet-or)}
+.mq-grand em,.mq-titre .or,.mq-regles .mq-grand em{color:var(--or-lum);text-shadow:var(--halo)}
+.mq-surtitre{color:var(--or-lum)}
+.bouton.or,.mq-boutons .bouton.or{background:linear-gradient(180deg,#FFD978,#FFC24A 55%,#E9A520);color:var(--nuit);box-shadow:0 6px 22px rgba(255,194,74,.35)}
+.bouton.or:hover{color:var(--nuit);box-shadow:0 8px 30px rgba(255,194,74,.55)}
+.mq-plein .bouton:not(.or):not(.contour),.mq-recit .bouton,.mq-videos .bouton{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px var(--or-lum)}
+.mq-plein .bouton:not(.or):not(.contour):hover,.mq-recit .bouton:hover,.mq-videos .bouton:hover{background:rgba(255,194,74,.12);color:#fff}
+
+/* couverture : nuit vers bleu nuit, halo doré derrière Mister Coin */
+.mq-couverture{background:radial-gradient(60% 70% at 72% 52%,rgba(255,194,74,.16),transparent 60%),linear-gradient(160deg,var(--nuit) 30%,var(--nuit-bleu));border-radius:0 0 40px 40px}
+.mq-chapo{color:var(--texte-clair)}
+.mq-arc{stroke:rgba(255,194,74,.35)}
+.mq-pastille{background:rgba(11,14,20,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1.5px solid var(--filet-or);color:var(--texte-clair);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.08)}
+.mq-pastille b{color:var(--or-lum);text-shadow:var(--halo)}
+.mq-note{color:var(--or-pale)} .mq-note svg{stroke:var(--or-pale)}
+.mq-couverture .coin-son{background:var(--verre);border:1px solid var(--filet-or)}
+
+/* récit : panneau de verre sombre, la lumière d'ambiance change avec la rubrique */
+.mq-collant{background:radial-gradient(55% 60% at 50% 60%,rgba(255,194,74,.14),transparent 70%),linear-gradient(180deg,#111827,#0D1320);border:1px solid rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.mq-recit[data-k="1"] .mq-collant{background:radial-gradient(55% 60% at 50% 60%,rgba(63,224,138,.13),transparent 70%),linear-gradient(180deg,#101A17,#0C1412)}
+.mq-recit[data-k="2"] .mq-collant{background:radial-gradient(55% 60% at 50% 60%,rgba(53,214,255,.13),transparent 70%),linear-gradient(180deg,#0F1820,#0B121A)}
+.mq-recit[data-k="3"] .mq-collant{background:radial-gradient(55% 60% at 50% 60%,rgba(255,166,61,.15),transparent 70%),linear-gradient(180deg,#1A140E,#120E0A)}
+.mq-etape .mq-grand{color:#fff} .mq-etape p{color:var(--texte-clair)}
+.mq-cote .mq-note{color:var(--or-pale)}
+.mq-visuel.carte-logo{background:var(--verre);border:1px solid var(--filet-or);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.mq-visuel.carte-logo img{filter:brightness(0) invert(1)} .mq-visuel.carte-logo span{color:var(--texte-clair)}
+.mq-visuel.sigles span{background:var(--verre);border:1px solid var(--filet-or);color:var(--or-lum);text-shadow:var(--halo);box-shadow:none}
+.mq-visuel.courbe{stroke:var(--vert-lum);filter:drop-shadow(0 0 8px rgba(63,224,138,.6))} .mq-visuel.courbe .pointille{stroke:var(--texte-clair)}
+.mq-visuel.incline{box-shadow:0 24px 50px rgba(0,0,0,.6),0 0 0 1px var(--filet-or)}
+.mq-points li{background:rgba(255,255,255,.2)} .mq-points li.actif{background:var(--or-lum);box-shadow:var(--halo)}
+
+/* tracé, vidéos, règles, fin */
+.mq-trace{stroke:var(--or-lum);filter:drop-shadow(0 0 10px rgba(255,194,74,.55))}
+.mq-videos .mq-grand{color:#fff}
+.mq-vcarte{box-shadow:0 20px 44px rgba(0,0,0,.6),0 0 0 1px rgba(255,194,74,.25)}
+.mq-regles{background:radial-gradient(50% 80% at 85% 60%,rgba(255,194,74,.12),transparent 70%),linear-gradient(180deg,#101624,#0B0F18);border:1px solid rgba(255,255,255,.06)}
+.mq-regles .mq-grand{color:#fff}
+.mq-liste li{background:var(--verre);border:1px solid var(--filet-or);box-shadow:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.mq-liste b{color:#fff} .mq-liste p{color:var(--texte-clair)}
+.mq-coche{background:var(--vert-lum);color:var(--nuit);box-shadow:0 0 18px rgba(63,224,138,.55)}
+.mq-fin{background:radial-gradient(50% 90% at 18% 50%,rgba(255,194,74,.18),transparent 65%),linear-gradient(180deg,var(--nuit-bleu),var(--nuit))}
+.mq-fin p{color:var(--texte-clair)}
+
+/* pièces peintes : halo doré, balancement, flou de profondeur pour les lointaines */
+.mq-flottant{position:absolute;z-index:0;height:auto;max-width:none;pointer-events:none;background:none;border-radius:0;box-shadow:none;
+  filter:drop-shadow(0 0 16px rgba(255,194,74,.35)) drop-shadow(0 14px 18px rgba(0,0,0,.55));rotate:var(--rot,0deg);animation:flotte var(--duree,6s) ease-in-out infinite alternate}
+.mq-flottant::after{content:none}
+.mq-flottant.loin{opacity:.5;filter:blur(2.5px) drop-shadow(0 0 10px rgba(255,194,74,.3))}
+.mq-flottant.eclat{filter:drop-shadow(0 0 10px rgba(255,227,160,.9));animation:scintille 2.4s ease-in-out infinite alternate}
+@keyframes scintille{from{opacity:.35;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
+.mq-flottant.recit{animation:none}

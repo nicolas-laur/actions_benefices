@@ -3,10 +3,14 @@ Publiée à /maquette-accueil/ (non référencée) pour validation par Nicolas a
 Réutilise les données et composants du site ; styles dans assets/css/maquette.css, animations dans assets/js/maquette.js."""
 from html import escape
 
-def flottants(liste, cls=''):
-    """pièces d'or décoratives qui défilent à des vitesses différentes (parallaxe) ; vitesse négative = monte plus vite que la page"""
-    return ''.join(f'<span class="mq-flottant {cls} {"loin" if v < 0.15 else ""}" aria-hidden="true" data-vitesse="{v}" '
-                   f'style="left:{x}%;top:{y}%;width:{t}px;height:{t}px;--rot:{(k * 37) % 50 - 25}deg;--duree:{5 + k % 4}s"></span>'
+DECOR = ['piece1', 'piece_etoile', 'piece3', 'eclat3', 'piece2', 'grappe', 'piece4', 'eclat0']
+def deco(k, r, cls, style, extra=''):
+    nom = DECOR[k % len(DECOR)]
+    return (f'<img class="mq-flottant {cls}{" eclat" if nom.startswith("eclat") else ""}" src="{r}assets/deco/{nom}.webp" alt="" aria-hidden="true" '
+            f'loading="lazy" {extra} style="{style}">')
+def flottants(liste, r, decal=0):
+    """pièces d'or peintes (accessoires des épisodes) qui défilent à des vitesses différentes : parallaxe ; les petites, floues, sont « loin »"""
+    return ''.join(deco(k + decal, r, "loin" if v < 0.15 else "", f'left:{x}%;top:{y}%;width:{t}px;--rot:{(k * 37) % 70 - 35}deg;--duree:{5 + k % 4}s', f'data-vitesse="{v}"')
                    for k, (x, y, t, v) in enumerate(liste))
 
 def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
@@ -20,7 +24,7 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     pastilles = [(len(VIDEOS), 'vidéos et carrousels'), (len(LEXIQUE), 'mots du lexique'), (nb_marches, 'marchés suivis')]
     couverture = (
         '<section class="mq-plein mq-couverture hero">'
-        + flottants([(3, 10, 74, .55), (22, 96, 34, .1), (40, 4, 26, .06), (52, 90, 88, .42), (57, 20, 22, .05), (94, 12, 64, .4), (88, 74, 30, .12), (71, 94, 52, .6)])
+        + flottants([(3, 10, 110, .55), (22, 96, 34, .1), (40, 4, 26, .06), (52, 88, 120, .42), (57, 20, 22, .05), (93, 10, 96, .4), (88, 74, 30, .12), (70, 92, 80, .6)], r, 3)
         + '<div class="mq-dedans mq-couv-grille">'
         '<div class="mq-couv-texte" data-vitesse="0.12">'
         '<p class="mq-surtitre mq-anim" style="--i:0">La bourse sans jargon</p>'
@@ -59,8 +63,8 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     recit = (
         '<section class="mq-recit" aria-label="Ce que tu trouveras ici">'
         '<div class="mq-collant">'
-        + ''.join(f'<span class="mq-flottant recit {"loin" if d < 1 else ""}" aria-hidden="true" style="left:{x}%;top:{y}%;width:{t}px;height:{t}px;--d:{d};--rot:{k * 23}deg"></span>'
-                  for k, (x, y, t, d) in enumerate([(5, 78, 70, 1.6), (30, 5, 30, .6), (50, 88, 46, 1.1), (74, 8, 80, 1.8), (91, 60, 28, .5), (18, 38, 22, .4), (62, 72, 36, .8)]))
+        + ''.join(deco(k + 2, r, "recit" + (" loin" if d < 1 else ""), f'left:{x}%;top:{y}%;width:{t}px;--d:{d};--rot:{k * 23}deg')
+                  for k, (x, y, t, d) in enumerate([(1, 74, 110, 1.6), (46, 2, 40, .6), (50, 90, 70, 1.1), (93, 4, 120, 1.8), (95, 58, 40, .5), (1, 28, 32, .4), (58, 96, 56, .8)]))
         + '<div class="mq-coin-centre">' + ''.join(f'<img class="mq-pose{" actif" if k == 0 else ""}" data-k="{k}" src="{r}assets/img/{e[0]}.webp" alt="" loading="lazy">' for k, e in enumerate(etapes)) + '</div>'
         + ''.join(f'<article class="mq-etape{" actif" if k == 0 else ""} {"gauche" if k % 2 == 0 else "droite"}" data-k="{k}">'
                   f'<p class="mq-surtitre">{escape(st)}</p><h2 class="mq-grand">{h}</h2><p>{escape(tx)}</p><a class="bouton" href="{lien}">{escape(lab)}</a></article>'
@@ -83,13 +87,13 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     # 4. Nos règles, coches qui apparaissent une à une, sur fond or clair
     regles = [('Des chiffres exacts', 'Vérifiés et sourcés, en lien sous chaque graphique.'), ('Jamais de conseil', "On explique, tu décides. Rien ici n'est une recommandation."),
               ('En euros', 'Montants convertis au taux de la BCE du jour retenu.'), ('Avec le sourire', 'Mister Coin est là pour rendre la bourse moins austère.')]
-    regles_html = ('<section class="mq-plein mq-regles">' + flottants([(3, 18, 64, .45), (48, 6, 26, .06), (94, 72, 56, .35), (60, 90, 22, .05)]) + '<div class="mq-dedans">'
+    regles_html = ('<section class="mq-plein mq-regles">' + flottants([(3, 16, 100, .45), (48, 6, 26, .06), (93, 70, 90, .35), (60, 90, 22, .05)], r, 4) + '<div class="mq-dedans">'
                    '<h2 class="mq-grand mq-anim">NOS <em>RÈGLES</em></h2><ul class="mq-liste">'
                    + ''.join(f'<li class="mq-anim" style="--i:{k + 1}"><span class="mq-coche" aria-hidden="true">✓</span><div><b>{escape(a)}</b><p>{escape(b)}</p></div></li>' for k, (a, b) in enumerate(regles))
                    + f'</ul><img class="mq-anim mq-coin-regles" data-vitesse="0.22" style="--i:5" src="{r}assets/img/pouce.webp" alt="" loading="lazy"></div></section>')
 
     # 5. Fin : rendez-vous vendredi, sur fond marine
-    fin = ('<section class="mq-plein mq-fin">' + flottants([(8, 14, 58, .4), (40, 80, 26, .06), (78, 10, 76, .5), (92, 66, 30, .1)]) + '<div class="mq-dedans mq-fin-grille">'
+    fin = ('<section class="mq-plein mq-fin">' + flottants([(6, 12, 90, .4), (40, 80, 26, .06), (78, 8, 120, .5), (92, 66, 30, .1)], r, 2) + '<div class="mq-dedans mq-fin-grille">'
            f'<img class="mq-anim" data-vitesse="0.2" src="{r}assets/img/rire.webp" alt="Mister Coin rit" loading="lazy">'
            '<div><h2 class="mq-grand mq-anim" style="--i:1">RENDEZ-VOUS <em>VENDREDI</em></h2>'
            '<p class="mq-anim" style="--i:2">Les News de la semaine arrivent chaque vendredi sur TikTok, Instagram et ici. La lettre du dimanche est en préparation.</p>'

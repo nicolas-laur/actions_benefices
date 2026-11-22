@@ -75,7 +75,7 @@ def main():
         c = h[t].dropna()
         if len(c) < 2: continue
         band.append(dict(id=k, nom=SERIES[k][1], var=round(100 * (c.iloc[-1] / c.iloc[-2] - 1), 2), date=c.index[-1].strftime('%Y-%m-%d')))
-    out = dict(maj=dt.datetime.utcnow().strftime('%Y-%m-%dT%H:%MZ'), source='Yahoo Finance', dates=dates, series=series, bandeau=band)
+    out = dict(maj=dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'), source='Yahoo Finance', dates=dates, series=series, bandeau=band)
     os.makedirs(os.path.dirname(SORTIE), exist_ok=True)
     json.dump(out, open(SORTIE, 'w'), ensure_ascii=False, separators=(',', ':'))
     print(f'{len(series)} séries, {len(dates)} semaines, bandeau de {len(band)} valeurs, {os.path.getsize(SORTIE)//1024} Ko')

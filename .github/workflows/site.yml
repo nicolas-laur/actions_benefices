@@ -8,7 +8,7 @@ on:
   schedule:
     - cron: '17 4 * * 2-6'   # chaque nuit après la clôture de Wall Street : données de marché à jour
 permissions:
-  contents: read
+  contents: write   # pour la branche « donnees » (dernier relevé des marchés)
   pages: write
   id-token: write
 concurrency:
@@ -24,13 +24,17 @@ jobs:
           python-version: '3.12'
       - run: pip install jinja2==3.1.6 yfinance pandas
       # cours Yahoo Finance pour le bandeau et le graphique ; si Yahoo ne répond pas, le site se construit sans
-      - run: python site/outils/marches.py || echo "::warning::Données de marché indisponibles, site construit sans"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: marches
-          path: site/donnees/marches.json
-          if-no-files-found: ignore
-          retention-days: 7
+      - name: Données de marché (Yahoo Finance)
+        run: |
+          if python site/outils/marches.py; then
+            # dernier relevé gardé sur la branche « donnees » (un seul commit, écrasé chaque nuit)
+            cd site/donnees && git init -q -b donnees && git add marches.json \
+              && git -c user.name="actions_benefices" -c user.email="actions@github.com" commit -q -m "Relevé des marchés" \
+              && git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" donnees && rm -rf .git
+          else
+            echo "::warning::Yahoo Finance indisponible : on reprend le dernier relevé"
+            mkdir -p site/donnees && git fetch -q origin donnees && git show origin/donnees:marches.json > site/donnees/marches.json || rm -f site/donnees/marches.json
+          fi
       - run: python site/build.py
       - uses: actions/upload-pages-artifact@v3
         with:

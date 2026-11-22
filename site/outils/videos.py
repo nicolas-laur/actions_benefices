@@ -3,7 +3,8 @@ from PIL import Image
 E = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')) + '/episodes'; O = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets', 'videos')); os.makedirs(O, exist_ok=True)
 # (date, titre, type, id TikTok, chemin Instagram, image de couverture)
 V = [
- ('2026-11-21', 'Fiche entreprise n°1 : que vaut Nvidia ?', 'Carrousel', None, 'p/Df_2BH0Ef5Z', '2026-11-22_fiche_nvidia/out/tiktok_1.png'),
+ ('2026-11-21', "Buy, borrow, die : vivre comme un milliardaire sans presque payer d'impôt", 'Vidéo', None, 'reel/DgArlrFxBNN', '2026-11-21_buy_borrow_die/couverture.png'),
+ ('2026-11-21', 'Fiche entreprise n°1 : que vaut Nvidia ?', 'Carrousel', '7710547145409056032', 'p/Df_2BH0Ef5Z', '2026-11-22_fiche_nvidia/out/tiktok_1.png'),
  ('2026-11-20', 'Les News : Nvidia, Anthropic, GTA 6, Walmart, Wall Street', 'Carrousel', '7710154619095092513', 'p/Df9GqsdEUOK', '2026-11-20_les_news/out/tiktok_1.png'),
  ('2026-11-19', "GTA 6 sort aujourd'hui : et si tu avais acheté des actions Take-Two plutôt que GTA 5 ?", 'Vidéo', '7709778351606484257', 'reel/Df6gLndxqzh', '2026-11-19_take_two/couverture.png'),
  ('2026-11-17', 'Le lexique de la bourse', 'Carrousel', '7709038655997873441', 'p/Df1YHfjEVxa', '2026-11-17_lexique/out/tiktok_1.png'),

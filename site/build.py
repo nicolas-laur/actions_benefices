@@ -11,6 +11,7 @@ sys.path[:0] = [str(ICI), str(ICI/'contenu')]
 from composants import tuile, grille, lecture, carte, fr
 import fiche_nvidia
 from news import NEWS
+from pictos import PICTOS
 from donnees import LEXIQUE, VIDEOS, QUIZ, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
 
 SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
@@ -20,6 +21,9 @@ SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
             lettre_action=None)  # adresse du formulaire Brevo une fois le compte ouvert
 FICHES = [fiche_nvidia]
 SORTIE = ICI/'_site'
+# relevé des marchés (Yahoo Finance), écrit chaque nuit par outils/marches.py ; absent : pas de bandeau ni de graphique
+_M = ICI/'donnees'/'marches.json'
+MARCHES = json.loads(_M.read_text()) if _M.exists() else None
 env = Environment(loader=FileSystemLoader(ICI/'templates'), autoescape=True)
 PAGES = []
 
@@ -51,14 +55,28 @@ def vignette(r, lien, badge, titre, texte, date_txt='', pose=None, logo=None):
 def liens(src): return ' · '.join(f'<a href="{u}">{escape(n)}</a>' for n, u in src)
 
 # ---------- accueil ----------
+def bandeau(r):
+    if not MARCHES or not MARCHES.get('bandeau'): return ''
+    b = MARCHES['bandeau']; d = next((x['date'] for x in b if x['id'] in ('cac40', 'sp500')), b[0]['date'])
+    def it(x):
+        sens = 'hausse' if x['var'] > 0 else 'baisse' if x['var'] < 0 else 'stable'
+        fl = '▲' if x['var'] > 0 else '▼' if x['var'] < 0 else '■'
+        return f'<li class="{sens}"><b>{escape(x["nom"])}</b> <span>{fl} {("+" if x["var"] > 0 else "−" if x["var"] < 0 else "")}{fr(abs(x["var"]), 2)} %</span></li>'
+    items = ''.join(it(x) for x in b)
+    return (f'<div class="bandeau" aria-label="Variation de la dernière séance"><span class="bandeau-titre">Dernière séance · {jj(d)}</span>'
+            f'<div class="bandeau-fenetre"><ul class="bandeau-piste">{items}</ul><ul class="bandeau-piste" aria-hidden="true">{items}</ul></div>'
+            f'<a class="bandeau-lien" href="{r}calculateurs/#performances">Comparer →</a></div>')
 def accueil(r):
     f = FICHES[0].META; n = NEWS[0]
     vids = ''.join(f'<a class="mini-video" href="{r}videos/"><img src="{r}assets/videos/{vig}" alt="" loading="lazy"><span class="badge{" or" if ty == "Carrousel" else ""}">{ty}</span><b>{escape(t)}</b></a>'
                    for d, t, ty, tk, ig, vig in [v for v in VIDEOS if v[5]][:4])
-    return (f'<div class="hero"><div><div class="surtitre">La bourse sans jargon</div><h1>COMPRENDRE LA BOURSE <em>AVEC MISTER COIN</em></h1>'
+    return (bandeau(r) + f'<div class="hero"><div><div class="surtitre">La bourse sans jargon</div><h1>COMPRENDRE LA BOURSE <em>AVEC MISTER COIN</em></h1>'
             '<p class="chapo">Les News de chaque vendredi, des fiches entreprises, un lexique avec son quiz et des calculateurs. Chiffres exacts, sources en lien, jamais de conseil.</p>'
             f'<div class="pastilles"><a class="bouton" href="{r}news/{n["slug"]}/">Les News du {n["date_txt"][:5]}</a><a class="bouton clair" href="{r}fiches/{f["slug"]}/">La fiche {f["nom"]}</a></div></div>'
-            f'<img src="{r}assets/img/salut.png" alt="Mister Coin salue"></div>'
+            f'<div class="coin-scene" data-r="{r}"><span class="coin-bulle" aria-live="polite"></span>'
+            f'<img class="coin-anim" src="{r}assets/img/salut.png" alt="Mister Coin salue : clique sur lui" tabindex="0" role="button">'
+            '<button class="coin-son" type="button" aria-label="Activer le son">🔇</button></div></div>'
+            f'<script src="{r}assets/js/coin.js" defer></script>'
             # News à la une, avec le kiosque
             f'<section class="section une"><a class="kiosque" href="{r}news/{n["slug"]}/"><img src="{r}assets/news/{n["slug"]}/01.webp" alt="Couverture des News du {n["date_txt"]}"><span>Voir le carrousel</span></a>'
             f'<div class="pile" style="gap:14px"><div class="surtitre">À la une · Les News du {n["date_txt"]}</div><h2>{escape(n["titre"].upper())}</h2><p class="chapo">{escape(n["chapo"])}</p>'
@@ -150,8 +168,8 @@ def lex_contenu(r, e, pop=False):
             + (f'<p class="source">Source : {liens(src)}</p>' if src else '')
             + (f'<div><div class="surtitre" style="margin-bottom:10px">Voir aussi</div><div class="pastilles">{lex_voir(r, voir, pop)}</div></div>' if voir else ''))
 def quiz(r):
-    data = json.dumps([dict(q=q, c=c, b=b, e=e) for q, c, b, e in QUIZ], ensure_ascii=False).replace('</', '<\\/')
-    return (f'<section class="section" id="quiz"><div><div class="surtitre">Teste-toi</div><h2>LE <em>QUIZ</em></h2>'
+    data = json.dumps([dict(q=q, c=c, b=b, e=e, p=p) for q, c, b, e, p in QUIZ], ensure_ascii=False).replace('</', '<\\/')
+    return (f'<section class="section" id="quiz"><div><div class="surtitre">Teste-toi</div><h2>TESTE TES <em>CONNAISSANCES !</em></h2>'
             f'<p class="gris" style="margin:6px 0 0">{len(QUIZ)} questions sur les mots de la bourse. Réponds, Mister Coin te corrige.</p></div>'
             f'<div class="carte quiz" data-quiz data-r="{r}"><noscript>Le quiz a besoin de JavaScript.</noscript></div>'
             f'<script type="application/json" id="quiz-donnees">{data}</script></section>')
@@ -160,7 +178,7 @@ def lex_liste(r):
                      f'<span class="gris">{escape(e[3])}</span><span class="date">Voir la définition et un exemple →</span></a>' for e in LEXIQUE)
     tpl = ''.join(f'<template id="t-{e[0]}"><div class="surtitre">Lexique</div><h2 class="lex-sigle">{e[1]}</h2><p class="lex-dev">{escape(e[2])}</p>{lex_contenu(r, e, True)}</template>' for e in LEXIQUE)
     return (entete('Les sigles de la bourse', 'LE', 'LEXIQUE', "Dix mots pour comprendre ce qu'on raconte, dont un piège. Clique sur un sigle pour sa définition et un exemple concret, puis teste-toi avec le quiz.", 'question', r)
-            + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Faire le quiz</a></div>'
+            + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Teste tes connaissances !</a></div>'
             + f'<div class="grille" style="--min:250px">{cartes}</div>' + tpl
             + f'<dialog class="fiche-terme" aria-label="Définition"><button class="v-fermer sombre" type="button" aria-label="Fermer">×</button><div class="fiche-corps"></div>'
               f'<img src="{r}assets/img/montre.png" alt="" class="fiche-coin"></dialog>'
@@ -170,7 +188,7 @@ def lex_page(e):
     def c(r):
         return (f'<p class="fil"><a href="{r}lexique/">Lexique</a> › {sig}</p><div class="hero"><div><div class="surtitre">Lexique</div><h1>{sig}</h1>'
                 f'<p class="chapo"><b>{escape(dev)}</b></p></div><img src="{r}assets/img/montre.png" alt="Mister Coin montre la définition"></div>'
-                f'<div class="pile texte">{lex_contenu(r, e)}<p><a class="bouton or" href="{r}lexique/#quiz">Faire le quiz du lexique</a></p></div>')
+                f'<div class="pile texte">{lex_contenu(r, e)}<p><a class="bouton or" href="{r}lexique/#quiz">Teste tes connaissances !</a></p></div>')
     return c
 
 # ---------- calculateurs ----------
@@ -181,7 +199,7 @@ def calculateurs(r):
         return (f'<section class="section" id="{ident}"><div><h2>{titre} <em>{mot}</em></h2><p class="gris" style="margin:6px 0 0">{sous}</p></div>'
                 + carte(f'<div class="pile"><div class="champs">{ch}</div><div aria-live="polite">{sortie}</div></div>') + f'<p class="source">{note}</p></section>')
     env_opt = '<option value="pea">PEA de plus de 5 ans (18,6 %)</option><option value="cto">Compte-titres (PFU 31,4 %)</option>'
-    return (entete('Fais tes calculs', 'LES', 'CALCULATEURS', "Trois outils simples pour te faire une idée. Ce sont des simulations : aucun rendement n'est garanti.", 'reflechit', r)
+    return (entete('Fais tes calculs', 'LES', 'CALCULATEURS', "Quatre outils simples pour te faire une idée. Ce sont des simulations : aucun rendement n'est garanti.", 'reflechit', r)
             + bloc('composes', 'LES INTÉRÊTS', 'COMPOSÉS', "Ce que devient une épargne placée chaque mois",
                    [('c-init', 'Départ (€)', 1000, 100, 'n'), ('c-mois', 'Chaque mois (€)', 100, 10, 'n'), ('c-taux', 'Rendement par an (%)', 7, .1, 'n'), ('c-ans', 'Durée (ans)', 30, 1, 'n')],
                    '<div class="surtitre">Capital à la fin</div><div class="resultat" id="c-res">–</div><p class="gris" id="c-det" style="margin:4px 0 0"></p>'
@@ -193,8 +211,21 @@ def calculateurs(r):
                    '<div class="surtitre">Capital nécessaire</div><div class="resultat" id="d-res">–</div><p class="gris" id="d-det" style="margin:4px 0 0"></p>',
                    "Fiscalité 2026 : prélèvements sociaux de 18,6 % sur un PEA de plus de 5 ans, PFU de 31,4 % sur un compte-titres. Le PEA est plafonné à 150 000 € de versements. "
                    "Le dividende peut baisser ou disparaître.")
-            + pea_cto(r)
+            + pea_cto(r) + performances(r)
             + f'<script src="{r}assets/js/calculateurs.js" defer></script>')
+def performances(r):
+    if not MARCHES: return ''
+    per = ''.join(f'<button type="button" class="bouton clair" data-periode="{v}">{t}</button>' for v, t in (('1', '1 an'), ('5', '5 ans'), ('10', '10 ans'), ('20', '20 ans'), ('30', '30 ans'), ('max', 'Max')))
+    return (f'<section class="section" id="performances"><div><h2>LES PERFORMANCES <em>HISTORIQUES</em></h2><p class="gris" style="margin:6px 0 0">'
+            "Compare les grandes places boursières et les actions les plus connues : ce qu'est devenue une même somme placée au départ.</p></div>"
+            + carte(f'<div class="pile" id="perf" data-src="{r}assets/data/marches.json"><div class="perf-choix"></div>'
+                    f'<div class="pastilles perf-periodes">{per}</div><div class="perf-res"></div>'
+                    '<div class="perf-zone"><div class="perf-graph" aria-live="polite">Chargement…</div><div class="perf-bulle" hidden></div></div>'
+                    '<p class="gris petit perf-note" style="margin:0"></p></div>')
+            + f'<p class="source">Base 100 au début de la période. Cours de clôture hebdomadaires, ajustés des divisions d\'actions, hors dividendes et chacun dans sa devise (dollar, euro, livre, yen…) : '
+              f'le change n\'est pas compté. Jusqu\'à 5 courbes à la fois. Données Yahoo Finance, mises à jour chaque nuit (dernier relevé : {jj(MARCHES["dates"][-1])}). '
+              'Les performances passées ne préjugent pas des performances futures.</p>'
+            + f'<script src="{r}assets/js/perf.js" defer></script></section>')
 
 def pea_cto(r):
     sel = lambda i, lab, opts: f'<div><label for="{i}">{lab}</label><select id="{i}">' + ''.join(f'<option value="{v}"{" selected" if k == 0 else ""}>{t}</option>' for k, (v, t) in enumerate(opts)) + '</select></div>'
@@ -221,22 +252,30 @@ def pea_cto(r):
 
 # ---------- vidéos ----------
 POSES_VID = ['salut', 'court', 'etoiles', 'reflechit', 'joie', 'loupe', 'rire', 'pouce', 'montre', 'question']
+def logo(n): return f'<svg class="logo-reseau" viewBox="0 0 24 24" aria-hidden="true"><path d="{PICTOS[n]}"/></svg>'
 def videos(r):
     cartes = []
     for k, (d, t, ty, tk, ig, vig) in enumerate(VIDEOS):
         visu = (f'<img src="{r}assets/videos/{vig}" alt="" loading="lazy" width="360" height="640">' if vig else
                 f'<div class="sans-vig"><span>{escape(t)}</span><img src="{r}assets/img/{POSES_VID[k % len(POSES_VID)]}.png" alt="" loading="lazy"></div>')
+        data = f' data-titre="{escape(t, quote=True)}"' + (f' data-tiktok="{tk}"' if tk else '') + (f' data-insta="{ig}"' if ig else '')
         bt = ''.join(x for x in (
-            f'<button class="bouton lecteur tiktok" type="button" data-src="https://www.tiktok.com/embed/v2/{tk}" data-lien="https://www.tiktok.com/@actions_bnfices/video/{tk}">TikTok</button>' if tk else '',
-            f'<button class="bouton lecteur insta" type="button" data-src="https://www.instagram.com/{ig}/embed/" data-lien="https://www.instagram.com/{ig}/">Instagram</button>' if ig else ''))
-        cartes.append(f'<article class="video" data-type="{"carrousel" if ty == "Carrousel" else "video"}"><div class="ecran">{visu}<span class="badge{" or" if ty == "Carrousel" else ""}">{ty}</span></div>'
-                      f'<div class="pile" style="gap:8px;padding:14px 16px 16px"><span class="date">{jj(d)}</span><h3>{escape(t)}</h3><div class="choix-lecteur">{bt}</div><a class="ouvrir" href="#" hidden target="_blank" rel="noopener">Ouvrir dans l\'appli ↗</a></div></article>')
+            f'<button class="bouton lecteur tiktok" type="button" data-plateforme="tiktok">{logo("tiktok")}TikTok</button>' if tk else '',
+            f'<button class="bouton lecteur insta" type="button" data-plateforme="insta">{logo("instagram")}Instagram</button>' if ig else ''))
+        cartes.append(f'<article class="video" data-type="{"carrousel" if ty == "Carrousel" else "video"}"{data}>'
+                      f'<button class="ecran" type="button" aria-label="Regarder : {escape(t, quote=True)}">{visu}<span class="badge{" or" if ty == "Carrousel" else ""}">{ty}</span><span class="lire" aria-hidden="true">▶</span></button>'
+                      f'<div class="pile" style="gap:8px;padding:14px 16px 16px"><span class="date">{jj(d)}</span><h3>{escape(t)}</h3><div class="choix-lecteur">{bt}</div></div></article>')
     filtres = ('<div class="pastilles filtres" role="group" aria-label="Filtrer"><button class="bouton clair actif" data-filtre="tout">Tout</button>'
                '<button class="bouton clair" data-filtre="video">Vidéos</button><button class="bouton clair" data-filtre="carrousel">Carrousels</button></div>')
-    return (entete('TikTok et Instagram', 'NOS', 'VIDÉOS', f"{len(VIDEOS)} vidéos et carrousels depuis le 15/10/2026. Choisis ta plateforme et regarde-les directement ici.", 'rocking', r)
-            + f'<div class="pastilles" style="margin-bottom:14px"><a class="bouton" href="{SITE["tiktok"]}">Nous suivre sur TikTok</a><a class="bouton" href="{SITE["instagram"]}">Nous suivre sur Instagram</a></div>'
-            + filtres + f'<p class="gris petit">Le lecteur TikTok ou Instagram ne se charge que quand tu cliques sur un bouton : ce service peut alors déposer ses propres cookies.</p>'
-            + f'<div class="grille videos" style="--min:240px">{"".join(cartes)}</div><script src="{r}assets/js/videos.js" defer></script>')
+    lecteur = ('<dialog class="lecteur-pop" aria-label="Lecteur vidéo"><div class="lp-tete"><h3 class="lp-titre"></h3>'
+               '<button class="v-fermer sombre" type="button" aria-label="Fermer">×</button></div>'
+               f'<div class="lp-onglets" role="tablist"><button type="button" role="tab" class="lp-onglet tiktok" data-plateforme="tiktok">{logo("tiktok")}TikTok</button>'
+               f'<button type="button" role="tab" class="lp-onglet insta" data-plateforme="insta">{logo("instagram")}Instagram</button></div>'
+               '<div class="lp-ecran"></div><p class="lp-pied"><a class="lp-ouvrir" target="_blank" rel="noopener" href="#">Ouvrir dans l\'appli ↗</a></p></dialog>')
+    return (entete('TikTok et Instagram', 'NOS', 'VIDÉOS', f"{len(VIDEOS)} vidéos et carrousels depuis le 15/10/2026. Clique sur une vignette pour la regarder ici, sur TikTok ou sur Instagram.", 'rocking', r)
+            + f'<div class="pastilles" style="margin-bottom:14px"><a class="bouton tiktok" href="{SITE["tiktok"]}">{logo("tiktok")}Nous suivre sur TikTok</a><a class="bouton insta" href="{SITE["instagram"]}">{logo("instagram")}Nous suivre sur Instagram</a></div>'
+            + filtres + f'<p class="gris petit">Le lecteur TikTok ou Instagram ne se charge que quand tu ouvres une vidéo : ce service peut alors déposer ses propres cookies.</p>'
+            + f'<div class="grille videos" style="--min:240px">{"".join(cartes)}</div>{lecteur}<script src="{r}assets/js/videos.js" defer></script>')
 
 # ---------- produits, lettre, mentions ----------
 def produits(r):
@@ -267,6 +306,7 @@ def construire():
     if SORTIE.exists(): shutil.rmtree(SORTIE)
     shutil.copytree(ICI/'assets', SORTIE/'assets')
     shutil.move(SORTIE/'assets'/'favicon.ico', SORTIE/'favicon.ico')  # les navigateurs le cherchent à la racine
+    if MARCHES: (SORTIE/'assets'/'data').mkdir(exist_ok=True); shutil.copy(_M, SORTIE/'assets'/'data'/'marches.json')
     page('/', SITE['nom'], "Comprendre la bourse sans jargon avec Mister Coin : fiches entreprises, News de la semaine, lexique et calculateurs. Contenu pédagogique.", accueil)
     page('/fiches/', 'Fiches entreprises', "Les comptes des grandes entreprises remis à plat, en euros, sources en lien.", fiches, 'fiches/')
     for m in FICHES:

@@ -57,7 +57,8 @@ def main():
     h = yf.download(tickers, start='1990-01-01', interval='1d', auto_adjust=False, progress=False, threads=True)['Close']
     h.index = pd.to_datetime(h.index).tz_localize(None)
     hebdo = h.resample('W-FRI').last()
-    hebdo = hebdo.loc[hebdo.notna().any(axis=1)]
+    # semaines où la majorité des marchés ont coté (le bitcoin cote aussi le week-end : pas de fausse semaine en cours)
+    hebdo = hebdo.loc[hebdo.notna().sum(axis=1) >= hebdo.shape[1] / 2]
     dates = [d.strftime('%Y-%m-%d') for d in hebdo.index]
     series = {}
     for k, (t, nom, grp, dev) in SERIES.items():

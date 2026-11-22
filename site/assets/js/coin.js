@@ -1,0 +1,89 @@
+/* Mister Coin vivant sur l'accueil : il arrive en sautant, salue en se balançant, réagit quand on clique sur lui
+   (animation tirée des clips Veo, son coupé par défaut), et au 5e clic lance une pluie de pièces à attraper. */
+(function () {
+  var sc = document.querySelector('.coin-scene'); if (!sc) return;
+  var r = sc.dataset.r, img = sc.querySelector('.coin-anim'), bulle = sc.querySelector('.coin-bulle'), btSon = sc.querySelector('.coin-son');
+  var REPOS = r + 'assets/img/salut.png';
+  // durée de chaque clip (images / 15 i/s) et son associé
+  var CLIPS = { saut: [4000, 'saut'], joie: [4000, 'joie'], rire: [4000, 'rire'], danse: [4000, 'danse'], pouce: [3530, 's_bon'], choc: [3070, 's_rate'] };
+  var REACTIONS = ['joie', 'rire', 'danse', 'pouce', 'saut'], PHRASES = ['Hé hé !', 'Encore !', 'Ça chatouille !', 'Youpi !', 'Pas si fort !', 'Tu me cherches ?'];
+  var son = false, occupe = false, minuteur = null, clics = 0, jeu = false, derniere = '';
+  try { son = localStorage.getItem('coin-son') === '1'; } catch (e) {}
+  function majSon() { btSon.textContent = son ? '🔊' : '🔇'; btSon.setAttribute('aria-label', son ? 'Couper le son' : 'Activer le son'); btSon.setAttribute('aria-pressed', son); }
+  majSon();
+  btSon.addEventListener('click', function (e) { e.stopPropagation(); son = !son; majSon(); try { localStorage.setItem('coin-son', son ? '1' : '0'); } catch (er) {} });
+  var audios = {};
+  function joue(nom) {
+    if (!son || !nom) return;
+    var a = audios[nom] || (audios[nom] = new Audio(r + 'assets/anim/' + nom + '.mp3'));
+    try { a.currentTime = 0; var p = a.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+  }
+  function dit(t, ms) { bulle.textContent = t; bulle.classList.add('visible'); clearTimeout(dit.t); dit.t = setTimeout(function () { bulle.classList.remove('visible'); }, ms || 2200); }
+  // charge les animations à l'avance pour qu'elles démarrent sans attendre
+  // (gardées en mémoire : chaque lecture repart de la première image sans retélécharger)
+  var cache = {}, urlActive = null;
+  function precharge(n) {
+    if (cache[n]) return cache[n];
+    return cache[n] = fetch(r + 'assets/anim/' + n + '.webp').then(function (x) { return x.blob(); }).catch(function () { return null; });
+  }
+  function anime(n, fin) {
+    var c = CLIPS[n]; occupe = true; clearTimeout(minuteur);
+    precharge(n).then(function (b) {
+      if (urlActive) URL.revokeObjectURL(urlActive);
+      urlActive = b ? URL.createObjectURL(b) : null;
+      img.src = urlActive || r + 'assets/anim/' + n + '.webp'; sc.classList.add('anime'); joue(c[1]);
+      minuteur = setTimeout(function () { img.src = REPOS; sc.classList.remove('anime'); occupe = false; if (fin) fin(); }, c[0]);
+    });
+  }
+  var calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!calme) { precharge('saut'); setTimeout(function () { anime('saut', function () { dit('Salut ! Clique sur moi 👋', 3500); }); }, 400); }
+  else dit('Salut ! Clique sur moi 👋', 3500);
+  setTimeout(function () { REACTIONS.forEach(precharge); }, 2500);
+
+  img.addEventListener('click', clic);
+  img.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clic(); } });
+  function clic() {
+    if (jeu || occupe) return;
+    clics++;
+    if (clics === 5) { lancerJeu(); return; }
+    var choix = REACTIONS.filter(function (x) { return x !== derniere; }); derniere = choix[Math.floor(Math.random() * choix.length)];
+    dit(clics === 4 ? 'Encore un clic… et surprise !' : PHRASES[Math.floor(Math.random() * PHRASES.length)], 1800);
+    anime(derniere);
+  }
+
+  // ---------- mini-jeu : la pluie de pièces ----------
+  var zone = document.querySelector('.hero'), score = 0;
+  function lancerJeu() {
+    jeu = true; score = 0; clics = 0;
+    dit('Attrape un max de pièces ! 🪙', 2500); joue('s_pieces');
+    var tableau = document.createElement('div'); tableau.className = 'jeu-score'; tableau.innerHTML = '🪙 <b>0</b> · <span>15</span> s';
+    zone.appendChild(tableau); zone.classList.add('en-jeu');
+    var t0 = Date.now(), DUREE = 15000;
+    var pluie = setInterval(function () {
+      var p = document.createElement('button'); p.type = 'button'; p.className = 'piece'; p.setAttribute('aria-label', 'Attraper la pièce');
+      var taille = 38 + Math.random() * 26; p.style.width = p.style.height = taille + 'px';
+      p.style.left = (4 + Math.random() * 88) + '%'; p.style.animationDuration = (2.2 + Math.random() * 1.6) + 's';
+      p.addEventListener('pointerdown', function (e) {
+        e.preventDefault(); if (p.classList.contains('prise')) return;
+        p.classList.add('prise'); score++; tableau.querySelector('b').textContent = score; joue('s_piece');
+        setTimeout(function () { p.remove(); }, 300);
+      });
+      p.addEventListener('animationend', function () { p.remove(); });
+      zone.appendChild(p);
+    }, 380);
+    var horloge = setInterval(function () {
+      var reste = Math.max(0, Math.ceil((DUREE - (Date.now() - t0)) / 1000)); tableau.querySelector('span').textContent = reste;
+      if (reste <= 0) finJeu();
+    }, 250);
+    function finJeu() {
+      clearInterval(pluie); clearInterval(horloge);
+      setTimeout(function () { zone.querySelectorAll('.piece').forEach(function (p) { p.remove(); }); }, 1500);
+      var record = 0; try { record = +localStorage.getItem('coin-record') || 0; if (score > record) localStorage.setItem('coin-record', score); } catch (e) {}
+      var msg = score + ' pièce' + (score > 1 ? 's' : '') + ' ! ' + (score > record && record ? 'Nouveau record 🏆' : score >= 20 ? 'Quel talent !' : score >= 10 ? 'Bien joué !' : 'Retente ta chance !');
+      tableau.innerHTML = '🪙 <b>' + score + '</b> pièce' + (score > 1 ? 's' : '') + (record ? ' · record ' + Math.max(score, record) : '');
+      anime(score >= 10 ? 'joie' : 'rire', function () { jeu = false; setTimeout(function () { tableau.remove(); zone.classList.remove('en-jeu'); }, 2500); });
+      if (score >= 10) joue('s_fanfare');
+      dit(msg, 4000);
+    }
+  }
+})();

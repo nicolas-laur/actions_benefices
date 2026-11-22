@@ -268,3 +268,87 @@ svg.interactif:has([data-tip].survol) [data-tip]:not(.survol){opacity:.4}
 .mini-video b{position:absolute;left:0;right:0;bottom:0;padding:40px 14px 14px;color:#fff;font-size:15px;line-height:1.3;background:linear-gradient(transparent,rgba(0,0,0,.85))}
 @media (max-width:640px){ .une .kiosque{flex:1 1 100%;max-width:320px;margin:0 auto} }
 .carte figure.graph-composes::after{content:none}
+
+/* Bandeau défilant de l'accueil */
+.bandeau{display:flex;align-items:center;gap:14px;background:#14161B;color:#fff;border-radius:14px;padding:0 14px;margin:14px 0 4px;height:44px;overflow:hidden;font-size:14px}
+.bandeau-titre{flex:none;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#F5C451}
+.bandeau-fenetre{flex:1;overflow:hidden;display:flex;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.bandeau-piste{display:flex;gap:30px;list-style:none;margin:0;padding:0 15px;flex:none;animation:defile 60s linear infinite}
+.bandeau:hover .bandeau-piste{animation-play-state:paused}
+.bandeau-piste li{white-space:nowrap}
+.bandeau-piste .hausse span{color:#5CD97A} .bandeau-piste .baisse span{color:#FF6B78} .bandeau-piste .stable span{color:#C9C6BE}
+.bandeau-lien{flex:none;color:#F5C451;font-weight:700;text-decoration:none}
+@keyframes defile{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.bandeau-piste{animation-duration:240s}}
+@media (max-width:640px){.bandeau-titre{display:none}.bandeau-lien{display:none}}
+
+/* Performances historiques */
+.perf-groupe{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.puce{min-height:34px;font-size:13px;padding:0 12px}
+.puce.actif{background:var(--c);color:#fff}
+.perf-periodes .bouton{min-height:36px;font-size:13px} .perf-periodes .bouton.actif{background:var(--marine);color:#fff}
+.perf-res{display:flex;gap:10px;flex-wrap:wrap}
+.perf-carte{border-left:5px solid var(--c);background:#FAF9F6;border-radius:12px;padding:8px 14px;display:flex;flex-direction:column;min-width:150px}
+.perf-carte span{font-size:13px;font-weight:700} .perf-carte b{font-size:24px;color:var(--c)} .perf-carte small{font-size:12px;color:var(--gris)}
+.perf-zone{position:relative}
+.perf-graph svg{display:block;touch-action:pan-y}
+.perf-bulle{position:absolute;top:8px;background:var(--encre);color:#fff;border-radius:12px;padding:10px 14px;font-size:13px;display:flex;flex-direction:column;gap:3px;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.18);min-width:170px}
+.perf-bulle i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.perf-bulle[hidden]{display:none}
+
+/* Mister Coin vivant (accueil) */
+.coin-scene{position:relative;flex:0 0 320px;height:340px;display:flex;align-items:flex-end;justify-content:center}
+.coin-anim{height:300px;width:auto;cursor:pointer;transform-origin:50% 100%;animation:balance 3.2s ease-in-out infinite;outline:none;user-select:none;-webkit-user-drag:none}
+.coin-anim:focus-visible{filter:drop-shadow(0 0 6px #F5C451)}
+.coin-scene.anime .coin-anim{animation:none}
+.coin-scene:not(.anime) .coin-anim:hover{animation:balance 1.4s ease-in-out infinite}
+@keyframes balance{0%,100%{transform:rotate(-2.5deg) translateY(0)}50%{transform:rotate(2.5deg) translateY(-6px)}}
+.coin-bulle{position:absolute;top:0;left:50%;transform:translate(-50%,6px) scale(.9);background:#fff;color:var(--encre);font-weight:800;font-size:15px;border-radius:18px;padding:9px 15px;box-shadow:0 4px 14px rgba(0,0,0,.15);white-space:nowrap;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:3}
+.coin-bulle::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#fff}
+.coin-bulle.visible{opacity:1;transform:translate(-50%,0) scale(1)}
+.coin-son{position:absolute;right:0;bottom:6px;width:40px;height:40px;border-radius:50%;border:0;background:var(--carte);box-shadow:var(--ombre);font-size:18px;cursor:pointer}
+.hero{position:relative}
+.hero.en-jeu{overflow:hidden}
+.piece{position:absolute;top:-70px;z-index:4;border:0;padding:0;border-radius:50%;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%,#FFF3B0,#F5C451 35%,#C8901A 70%,#9A6A0E);box-shadow:inset 0 0 0 4px rgba(154,106,14,.6),0 3px 8px rgba(0,0,0,.25);
+  animation:tombe linear forwards}
+.piece::after{content:"€";display:flex;align-items:center;justify-content:center;height:100%;font-weight:900;color:#8A5E0C;font-size:55%}
+.piece.prise{animation:none;transform:scale(1.5);opacity:0;transition:transform .25s,opacity .25s}
+@keyframes tombe{from{transform:translateY(0) rotate(0)}to{transform:translateY(680px) rotate(540deg)}}
+.jeu-score{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;background:#14161B;color:#fff;border-radius:999px;padding:8px 18px;font-size:16px;font-weight:700}
+.jeu-score b{color:#F5C451}
+@media (max-width:640px){ .coin-scene{flex:1 1 100%;height:280px} .coin-anim{height:240px} }
+
+/* Quiz : son, points, réactions de Mister Coin, fin animée */
+.quiz-pts{font-weight:800;color:var(--or-fonce);font-size:15px;white-space:nowrap}
+.quiz-son{width:38px;height:38px;border-radius:50%;border:0;background:#E9EEF4;font-size:17px;cursor:pointer;flex:none}
+.quiz-coin.saute{animation:sauteQ .5s ease-out}
+@keyframes sauteQ{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-22px) scale(1.06)}70%{transform:translateY(0) scale(.97)}100%{transform:none}}
+.quiz-zone.fin{position:relative;overflow:hidden;min-height:260px}
+.quiz-zone.fin .quiz-coin{height:240px}
+.confetti-piece{position:absolute;top:-30px;width:24px;height:24px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,#FFF3B0,#F5C451 35%,#C8901A 70%,#9A6A0E);animation:tombeQ linear forwards}
+@keyframes tombeQ{to{transform:translateY(340px) rotate(420deg);opacity:.2}}
+.quiz-zone .pile>.bouton{align-self:flex-start}
+
+/* Vidéos v3 : vignette cliquable, logos des réseaux, lecteur en pop-up */
+.logo-reseau{width:17px;height:17px;fill:currentColor;flex:none}
+.bouton .logo-reseau{margin-right:2px}
+.bouton.lecteur::before{content:none}
+button.ecran{border:0;padding:0;cursor:pointer;display:block;width:100%}
+.ecran .lire{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgba(17,20,24,.72);color:#fff;font-size:24px;
+  display:flex;align-items:center;justify-content:center;padding-left:4px;opacity:0;transition:opacity .2s,transform .2s;transform:scale(.85)}
+.ecran:hover .lire,.ecran:focus-visible .lire{opacity:1;transform:scale(1)}
+.lecteur-pop{border:0;border-radius:22px;padding:18px;width:min(440px,calc(100vw - 20px));max-height:calc(100vh - 20px);overflow:auto;background:var(--fond);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.lecteur-pop::backdrop{background:rgba(8,10,14,.82)}
+.lp-tete{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.lp-tete .v-fermer{position:static;flex:none}
+.lp-titre{font-size:17px;line-height:1.35;margin:4px 0 0}
+.lp-onglets{display:flex;gap:8px;margin-bottom:12px}
+.lp-onglet{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:12px;border:2px solid var(--filet);background:#fff;font:inherit;font-weight:700;cursor:pointer;color:var(--encre)}
+.lp-onglet.tiktok.actif{background:#111418;color:#fff;border-color:#111418}
+.lp-onglet.insta.actif{background:linear-gradient(45deg,#F58529,#DD2A7B 55%,#8134AF);color:#fff;border-color:transparent}
+.lp-onglet[hidden]{display:none}
+.lp-ecran{background:#fff;border-radius:14px;overflow:hidden;min-height:300px}
+.lp-ecran iframe{display:block;width:100%;border:0;height:min(740px,calc(100vh - 190px))}
+.lp-pied{margin:10px 0 0;text-align:center;font-size:14px;font-weight:600}

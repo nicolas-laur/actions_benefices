@@ -17,3 +17,12 @@ Méthode : maquettes (captures mobiles) envoyées à Nicolas avant de tout repre
 ## À vérifier en ligne
 - Lecteurs TikTok et Instagram intégrés (non testables hors ligne) : un carrousel TikTok (« photo ») et un Reel.
 - Pas de couverture dans le dépôt pour les vidéos du 15 au 27/10 : vignette Mister Coin à la place, à remplacer si Nicolas fournit les couvertures.
+
+## Référence UX (22/11) : https://more-nutrition.webflow.io/
+Nicolas aime l'UX et le fonctionnement de ce site et veut s'en inspirer. À étudier dans le navigateur (le site refuse la lecture automatique) avant le chantier mobile : relever les motifs (navigation, animations au défilement, cartes, éléments fixes, transitions) et proposer ceux qui conviennent à Actions Bénéfices, maquettes à l'appui.
+
+## Animations et sons de Mister Coin
+`python3 site/outils/clips_coin.py` (clips Veo → assets/anim/*.webp et *.mp3) puis `python3 site/outils/sons.py` (bruitages + volume des clips). Toujours dans cet ordre.
+
+## Données de marché
+`site/outils/marches.py`, lancé chaque nuit par le workflow ; dernier relevé sur la branche `donnees` (secours si Yahoo ne répond pas). Pour travailler en local : `git fetch origin donnees && git show origin/donnees:marches.json > site/donnees/marches.json`.

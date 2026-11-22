@@ -65,28 +65,28 @@ LEXIQUE = [
      "Le 20/11/2026, son taux de référence était de 1 € = 1,0990 $. Une action Nvidia à 125,53 $ valait donc 114,22 € : c'est ce taux qu'on utilise pour toutes nos conversions.", [BCE], []),
 ]
 
-# ---------- Quiz du lexique : (question, choix, indice de la bonne réponse, explication) ----------
+# ---------- Quiz du lexique : (question, choix, indice de la bonne réponse, explication, pose de Mister Coin) ----------
 QUIZ = [
     ("Tu veux acheter des actions Apple. Sur quel compte ?", ["Un PEA", "Un compte-titres (CTO)", "Un livret A"], 1,
-     "Apple est une entreprise américaine : elle n'est pas éligible au PEA, réservé aux actions européennes et aux ETF éligibles."),
+     "Apple est une entreprise américaine : elle n'est pas éligible au PEA, réservé aux actions européennes et aux ETF éligibles.", 'reflechit'),
     ("Après combien d'années un PEA n'est-il plus soumis à l'impôt sur le revenu ?", ["2 ans", "5 ans", "8 ans"], 1,
-     "Après 5 ans, seuls les prélèvements sociaux (18,6 % en 2026) restent dus sur les gains."),
+     "Après 5 ans, seuls les prélèvements sociaux (18,6 % en 2026) restent dus sur les gains.", 'loupe'),
     ("Combien l'État prend-il sur 1 000 € de plus-value en compte-titres en 2026 ?", ["128 €", "186 €", "314 €"], 2,
-     "Le PFU fait 31,4 % : 12,8 % d'impôt et 18,6 % de prélèvements sociaux."),
+     "Le PFU fait 31,4 % : 12,8 % d'impôt et 18,6 % de prélèvements sociaux.", 'sueur'),
     ("Un ETF, c'est…", ["Une action d'une seule entreprise", "Un panier d'entreprises qui copie un indice", "Un compte bancaire rémunéré"], 1,
-     "Un ETF copie un indice : avec un seul achat, tu détiens un morceau de toutes ses entreprises."),
+     "Un ETF copie un indice : avec un seul achat, tu détiens un morceau de toutes ses entreprises.", 'question'),
     ("Dans un ETF MSCI World, quelle part environ va aux entreprises américaines ?", ["Environ un quart", "Environ la moitié", "Environ les trois quarts"], 2,
-     "Environ 73 % : le MSCI World est très concentré sur les États-Unis, et ne contient ni la Chine ni l'Inde."),
+     "Environ 73 % : le MSCI World est très concentré sur les États-Unis, et ne contient ni la Chine ni l'Inde.", 'montre'),
     ("Tu investis 100 € le 5 de chaque mois, quoi qu'il arrive. Comment s'appelle cette méthode ?", ["Le DCA", "Le PFU", "L'IPO"], 0,
-     "Le DCA (Dollar Cost Averaging) lisse ton prix d'achat : tu achètes plus de parts quand c'est bas, moins quand c'est haut."),
+     "Le DCA (Dollar Cost Averaging) lisse ton prix d'achat : tu achètes plus de parts quand c'est bas, moins quand c'est haut.", 'court'),
     ("Une action vaut 100 € et l'entreprise gagne 5 € par action. Quel est son PER ?", ["5", "20", "500"], 1,
-     "PER = prix ÷ bénéfice par action = 100 ÷ 5 = 20 : l'action coûte 20 ans de bénéfices."),
+     "PER = prix ÷ bénéfice par action = 100 ÷ 5 = 20 : l'action coûte 20 ans de bénéfices.", 'sceptique'),
     ("Le PER « plan d'épargne retraite », c'est…", ["Une épargne bloquée jusqu'à la retraite qui réduit ton impôt", "Un ratio pour savoir si une action est chère", "Un livret sans risque disponible à tout moment"], 0,
-     "Même sigle que le Price Earnings Ratio, mais rien à voir : c'est une enveloppe d'épargne retraite."),
+     "Même sigle que le Price Earnings Ratio, mais rien à voir : c'est une enveloppe d'épargne retraite.", 'haussement'),
     ("Que désigne une IPO ?", ["Le versement d'un dividende", "L'introduction d'une entreprise en bourse", "Une baisse de plus de 20 %"], 1,
-     "Initial Public Offering : le jour où une entreprise vend ses actions au public pour la première fois, comme Anthropic le 19/11/2026."),
+     "Initial Public Offering : le jour où une entreprise vend ses actions au public pour la première fois, comme Anthropic le 19/11/2026.", 'etoiles'),
     ("Quel est le rôle principal de la BCE ?", ["Fixer les taux d'intérêt de la zone euro", "Gérer la Bourse de Paris", "Collecter les impôts"], 0,
-     "La Banque centrale européenne ajuste ses taux pour tenir l'inflation autour de 2 % par an."),
+     "La Banque centrale européenne ajuste ses taux pour tenir l'inflation autour de 2 % par an.", 'lit_journal_v2_titre'),
 ]
 
 # ---------- Vidéos publiées : (date, titre, type, id TikTok, chemin Instagram, vignette dans assets/videos/) ; liens relevés dans Metricool le 21/11/2026 ----------

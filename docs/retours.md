@@ -42,7 +42,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 ## Site actionsbenefices.com (retours v1 du 21/11)
 - Affichage mobile jugé pauvre : chantier important à mener (menu, en-têtes, graphiques, tuiles), suivi dans `site/A_FAIRE.md`. Vérifier chaque page en 390 px de large avant de livrer.
 - Graphiques interactifs : chaque barre, bloc ou ruban donne son détail au survol (et au toucher sur mobile) ; reprendre les pictogrammes des carrousels dans les graphiques du site.
-- Aucun chiffre caché par un tracé : étiquettes au-dessus des points, avec halo blanc.
+- Aucun chiffre caché par un tracé : étiquettes au-dessus des points, avec un halo de la couleur du fond.
 - Marque affichée « Actions Bénéfices » (sans tiret bas) ; favicon rond, Mister Coin seul.
 - Retours v2 (21/11) : les News doivent avoir du punch, kiosque en couverture et toutes les infos des diapos (galerie des diapos + texte) ; lexique en pop-up avec un exemple concret chiffré et un quiz ; courbe pour les intérêts composés ; comparateur PEA/CTO détaillé (durée, barème, titres d'avant 2018, dividendes US) ; vidéos consultables au choix TikTok ou Instagram (lecteur chargé au clic) ; lettre du dimanche signalée « en préparation ».
 - Retours v3 (22/11) : bandeau défilant des marchés sur l'accueil ; Mister Coin vivant et cliquable (réactions avec son coupé par défaut, mini-jeu de pièces) ; quiz « Teste tes connaissances ! » avec une pose par question et une fin animée et sonore ; performances historiques comparées (Yahoo Finance) ; lecteur vidéo en pop-up avec logos TikTok et Instagram. Référence UX à étudier : more-nutrition.webflow.io.

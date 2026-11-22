@@ -17,7 +17,7 @@ from donnees import LEXIQUE, VIDEOS, QUIZ, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
 
 SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
             menu=[('fiches/', 'Fiches entreprises'), ('news/', 'Les News'), ('lexique/', 'Lexique'), ('calculateurs/', 'Calculateurs'),
-                  ('videos/', 'Vidéos'), ('produits/', 'Nos produits')],
+                  ('videos/', 'Vidéos')],
             tiktok='https://www.tiktok.com/@actions_bnfices', instagram='https://www.instagram.com/actions_benefices/',
             lettre_action=None)  # adresse du formulaire Brevo une fois le compte ouvert
 FICHES = [fiche_nvidia]
@@ -259,14 +259,7 @@ def videos(r):
             + filtres + f'<p class="gris petit">Le lecteur TikTok ou Instagram ne se charge que quand tu ouvres une vidéo : ce service peut alors déposer ses propres cookies.</p>'
             + f'<div class="grille videos" style="--min:240px">{"".join(cartes)}</div>{lecteur}<script src="{r}assets/js/videos.js" defer></script>')
 
-# ---------- produits, lettre, mentions ----------
-def produits(r):
-    p = [('Le guide des premiers pas', "Ouvrir son PEA, choisir un ETF, mettre en place un versement mensuel : le pas à pas, sans jargon.", 'montre'),
-         ('Les fiches entreprises en PDF', "Toutes les fiches, mises à jour à chaque trimestre, à garder et à imprimer.", 'loupe'),
-         ('Le tableau de suivi', "Un tableau pour suivre tes versements, tes dividendes et tes frais, mois après mois.", 'reflechit')]
-    return (entete('Bientôt', 'NOS', 'PRODUITS', "Des outils pour passer à l'action, en préparation. Ils arriveront après la lettre du dimanche, elle aussi en préparation : suis-nous sur TikTok ou Instagram pour être prévenu.", 'pouce', r)
-            + grille(*[carte(f'<div class="pile" style="gap:10px"><span class="badge or">En préparation</span><h3>{t}</h3><p class="gris" style="margin:0">{x}</p>'
-                             f'<img src="{r}assets/img/{po}.webp" alt="" style="height:110px;width:auto;align-self:flex-end"></div>') for t, x, po in p], mn=280))
+# ---------- lettre, mentions (page Produits retirée le 22/11 tant que rien n'est proposé) ----------
 def lettre(r):
     return (entete('Chaque dimanche matin', 'LA LETTRE', 'DU DIMANCHE', "Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Gratuite, sans publicité, désinscription en un clic.", 'lit_journal_v2_titre', r)
             + carte('<div class="pile" style="gap:10px"><span class="badge or">En cours de préparation</span><h3>La lettre n\'est pas encore ouverte</h3>'
@@ -300,7 +293,6 @@ def construire():
     for e in LEXIQUE: page(f'/lexique/{e[0]}/', f'{e[1]} : {e[2]}', e[3], lex_page(e), 'lexique/')
     page('/calculateurs/', 'Calculateurs', "Intérêts composés, vivre de ses dividendes, PEA ou CTO : trois simulateurs simples.", calculateurs, 'calculateurs/')
     page('/videos/', 'Nos vidéos', "Toutes les vidéos et carrousels d'Actions Bénéfices sur TikTok et Instagram.", videos, 'videos/')
-    page('/produits/', 'Nos produits', "Guide des premiers pas, fiches en PDF, tableau de suivi : bientôt disponibles.", produits, 'produits/')
     page('/lettre/', 'La lettre du dimanche', "Les News, la prochaine fiche et un mot du lexique, chaque dimanche.", lettre)
     page('/mentions-legales/', 'Mentions légales', "Mentions légales du site Actions Bénéfices.", mentions, sans_lettre=True)
     # 404, plan du site, robots

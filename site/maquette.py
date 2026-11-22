@@ -3,6 +3,12 @@ Publiée à /maquette-accueil/ (non référencée) pour validation par Nicolas a
 Réutilise les données et composants du site ; styles dans assets/css/maquette.css, animations dans assets/js/maquette.js."""
 from html import escape
 
+def flottants(liste, cls=''):
+    """pièces d'or décoratives qui défilent à des vitesses différentes (parallaxe) ; vitesse négative = monte plus vite que la page"""
+    return ''.join(f'<span class="mq-flottant {cls} {"loin" if v < 0.15 else ""}" aria-hidden="true" data-vitesse="{v}" '
+                   f'style="left:{x}%;top:{y}%;width:{t}px;height:{t}px;--rot:{(k * 37) % 50 - 25}deg;--duree:{5 + k % 4}s"></span>'
+                   for k, (x, y, t, v) in enumerate(liste))
+
 def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
     n = NEWS[0]; f = FICHES[0].META
     nb_marches = len(MARCHES['series']) if MARCHES else 0
@@ -14,8 +20,9 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     pastilles = [(len(VIDEOS), 'vidéos et carrousels'), (len(LEXIQUE), 'mots du lexique'), (nb_marches, 'marchés suivis')]
     couverture = (
         '<section class="mq-plein mq-couverture hero">'
-        '<div class="mq-dedans mq-couv-grille">'
-        '<div class="mq-couv-texte">'
+        + flottants([(3, 10, 74, .55), (22, 96, 34, .1), (40, 4, 26, .06), (52, 90, 88, .42), (57, 20, 22, .05), (94, 12, 64, .4), (88, 74, 30, .12), (71, 94, 52, .6)])
+        + '<div class="mq-dedans mq-couv-grille">'
+        '<div class="mq-couv-texte" data-vitesse="0.12">'
         '<p class="mq-surtitre mq-anim" style="--i:0">La bourse sans jargon</p>'
         f'<h1 class="mq-titre">{ligne("LA BOURSE,", 1)}{ligne("ENFIN CLAIRE.", 2)}{ligne("AVEC MISTER COIN", 3, "or")}</h1>'
         '<p class="mq-chapo mq-anim" style="--i:4">Les News de chaque vendredi, des fiches entreprises, un lexique avec son quiz et des calculateurs. '
@@ -23,13 +30,13 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
         f'<div class="mq-boutons mq-anim" style="--i:5"><a class="bouton or" href="{r}news/{n["slug"]}/">Les News du {n["date_txt"][:5]}</a>'
         f'<a class="bouton contour" href="{r}fiches/{f["slug"]}/">La fiche {f["nom"]}</a></div>'
         '</div>'
-        f'<div class="coin-scene mq-scene" data-r="{r}"><span class="coin-bulle" aria-live="polite"></span>'
+        f'<div class="coin-scene mq-scene" data-r="{r}" data-vitesse="-0.1"><span class="coin-bulle" aria-live="polite"></span>'
         '<svg class="mq-arc" viewBox="0 0 400 400" aria-hidden="true"><circle cx="200" cy="200" r="182" pathLength="1"/></svg>'
-        + ''.join(f'<span class="mq-pastille p{k}" style="--i:{k + 2}"><b>{v}</b>{escape(t)}</span>' for k, (v, t) in enumerate(pastilles))
+        + ''.join(f'<span class="mq-pastille p{k}" data-vitesse="{(0.14, -0.1, 0.22)[k]}" style="--i:{k + 2}"><b>{v}</b>{escape(t)}</span>' for k, (v, t) in enumerate(pastilles))
         + f'<img class="coin-anim" src="{r}assets/img/salut.webp" alt="Mister Coin salue : clique sur lui" tabindex="0" role="button">'
         '<button class="coin-son" type="button" aria-label="Activer le son">🔇</button>'
-        '<span class="mq-note n1" aria-hidden="true">Clique-moi !'
-        '<svg viewBox="0 0 120 70"><path class="mq-trait" pathLength="1" d="M8 10 C 40 4, 80 18, 96 52 M84 44 L97 54 L104 40"/></svg></span>'
+        '<span class="mq-note n1" aria-hidden="true"><svg viewBox="0 0 110 80"><path class="mq-trait" pathLength="1" d="M104 8 C 84 6, 52 14, 36 40 C 28 52, 22 62, 14 70 M12 52 L13 71 L31 67"/></svg>'
+        '<span>Clique-moi !</span></span>'
         '</div></div></section>'
         f'<script src="{r}assets/js/coin.js" defer></script>')
 
@@ -52,7 +59,9 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     recit = (
         '<section class="mq-recit" aria-label="Ce que tu trouveras ici">'
         '<div class="mq-collant">'
-        '<div class="mq-coin-centre">' + ''.join(f'<img class="mq-pose{" actif" if k == 0 else ""}" data-k="{k}" src="{r}assets/img/{e[0]}.webp" alt="" loading="lazy">' for k, e in enumerate(etapes)) + '</div>'
+        + ''.join(f'<span class="mq-flottant recit {"loin" if d < 1 else ""}" aria-hidden="true" style="left:{x}%;top:{y}%;width:{t}px;height:{t}px;--d:{d};--rot:{k * 23}deg"></span>'
+                  for k, (x, y, t, d) in enumerate([(5, 78, 70, 1.6), (30, 5, 30, .6), (50, 88, 46, 1.1), (74, 8, 80, 1.8), (91, 60, 28, .5), (18, 38, 22, .4), (62, 72, 36, .8)]))
+        + '<div class="mq-coin-centre">' + ''.join(f'<img class="mq-pose{" actif" if k == 0 else ""}" data-k="{k}" src="{r}assets/img/{e[0]}.webp" alt="" loading="lazy">' for k, e in enumerate(etapes)) + '</div>'
         + ''.join(f'<article class="mq-etape{" actif" if k == 0 else ""} {"gauche" if k % 2 == 0 else "droite"}" data-k="{k}">'
                   f'<p class="mq-surtitre">{escape(st)}</p><h2 class="mq-grand">{h}</h2><p>{escape(tx)}</p><a class="bouton" href="{lien}">{escape(lab)}</a></article>'
                   f'<div class="mq-cote{" actif" if k == 0 else ""} {"droite" if k % 2 == 0 else "gauche"}" data-k="{k}">{vis}<span class="mq-note">{escape(note)}</span></div>'
@@ -66,7 +75,7 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     eventail = ('<section class="mq-dedans mq-videos"><p class="mq-surtitre mq-anim">TikTok et Instagram</p>'
                 '<h2 class="mq-grand mq-anim" style="--i:1">NOS DERNIÈRES <em>VIDÉOS</em></h2>'
                 '<div class="mq-eventail">' + ''.join(
-                    f'<a class="mq-vcarte mq-anim" style="--i:{k};--r:{(k - 2) * 6}deg;--y:{abs(k - 2) * 18}px" href="{r}videos/">'
+                    f'<a class="mq-vcarte mq-anim" data-vitesse="{(0.06, 0.16, 0.26, 0.16, 0.06)[k]}" style="--i:{k};--r:{(k - 2) * 6}deg;--y:{abs(k - 2) * 18}px" href="{r}videos/">'
                     f'<img src="{r}assets/videos/{vig}" alt="" loading="lazy"><b>{escape(t)}</b></a>'
                     for k, (d, t, ty, tk, ig, vig) in enumerate(vids)) + '</div>'
                 f'<p class="mq-centre"><a class="bouton" href="{r}videos/">Toutes les vidéos</a></p></section>')
@@ -74,14 +83,14 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     # 4. Nos règles, coches qui apparaissent une à une, sur fond or clair
     regles = [('Des chiffres exacts', 'Vérifiés et sourcés, en lien sous chaque graphique.'), ('Jamais de conseil', "On explique, tu décides. Rien ici n'est une recommandation."),
               ('En euros', 'Montants convertis au taux de la BCE du jour retenu.'), ('Avec le sourire', 'Mister Coin est là pour rendre la bourse moins austère.')]
-    regles_html = ('<section class="mq-plein mq-regles"><div class="mq-dedans">'
+    regles_html = ('<section class="mq-plein mq-regles">' + flottants([(3, 18, 64, .45), (48, 6, 26, .06), (94, 72, 56, .35), (60, 90, 22, .05)]) + '<div class="mq-dedans">'
                    '<h2 class="mq-grand mq-anim">NOS <em>RÈGLES</em></h2><ul class="mq-liste">'
                    + ''.join(f'<li class="mq-anim" style="--i:{k + 1}"><span class="mq-coche" aria-hidden="true">✓</span><div><b>{escape(a)}</b><p>{escape(b)}</p></div></li>' for k, (a, b) in enumerate(regles))
-                   + f'</ul><img class="mq-anim mq-coin-regles" style="--i:5" src="{r}assets/img/pouce.webp" alt="" loading="lazy"></div></section>')
+                   + f'</ul><img class="mq-anim mq-coin-regles" data-vitesse="0.22" style="--i:5" src="{r}assets/img/pouce.webp" alt="" loading="lazy"></div></section>')
 
     # 5. Fin : rendez-vous vendredi, sur fond marine
-    fin = ('<section class="mq-plein mq-fin"><div class="mq-dedans mq-fin-grille">'
-           f'<img class="mq-anim" src="{r}assets/img/rire.webp" alt="Mister Coin rit" loading="lazy">'
+    fin = ('<section class="mq-plein mq-fin">' + flottants([(8, 14, 58, .4), (40, 80, 26, .06), (78, 10, 76, .5), (92, 66, 30, .1)]) + '<div class="mq-dedans mq-fin-grille">'
+           f'<img class="mq-anim" data-vitesse="0.2" src="{r}assets/img/rire.webp" alt="Mister Coin rit" loading="lazy">'
            '<div><h2 class="mq-grand mq-anim" style="--i:1">RENDEZ-VOUS <em>VENDREDI</em></h2>'
            '<p class="mq-anim" style="--i:2">Les News de la semaine arrivent chaque vendredi sur TikTok, Instagram et ici. La lettre du dimanche est en préparation.</p>'
            f'<div class="mq-boutons mq-anim" style="--i:3"><a class="bouton or" href="{r}news/">Toutes les News</a><a class="bouton contour" href="{r}videos/">Nos vidéos</a></div>'

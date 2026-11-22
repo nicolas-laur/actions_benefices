@@ -139,3 +139,36 @@
 .mq-points{right:8px}
 .mq-visuel.sigles{grid-auto-rows:1fr;max-width:250px;margin-right:22px}
 .mq-visuel.sigles span{display:flex;align-items:center;justify-content:center;font-size:21px;line-height:1}
+
+/* v2 : Mister Coin centré dans son arc, flèche qui pointe sur lui */
+.mq-scene.coin-scene{height:480px}
+.mq-arc{inset:auto;left:20px;top:80px;width:400px;height:400px}
+.mq-pastille.p0{left:4px;top:113px} .mq-pastille.p1{left:-20px;top:296px} .mq-pastille.p2{left:332px;right:auto;top:113px}
+.mq-note.n1{left:328px;right:auto;top:262px;bottom:auto;display:flex;align-items:flex-start;gap:2px;transform:rotate(-6deg)}
+.mq-note.n1 svg{width:84px;height:62px;margin:14px 0 0;transform:none;order:-1}
+.mq-note.n1 span{margin-top:-4px}
+
+/* parallaxe : chaque plan défile à sa vitesse (--py calculé au défilement, propriété translate séparée des animations d'entrée) */
+[data-vitesse]{translate:0 var(--py,0px)}
+.mq-dedans{position:relative;z-index:1}
+.mq-flottant{position:absolute;z-index:0;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,#FFF3B0,#F5C451 35%,#C8901A 70%,#9A6A0E);box-shadow:inset 0 0 0 3px rgba(154,106,14,.55),0 10px 24px rgba(0,0,0,.25);
+  rotate:var(--rot,0deg);animation:flotte var(--duree,6s) ease-in-out infinite alternate}
+.mq-flottant::after{content:"€";display:flex;align-items:center;justify-content:center;height:100%;font-weight:900;color:#8A5E0C;font-size:52%;font-family:var(--texte)}
+.mq-flottant.loin{opacity:.45;filter:blur(1.5px);box-shadow:none}
+@keyframes flotte{from{transform:translateY(-8px) rotate(-8deg)}to{transform:translateY(8px) rotate(8deg)}}
+.mq-couverture{isolation:isolate}
+.mq-flottant.recit{translate:0 calc((.5 - var(--p,0)) * var(--d) * 520px);rotate:calc(var(--rot) + var(--p,0) * 360deg * var(--d));animation:none}
+.mq-recit .mq-cote .mq-visuel{translate:0 calc((.5 - var(--p,0)) * 160px)}
+.mq-recit .mq-pose{translate:0 calc((.5 - var(--p,0)) * -50px)}
+.mq-collant{isolation:isolate} .mq-collant>*:not(.mq-flottant){position:relative;z-index:1}
+.mq-collant>.mq-points{position:absolute}
+.mq-regles,.mq-fin{overflow:hidden}
+@media (max-width:860px){
+  .mq-scene.coin-scene{height:400px;max-width:360px}
+  .mq-arc{left:20px;top:60px;width:320px;height:320px}
+  .mq-pastille.p0{left:2px;top:80px} .mq-pastille.p1{left:-8px;top:236px} .mq-pastille.p2{left:272px;top:80px}
+  .mq-note.n1{left:250px;top:226px;font-size:22px} .mq-note.n1 svg{width:62px;height:46px}
+}
+@media (prefers-reduced-motion:reduce){[data-vitesse],.mq-flottant.recit,.mq-recit .mq-cote .mq-visuel,.mq-recit .mq-pose{translate:none!important}.mq-flottant{animation:none}}
+.mq-flottant.loin{opacity:.3}

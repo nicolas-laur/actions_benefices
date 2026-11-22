@@ -23,6 +23,27 @@
     }, { rootMargin: '-50% 0px -50% 0px' });
     reperes.forEach(function (r) { io2.observe(r); });
   }
+  // parallaxe : décalage proportionnel à la distance entre l'élément et le milieu de l'écran (moitié moins fort sur téléphone)
+  var plans = [].slice.call(document.querySelectorAll('[data-vitesse]')), recitEl = document.querySelector('.mq-recit');
+  if (!calme && (plans.length || recitEl)) {
+    var attente = false;
+    function parallaxe() {
+      attente = false;
+      var h = innerHeight, f = innerWidth < 860 ? .5 : 1;
+      plans.forEach(function (el) {
+        var r = el.getBoundingClientRect(), py = parseFloat(el.style.getPropertyValue('--py')) || 0;
+        var centre = r.top - py + r.height / 2;            // position sans le décalage déjà appliqué
+        if (centre < -h || centre > 2 * h) return;
+        el.style.setProperty('--py', ((centre - h / 2) * -el.dataset.vitesse * f).toFixed(1) + 'px');
+      });
+      if (recitEl) {                                       // avancement du récit épinglé, de 0 à 1
+        var rr = recitEl.getBoundingClientRect(), course = rr.height - h;
+        recitEl.style.setProperty('--p', Math.min(1, Math.max(0, -rr.top / (course || 1))).toFixed(3));
+      }
+    }
+    addEventListener('scroll', function () { if (!attente) { attente = true; requestAnimationFrame(parallaxe); } }, { passive: true });
+    addEventListener('resize', parallaxe); parallaxe();
+  }
   // 3. tracé doré : sa longueur dessinée suit la position de la zone dans l'écran
   var zone = document.querySelector('.mq-trace-zone'), trace = zone && zone.querySelector('.mq-trace');
   if (trace && !calme) {

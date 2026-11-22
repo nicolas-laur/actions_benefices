@@ -1,8 +1,14 @@
-/* Maquette de l'accueil : entrées à l'apparition (une fois), récit épinglé qui change d'étape au défilement,
-   tracé doré qui se dessine au rythme du défilement. Sans dépendance ; sans JavaScript, tout reste visible. */
+/* Thème du site : entrées à ressort à l'apparition (une fois), parallaxe, récit épinglé et tracé doré de l'accueil.
+   Sans dépendance ; sans JavaScript, tout reste visible. */
 (function () {
   document.documentElement.classList.add('js');
   var calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // pages intérieures : les blocs encore sous l'écran au chargement entreront au défilement (ceux déjà visibles ne bougent pas : pas de clignotement)
+  document.querySelectorAll('main .section > *, main .grille > *, main .lecture, main .tuiles > *').forEach(function (el) {
+    if (el.closest('.mq-couverture, .mq-recit, .hero') || el.classList.contains('mq-anim') || el.closest('.mq-anim')) return;
+    if (el.getBoundingClientRect().top < innerHeight * .92) return;
+    var i = [].indexOf.call(el.parentNode.children, el); el.classList.add('mq-anim'); el.style.setProperty('--i', i % 6);
+  });
   // 1. entrées : chaque élément s'anime une seule fois quand il arrive à l'écran
   var io = new IntersectionObserver(function (es) {
     es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); } });

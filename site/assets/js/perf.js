@@ -2,7 +2,7 @@
    Choix des séries (5 au plus), de la période, infobulle qui suit la souris ou le doigt. Aucune dépendance. */
 (function () {
   var box = document.getElementById('perf'); if (!box) return;
-  var NS = 'http://www.w3.org/2000/svg', COUL = ['#2E8C38', '#17375E', '#C8102E', '#B8860B', '#7B3FA0'];
+  var NS = 'http://www.w3.org/2000/svg', COUL = ['#FFC24A', '#35D6FF', '#3FE08A', '#FF4D5E', '#C08BFF'];
   var D, choix = ['sp500', 'aapl'], periode = '10';
   function el(t, a, x) { var e = document.createElementNS(NS, t); for (var k in a) e.setAttribute(k, a[k]); if (x != null) e.textContent = x; return e; }
   function pct(x, d) { return (x >= 0 ? '+' : '−') + Math.abs(x).toLocaleString('fr-FR', { maximumFractionDigits: d == null ? 1 : d }) + ' %'; }
@@ -70,17 +70,17 @@
     else { var pas = Math.pow(10, Math.floor(Math.log10((hi - lo) / 4))); var k2 = [1, 2, 2.5, 5, 10].find(function (q) { return (hi - lo) / (pas * q) <= 5; }) || 10; pas *= k2;
       for (var t = Math.ceil(lo / pas) * pas; t <= hi; t += pas) ticks.push(t); }
     ticks.forEach(function (t) {
-      svg.appendChild(el('line', { x1: x0, x2: x1, y1: Y(t), y2: Y(t), stroke: t === 100 ? '#9A968C' : '#E2DFD8', 'stroke-dasharray': t === 100 ? '4 4' : '' }));
-      svg.appendChild(el('text', { x: x0 - 8, y: Y(t) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#5F5F66' }, Math.round(t).toLocaleString('fr-FR')));
+      svg.appendChild(el('line', { x1: x0, x2: x1, y1: Y(t), y2: Y(t), stroke: t === 100 ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.1)', 'stroke-dasharray': t === 100 ? '4 4' : '' }));
+      svg.appendChild(el('text', { x: x0 - 8, y: Y(t) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#9AA6B8' }, Math.round(t).toLocaleString('fr-FR')));
     });
-    var nbA = 6; for (var q = 0; q <= nbA; q++) { var ii = Math.round(m * q / nbA); svg.appendChild(el('text', { x: X(ii), y: y0 + 22, 'text-anchor': q === 0 ? 'start' : q === nbA ? 'end' : 'middle', 'font-size': 12, fill: '#5F5F66' }, an(dates[i0 + ii]))); }
+    var nbA = 6; for (var q = 0; q <= nbA; q++) { var ii = Math.round(m * q / nbA); svg.appendChild(el('text', { x: X(ii), y: y0 + 22, 'text-anchor': q === 0 ? 'start' : q === nbA ? 'end' : 'middle', 'font-size': 12, fill: '#9AA6B8' }, an(dates[i0 + ii]))); }
     S.forEach(function (s) {
       var d = '', debut = true;
       s.p.forEach(function (x, i) { if (x == null) { debut = true; return; } d += (debut ? 'M' : 'L') + X(i).toFixed(1) + ',' + Y(x).toFixed(1); debut = false; });
       svg.appendChild(el('path', { d: d, fill: 'none', stroke: s.c, 'stroke-width': 2.6, 'stroke-linejoin': 'round' }));
     });
-    var guide = el('line', { y1: y1, y2: y0, stroke: '#B8860B', 'stroke-width': 1.5, opacity: 0 }); svg.appendChild(guide);
-    var pts = S.map(function (s) { var c = el('circle', { r: 5, fill: '#fff', stroke: s.c, 'stroke-width': 3, opacity: 0 }); svg.appendChild(c); return c; });
+    var guide = el('line', { y1: y1, y2: y0, stroke: '#FFC24A', 'stroke-width': 1.5, opacity: 0 }); svg.appendChild(guide);
+    var pts = S.map(function (s) { var c = el('circle', { r: 5, fill: '#0E131D', stroke: s.c, 'stroke-width': 3, opacity: 0 }); svg.appendChild(c); return c; });
     var zone = el('rect', { x: x0, y: y1, width: x1 - x0, height: y0 - y1, fill: 'transparent', tabindex: 0 }); svg.appendChild(zone);
     var g = box.querySelector('.perf-graph'); g.textContent = ''; g.appendChild(svg);
     var bulle = box.querySelector('.perf-bulle');

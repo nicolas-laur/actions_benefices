@@ -1,6 +1,5 @@
-"""Maquette de la nouvelle page d'accueil, inspirée de More Nutrition (docs/references/more_nutrition.md).
-Publiée à /maquette-accueil/ (non référencée) pour validation par Nicolas avant de remplacer l'accueil.
-Réutilise les données et composants du site ; styles dans assets/css/maquette.css, animations dans assets/js/maquette.js."""
+"""Page d'accueil (validée le 22/11/2026), inspirée de More Nutrition (docs/references/more_nutrition.md).
+Réutilise les données et composants du site ; styles dans assets/css/theme.css, animations dans assets/js/theme.js."""
 from html import escape
 
 DECOR = ['piece1', 'eclat', 'piece_etoile', 'piece3', 'eclat', 'piece2', 'grappe', 'eclat', 'piece4']
@@ -20,7 +19,7 @@ def flottants(liste, r, decal=0):
     return ''.join(deco(k + decal, r, "loin" if v < 0.15 else "", f'left:{x}%;top:{y}%;width:{t}px;--rot:{(k * 37) % 70 - 35}deg;--duree:{5 + k % 4}s', f'data-vitesse="{v}"')
                    for k, (x, y, t, v) in enumerate(liste))
 
-def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
+def accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
     n = NEWS[0]; f = FICHES[0].META
     nb_marches = len(MARCHES['series']) if MARCHES else 0
     vids = [v for v in VIDEOS if v[5]][:5]
@@ -108,7 +107,5 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
            f'<div class="mq-boutons mq-anim" style="--i:3"><a class="bouton or" href="{r}news/">Toutes les News</a><a class="bouton contour" href="{r}videos/">Nos vidéos</a></div>'
            '</div></div></section>')
 
-    return (f'<link rel="stylesheet" href="{r}assets/css/maquette.css">'
-            '<p class="mq-bandeau-maquette">Maquette de la future page d\'accueil, pour validation. Fais défiler la page : les animations font partie de la proposition.</p>'
-            + couverture + bandeau(r) + recit + trace + eventail + regles_html + fin
-            + f'<script src="{r}assets/js/maquette.js" defer></script>')
+    return (couverture + bandeau(r) + recit + trace + eventail + regles_html + fin
+            )

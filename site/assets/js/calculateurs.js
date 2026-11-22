@@ -36,23 +36,23 @@
     function X(a) { return x0 + (x1 - x0) * a / n; } function Y(v) { return y0 - (y0 - y1) * v / top; }
     var s = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', role: 'img', 'aria-label': 'Évolution du capital et des versements cumulés, année par année' });
     for (var g = 0; g <= top + 1; g += pas) {
-      s.appendChild(svgEl('line', { x1: x0, x2: x1, y1: Y(g), y2: Y(g), stroke: '#E2DFD8' }));
-      s.appendChild(svgEl('text', { x: x0 - 8, y: Y(g) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#5F5F66' }, court(g)));
+      s.appendChild(svgEl('line', { x1: x0, x2: x1, y1: Y(g), y2: Y(g), stroke: 'rgba(255,255,255,.1)' }));
+      s.appendChild(svgEl('text', { x: x0 - 8, y: Y(g) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#9AA6B8' }, court(g)));
     }
     var pasA = n <= 12 ? 1 : n <= 30 ? 5 : 10;
-    for (var a = 0; a <= n; a += pasA) s.appendChild(svgEl('text', { x: X(a), y: y0 + 22, 'text-anchor': 'middle', 'font-size': 12, fill: '#5F5F66' }, a === 0 ? 'départ' : a + ' an' + (a > 1 ? 's' : '')));
+    for (var a = 0; a <= n; a += pasA) s.appendChild(svgEl('text', { x: X(a), y: y0 + 22, 'text-anchor': 'middle', 'font-size': 12, fill: '#9AA6B8' }, a === 0 ? 'départ' : a + ' an' + (a > 1 ? 's' : '')));
     function chemin(cle) { return pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.a).toFixed(1) + ',' + Y(p[cle]).toFixed(1); }).join(' '); }
-    s.appendChild(svgEl('path', { d: chemin('cap') + ' L' + X(n) + ',' + y0 + ' L' + x0 + ',' + y0 + ' Z', fill: '#2E8C38', opacity: .16 }));
-    s.appendChild(svgEl('path', { d: chemin('verse') + ' L' + X(n) + ',' + y0 + ' L' + x0 + ',' + y0 + ' Z', fill: '#17375E', opacity: .12 }));
-    s.appendChild(svgEl('path', { d: chemin('verse'), fill: 'none', stroke: '#17375E', 'stroke-width': 3, 'stroke-dasharray': '7 6' }));
-    s.appendChild(svgEl('path', { d: chemin('cap'), fill: 'none', stroke: '#2E8C38', 'stroke-width': 4, 'stroke-linejoin': 'round' }));
+    s.appendChild(svgEl('path', { d: chemin('cap') + ' L' + X(n) + ',' + y0 + ' L' + x0 + ',' + y0 + ' Z', fill: '#3FE08A', opacity: .16 }));
+    s.appendChild(svgEl('path', { d: chemin('verse') + ' L' + X(n) + ',' + y0 + ' L' + x0 + ',' + y0 + ' Z', fill: '#35D6FF', opacity: .12 }));
+    s.appendChild(svgEl('path', { d: chemin('verse'), fill: 'none', stroke: '#35D6FF', 'stroke-width': 3, 'stroke-dasharray': '7 6' }));
+    s.appendChild(svgEl('path', { d: chemin('cap'), fill: 'none', stroke: '#3FE08A', 'stroke-width': 4, 'stroke-linejoin': 'round' }));
     // zones de survol, une par année
     pts.forEach(function (p) {
       var g = svgEl('g', { class: 'c-an', tabindex: 0, 'data-tip': (p.a === 0 ? 'Au départ' : 'Après ' + p.a + ' an' + (p.a > 1 ? 's' : '')) + '\n' + eur(p.cap) + '\nVersé : ' + eur(p.verse) + '\nIntérêts : ' + eur(p.cap - p.verse) });
       var w = (x1 - x0) / n;
       g.appendChild(svgEl('rect', { class: 'zone', x: X(p.a) - w / 2, y: y1, width: w, height: y0 - y1 }));
-      g.appendChild(svgEl('line', { class: 'guide', x1: X(p.a), x2: X(p.a), y1: y1, y2: y0, stroke: '#B8860B', 'stroke-width': 1.5 }));
-      g.appendChild(svgEl('circle', { class: 'guide', cx: X(p.a), cy: Y(p.cap), r: 6, fill: '#fff', stroke: '#2E8C38', 'stroke-width': 3 }));
+      g.appendChild(svgEl('line', { class: 'guide', x1: X(p.a), x2: X(p.a), y1: y1, y2: y0, stroke: '#FFC24A', 'stroke-width': 1.5 }));
+      g.appendChild(svgEl('circle', { class: 'guide', cx: X(p.a), cy: Y(p.cap), r: 6, fill: '#0E131D', stroke: '#3FE08A', 'stroke-width': 3 }));
       s.appendChild(g);
     });
     box.textContent = ''; box.appendChild(s);

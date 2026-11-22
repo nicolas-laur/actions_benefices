@@ -12,7 +12,7 @@ from composants import tuile, grille, lecture, carte, fr
 import fiche_nvidia
 from news import NEWS
 from pictos import PICTOS
-from maquette import maquette_accueil
+from accueil_v2 import accueil_v2, flottants
 from donnees import LEXIQUE, VIDEOS, QUIZ, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
 
 SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
@@ -52,9 +52,11 @@ def insecables(html):
     return re.sub(r'>[^<]+<', lambda m: re.sub(r'(\d) (?=\d{3}(?!\d))', '\\1\u00a0', m.group(0)), html)
 def jj(d): return f'{d[8:]}/{d[5:7]}/{d[:4]}'
 def entete(surtitre, h1, mot, chapo, pose=None, r=''):
-    img = f'<img src="{r}assets/img/{pose}.webp" alt="Mister Coin">' if pose else ''
-    return (f'<div class="hero"><div><div class="surtitre">{surtitre}</div><h1>{h1} <em>{mot}</em></h1>'
-            f'<p class="chapo">{chapo}</p></div>{img}</div>')
+    """en-tête de page façon couverture de l'accueil : halo doré, pièces peintes en parallaxe, titre qui monte, Mister Coin en léger décalage"""
+    img = f'<img class="tete-coin mq-anim" style="--i:3" data-vitesse="0.12" src="{r}assets/img/{pose}.webp" alt="Mister Coin">' if pose else ''
+    return (f'<div class="hero tete">' + flottants([(70, 10, 60, .35), (84, 90, 30, .08), (97, 32, 50, .25), (58, 94, 24, .05)], r, 1)
+            + f'<div><div class="surtitre mq-anim">{surtitre}</div><h1><span class="mq-ligne"><span class="mq-mot" style="--i:1">{h1} <em>{mot}</em></span></span></h1>'
+            f'<p class="chapo mq-anim" style="--i:2">{chapo}</p></div>{img}</div>')
 def vignette(r, lien, badge, titre, texte, date_txt='', pose=None, logo=None):
     im = f'<img src="{r}assets/img/{logo}" alt="" style="height:32px;align-self:flex-start;margin:0">' if logo else ''
     pz = f'<img src="{r}assets/img/{pose}.webp" alt="">' if pose else ''
@@ -74,34 +76,6 @@ def bandeau(r):
     return (f'<div class="bandeau" aria-label="Variation de la dernière séance"><span class="bandeau-titre">Dernière séance · {jj(d)}</span>'
             f'<div class="bandeau-fenetre"><ul class="bandeau-piste">{items}</ul><ul class="bandeau-piste" aria-hidden="true">{items}</ul></div>'
             f'<a class="bandeau-lien" href="{r}calculateurs/#performances">Comparer →</a></div>')
-def accueil(r):
-    f = FICHES[0].META; n = NEWS[0]
-    vids = ''.join(f'<a class="mini-video" href="{r}videos/"><img src="{r}assets/videos/{vig}" alt="" loading="lazy"><span class="badge{" or" if ty == "Carrousel" else ""}">{ty}</span><b>{escape(t)}</b></a>'
-                   for d, t, ty, tk, ig, vig in [v for v in VIDEOS if v[5]][:4])
-    return (bandeau(r) + f'<div class="hero"><div><div class="surtitre">La bourse sans jargon</div><h1>COMPRENDRE LA BOURSE <em>AVEC MISTER COIN</em></h1>'
-            '<p class="chapo">Les News de chaque vendredi, des fiches entreprises, un lexique avec son quiz et des calculateurs. Chiffres exacts, sources en lien, jamais de conseil.</p>'
-            f'<div class="pastilles"><a class="bouton" href="{r}news/{n["slug"]}/">Les News du {n["date_txt"][:5]}</a><a class="bouton clair" href="{r}fiches/{f["slug"]}/">La fiche {f["nom"]}</a></div></div>'
-            f'<div class="coin-scene" data-r="{r}"><span class="coin-bulle" aria-live="polite"></span>'
-            f'<img class="coin-anim" src="{r}assets/img/salut.webp" alt="Mister Coin salue : clique sur lui" tabindex="0" role="button">'
-            '<button class="coin-son" type="button" aria-label="Activer le son">🔇</button></div></div>'
-            f'<script src="{r}assets/js/coin.js" defer></script>'
-            # News à la une, avec le kiosque
-            f'<section class="section une"><a class="kiosque" href="{r}news/{n["slug"]}/"><img src="{r}assets/news/{n["slug"]}/01.webp" alt="Couverture des News du {n["date_txt"]}"><span>Voir le carrousel</span></a>'
-            f'<div class="pile" style="gap:14px"><div class="surtitre">À la une · Les News du {n["date_txt"]}</div><h2>{escape(n["titre"].upper())}</h2><p class="chapo">{escape(n["chapo"])}</p>'
-            + '<ul class="liste-une">' + ''.join(f'<li><a href="{r}news/{n["slug"]}/#n{i}"><b>{escape(it["sujet"])}</b> · {escape(phrase_(it["titre"]))}</a></li>' for i, it in enumerate(n['items'], 1)) + '</ul>'
-            f'<div class="pastilles"><a class="bouton" href="{r}news/{n["slug"]}/">Lire les News</a><a class="bouton clair" href="{r}news/">Toutes les semaines</a></div></div></section>'
-            # trois portes d'entrée
-            '<section class="section"><h2>À DÉCOUVRIR <em>AUSSI</em></h2>'
-            + grille(vignette(r, f'fiches/{f["slug"]}/', 'Fiche entreprise', f['titre'], "Graphiques interactifs : passe la souris sur chaque barre pour le détail.", 'Chiffres au ' + f['chiffres_au'], logo=f['logo']),
-                     vignette(r, 'calculateurs/', 'Calculateur', 'La force des intérêts composés', "Ta courbe année par année, et le comparateur PEA ou CTO selon ta situation.", pose='reflechit'),
-                     vignette(r, 'lexique/#quiz', 'Lexique et quiz', 'Tu parles la bourse ?', "Dix sigles expliqués avec un exemple concret, et un quiz pour vérifier.", pose='question'), mn=300)
-            + '</section>'
-            f'<section class="section"><h2>NOS DERNIÈRES <em>VIDÉOS</em></h2><div class="grille" style="--min:200px">{vids}</div>'
-            f'<div class="pastilles"><a class="bouton" href="{r}videos/">Toutes les vidéos</a></div></section>'
-            '<section class="section"><h2>LE PETIT <em>LEXIQUE</em></h2><div class="pastilles">'
-            + ''.join(f'<a class="bouton clair" href="{r}lexique/#{s_}">{sig}</a>' for s_, sig, *_ in LEXIQUE)
-            + '</div></section>')
-
 # ---------- fiches ----------
 def fiches(r):
     return (entete('Une entreprise, ses chiffres', 'FICHES', 'ENTREPRISES', "Croissance, rentabilité, solidité, dividende et rivaux : les comptes remis à plat, en euros, sources en lien. Aucun verdict, aucun objectif de cours.", 'loupe', r)
@@ -211,8 +185,8 @@ def calculateurs(r):
             + bloc('composes', 'LES INTÉRÊTS', 'COMPOSÉS', "Ce que devient une épargne placée chaque mois",
                    [('c-init', 'Départ (€)', 1000, 100, 'n'), ('c-mois', 'Chaque mois (€)', 100, 10, 'n'), ('c-taux', 'Rendement par an (%)', 7, .1, 'n'), ('c-ans', 'Durée (ans)', 30, 1, 'n')],
                    '<div class="surtitre">Capital à la fin</div><div class="resultat" id="c-res">–</div><p class="gris" id="c-det" style="margin:4px 0 0"></p>'
-                   '<figure class="graph-composes"><div id="c-graph"></div><figcaption class="legende"><span><i style="background:#2E8C38"></i>Ton capital</span>'
-                   '<span><i style="background:#17375E"></i>Ce que tu as versé</span><span class="gris">Passe la souris (ou le doigt) sur la courbe pour le détail de chaque année.</span></figcaption></figure>',
+                   '<figure class="graph-composes"><div id="c-graph"></div><figcaption class="legende"><span><i style="background:#3FE08A"></i>Ton capital</span>'
+                   '<span><i style="background:#35D6FF"></i>Ce que tu as versé</span><span class="gris">Passe la souris (ou le doigt) sur la courbe pour le détail de chaque année.</span></figcaption></figure>',
                    "Calcul mensuel, rendement constant, avant impôts et frais. 7 % par an est une hypothèse, pas une promesse : les actions ont des années de baisse.")
             + bloc('dividendes', 'VIVRE DE SES', 'DIVIDENDES', "Le capital nécessaire pour un revenu mensuel après impôts",
                    [('d-rev', 'Revenu voulu par mois (€)', 2000, 100, 'n'), ('d-rdt', 'Rendement du dividende (%)', 4, .1, 'n'), ('d-env', 'Enveloppe', env_opt, 0, 's')],
@@ -315,7 +289,8 @@ def construire():
     shutil.copytree(ICI/'assets', SORTIE/'assets')
     shutil.move(SORTIE/'assets'/'favicon.ico', SORTIE/'favicon.ico')  # les navigateurs le cherchent à la racine
     if MARCHES: (SORTIE/'assets'/'data').mkdir(exist_ok=True); shutil.copy(_M, SORTIE/'assets'/'data'/'marches.json')
-    page('/', SITE['nom'], "Comprendre la bourse sans jargon avec Mister Coin : fiches entreprises, News de la semaine, lexique et calculateurs. Contenu pédagogique.", accueil)
+    page('/', SITE['nom'], "Comprendre la bourse sans jargon avec Mister Coin : fiches entreprises, News de la semaine, lexique et calculateurs. Contenu pédagogique.",
+         lambda r: accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_), sans_lettre=True)
     page('/fiches/', 'Fiches entreprises', "Les comptes des grandes entreprises remis à plat, en euros, sources en lien.", fiches, 'fiches/')
     for m in FICHES:
         page(f'/fiches/{m.META["slug"]}/', m.META['titre'], m.META['description'], m.corps, 'fiches/', image_og=m.META['logo'])
@@ -330,9 +305,6 @@ def construire():
     page('/mentions-legales/', 'Mentions légales', "Mentions légales du site Actions Bénéfices.", mentions, sans_lettre=True)
     # 404, plan du site, robots
     page('/404/', 'Page introuvable', "Cette page n'existe pas.", lambda r: entete('Erreur 404', 'PAGE', 'INTROUVABLE', f'Retour à <a href="{r}">l\'accueil</a>.', 'reflechit', r), sans_lettre=True, r=RACINE)
-    page('/maquette-accueil/', "Maquette de l'accueil", "Maquette de la future page d'accueil, pour validation.",
-         lambda r: maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_), sans_lettre=True, noindex=True)
-    PAGES.remove('/maquette-accueil/')   # hors plan du site
     shutil.move(SORTIE/'404'/'index.html', SORTIE/'404.html'); (SORTIE/'404').rmdir(); PAGES.remove('/404/')
     auj = date.today().isoformat()
     (SORTIE/'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

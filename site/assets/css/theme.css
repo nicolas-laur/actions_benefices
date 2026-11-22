@@ -1,4 +1,5 @@
-/* Maquette de l'accueil inspirée de More Nutrition. Jetons ajoutés à côté de ceux de site.css. */
+/* Thème du site (22/11/2026) : sombre et or, pleine largeur, animations à ressort et parallaxe, inspiré de More Nutrition
+   (docs/references/more_nutrition.md). Chargé après site.css sur toutes les pages ; classes mq-* : page d'accueil. */
 @font-face{font-family:Caveat;src:url(../fonts/Caveat-Bold.woff2) format('woff2');font-weight:700;font-display:swap}
 :root{
   --or-vif:#F5C451; --marine-fonce:#0F2744; --marine-clair:#E8EEF6; --or-clair:#FBF1D6;
@@ -176,12 +177,12 @@
 /* ===== v3 : palette sombre et or (DA des vidéos : nuit, verre, or lumineux), pièces peintes ===== */
 :root{--nuit:#0B0E14; --nuit-bleu:#13233A; --or-lum:#FFC24A; --or-pale:#FFE3A0; --verre:rgba(255,255,255,.055); --filet-or:rgba(255,194,74,.28);
   --vert-lum:#3FE08A; --rouge-lum:#FF4D5E; --cyan-lum:#35D6FF; --texte-clair:#C9D3E1; --halo:0 0 22px rgba(255,194,74,.45)}
-body:has(.mq-couverture){background:var(--nuit);color:#fff}
-body:has(.mq-couverture) .entete{background:rgba(11,14,20,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(255,255,255,.08)}
-body:has(.mq-couverture) .menu a,body:has(.mq-couverture) .marque{color:#fff}
-body:has(.mq-couverture) .entete .bouton{background:var(--or-lum);color:var(--nuit)}
-body:has(.mq-couverture) .pied{background:var(--nuit);color:var(--texte-clair);border-color:rgba(255,255,255,.08)}
-body:has(.mq-couverture) .pied a{color:var(--or-pale)}
+body{background:var(--nuit);color:#fff}
+body .entete{background:rgba(11,14,20,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(255,255,255,.08)}
+body .menu a,body .marque{color:#fff}
+body .entete .bouton{background:var(--or-lum);color:var(--nuit)}
+body .pied{background:var(--nuit);color:var(--texte-clair);border-color:rgba(255,255,255,.08)}
+body .pied a{color:var(--or-pale)}
 .mq-bandeau-maquette{background:var(--verre);color:var(--or-pale);border:1px solid var(--filet-or)}
 .mq-grand em,.mq-titre .or,.mq-regles .mq-grand em{color:var(--or-lum);text-shadow:var(--halo)}
 .mq-surtitre{color:var(--or-lum)}
@@ -258,7 +259,7 @@ body:has(.mq-couverture) .pied a{color:var(--or-pale)}
 @media (prefers-reduced-motion:reduce){.mq-etincelle,.mq-etincelle *,.mq-etincelle::before{animation:none!important}}
 
 /* pleine largeur : la page occupe tout l'écran (marges de 4 % au lieu d'une colonne de 1 120 px) */
-body:has(.mq-couverture) .conteneur{max-width:none;padding-left:4vw;padding-right:4vw}
+body .conteneur{max-width:none;padding-left:4vw;padding-right:4vw}
 .mq-dedans{max-width:none;padding:0 4vw}
 .mq-couv-grille{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
 .mq-titre{font-size:clamp(58px,8.2vw,168px)}
@@ -284,3 +285,109 @@ body:has(.mq-couverture) .conteneur{max-width:none;padding-left:4vw;padding-righ
   .mq-collant{margin:0;padding:24px 20px;grid-template-columns:1fr} .mq-etape p{max-width:none}
   .mq-liste{grid-template-columns:1fr}
 }
+
+/* =====================================================================================================
+   Thème global : chaque composant du site passe en sombre et or (jetons de site.css redéfinis, puis surcharges)
+   ===================================================================================================== */
+:root{--fond:#0B0E14; --carte:rgba(255,255,255,.055); --encre:#F2F5FA; --gris:#9AA6B8; --filet:rgba(255,255,255,.1);
+  --or:#FFC24A; --or-fonce:#FFD978; --vert:#3FE08A; --rouge:#FF4D5E; --sarcelle:#35D6FF; --ombre:0 10px 30px rgba(0,0,0,.35); color-scheme:dark}
+html{background:var(--nuit)}
+body{background:radial-gradient(80% 50% at 80% 0%,rgba(255,194,74,.07),transparent 60%),var(--nuit);color:var(--encre)}
+::selection{background:rgba(255,194,74,.35);color:#fff}
+a{color:var(--or-pale)} a:hover{color:var(--or-lum)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--or-lum);outline-offset:3px}
+h1,h2,h3{color:#fff} h1 em,h2 em{color:var(--or-lum);text-shadow:var(--halo)}
+.surtitre{color:var(--or-lum)} .gris,.source,.fil{color:var(--gris)} .chapo{color:var(--texte-clair)}
+.conteneur{max-width:none;padding-left:4vw;padding-right:4vw}
+.section{border-top-color:var(--filet)}
+.texte p,.texte li{color:var(--texte-clair)}
+
+/* en-tête et pied */
+.entete{background:rgba(11,14,20,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom-color:rgba(255,255,255,.08)}
+.marque,.menu a{color:#fff} .marque b{color:var(--or-lum)}
+.menu a[aria-current="page"],.menu a:hover{border-color:var(--or-lum);color:#fff}
+.entete .bouton{background:linear-gradient(180deg,#FFD978,#FFC24A 55%,#E9A520);color:var(--nuit);box-shadow:0 4px 16px rgba(255,194,74,.3)}
+.pied{background:#080A0F;border-top-color:rgba(255,255,255,.08)} .pied .conteneur{color:var(--gris)} .pied a{color:var(--or-pale)}
+
+/* boutons */
+.bouton{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px var(--or-lum)}
+.bouton:hover{background:rgba(255,194,74,.12);color:#fff}
+.bouton.or{background:linear-gradient(180deg,#FFD978,#FFC24A 55%,#E9A520);color:var(--nuit);box-shadow:0 6px 22px rgba(255,194,74,.35)}
+.bouton.or:hover{background:linear-gradient(180deg,#FFE08E,#FFCB5E 55%,#F0AE2C);color:var(--nuit)}
+.bouton.clair{background:var(--verre);color:#fff;box-shadow:inset 0 0 0 1px var(--filet)}
+.bouton.clair:hover{background:rgba(255,194,74,.12);color:#fff;box-shadow:inset 0 0 0 1px var(--filet-or)}
+.filtres .bouton.actif,.perf-periodes .bouton.actif{background:var(--or-lum);color:var(--nuit);box-shadow:none}
+.bouton.tiktok{background:#000;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)} .bouton.insta{box-shadow:none}
+
+/* surfaces : verre sombre à filet or */
+.carte,.vignette,.tuile,.video,.lecture p,.colonne,.perf-carte,.exemple,.terme-carte{background:var(--verre);border:1px solid var(--filet);box-shadow:none;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.vignette{color:var(--encre);transition:translate .45s var(--ressort),border-color .3s} .vignette:hover{translate:0 -6px;border-color:var(--filet-or)}
+.vignette .date,.terme-carte .date{color:var(--or-pale)}
+.tuile .lib{color:var(--gris)} .tuile .val{color:#fff} .tuile .ctx{color:var(--gris)}
+.pastilles span,.sommaire a{background:var(--verre);border:1px solid var(--filet);color:var(--texte-clair)}
+.sommaire a:hover{border-color:var(--filet-or);color:#fff}
+.pastilles .alerte{background:rgba(255,194,74,.1);border-color:var(--filet-or);color:var(--or-pale)}
+.badge{background:var(--verre);color:var(--texte-clair);border:1px solid var(--filet)} .badge.or{background:rgba(255,194,74,.14);color:var(--or-pale);border-color:var(--filet-or)}
+.pbar .rail{background:rgba(255,255,255,.1)}
+.exemple{border-left:4px solid var(--or-lum)}
+.resultat{text-shadow:0 0 24px currentColor}
+table th,table td{border-color:var(--filet)!important;color:var(--texte-clair)} table th{color:#fff}
+
+/* formulaires */
+input,select{background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--filet)}
+input:focus,select:focus{border-color:var(--or-lum);outline:none;box-shadow:0 0 0 3px rgba(255,194,74,.2)}
+select option{background:#131925;color:#fff}
+label{color:var(--texte-clair)}
+.case input{accent-color:var(--or-lum)}
+
+/* lettre du dimanche */
+.lettre{background:radial-gradient(60% 120% at 10% 50%,rgba(255,194,74,.16),transparent 70%),linear-gradient(180deg,#131C2C,#0D1320);border:1px solid var(--filet-or)}
+.lettre input{background:rgba(255,255,255,.08)}
+
+/* infobulles, bulles, dialogues */
+.infobulle{background:#161D2B;border:1px solid var(--filet-or);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.infobulle span:nth-child(2){color:var(--or-lum)}
+.bulle,.coin-bulle{background:#fff;color:var(--nuit)}
+.fiche-terme,.lecteur-pop{background:#101622;color:var(--encre);border:1px solid var(--filet-or)}
+.v-fermer.sombre{background:var(--verre);color:#fff;box-shadow:inset 0 0 0 1px var(--filet)}
+.gal-fleche{background:#161D2B;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 0 0 1px var(--filet-or)}
+.lp-onglet{background:var(--verre);border-color:var(--filet);color:#fff}
+
+/* quiz */
+.quiz-barre{background:rgba(255,255,255,.1)} .quiz-barre i{background:var(--or-lum);box-shadow:var(--halo)}
+.quiz-rep{background:var(--verre);border-color:var(--filet);color:#fff}
+.quiz-rep:hover:not(:disabled){border-color:var(--or-lum)}
+.quiz-rep.bon{background:rgba(63,224,138,.14);border-color:var(--vert-lum)} .quiz-rep.faux{background:rgba(255,77,94,.14);border-color:var(--rouge-lum)}
+.quiz-son,.coin-son{background:var(--verre);box-shadow:inset 0 0 0 1px var(--filet)}
+.quiz-pts{color:var(--or-lum)}
+
+/* calculateurs */
+.choix-impot div{background:var(--verre);border-color:var(--filet)} .choix-impot div.meilleur{background:rgba(63,224,138,.12);border-color:var(--vert-lum)}
+.perf-carte b{text-shadow:0 0 18px currentColor}
+.perf-bulle{background:#161D2B;border:1px solid var(--filet-or)}
+.bouton.puce.actif{background:var(--c);color:var(--nuit);font-weight:800;box-shadow:0 0 16px color-mix(in srgb,var(--c) 45%,transparent)}
+
+/* vidéos, News */
+.video h3{color:#fff}
+.ecran.joue{background:#000}
+.sans-vig{background:radial-gradient(circle at 50% 30%,#3A2E10,#0B0E14 70%)}
+.bandeau{background:rgba(0,0,0,.45);border:1px solid var(--filet-or)}
+.kiosque{box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 0 1px var(--filet-or)}
+.gal-diapo{box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.liste-une a{color:var(--encre);border-bottom-color:var(--filet)} .liste-une a:hover{color:var(--or-lum)}
+
+/* en-têtes de pages : bande pleine largeur, halo doré, pièces en parallaxe */
+.hero{position:relative;isolation:isolate;padding:56px 0 48px}
+.hero::before{content:"";position:absolute;z-index:-2;top:0;bottom:0;left:calc(50% - 50vw);right:calc(50% - 50vw);
+  background:radial-gradient(45% 80% at 82% 55%,rgba(255,194,74,.15),transparent 65%),linear-gradient(170deg,var(--nuit) 35%,var(--nuit-bleu));border-radius:0 0 40px 40px}
+.hero h1{font-size:clamp(52px,7.4vw,140px);line-height:.9}
+.hero .chapo{font-size:clamp(18px,1.3vw,23px);max-width:min(720px,60vw)}
+.hero>img,.hero .tete-coin{height:clamp(220px,20vw,380px);width:auto;filter:drop-shadow(0 0 30px rgba(255,194,74,.25))}
+.hero.tete>.mq-flottant{z-index:-1}
+.hero>div{position:relative;z-index:1}
+.mq-couverture.hero::before{content:none}
+@media (max-width:860px){.hero .chapo{max-width:none}.hero>img,.hero .tete-coin{height:170px}}
+html,body{overflow-x:clip}
+.ecran .badge{background:rgba(11,14,20,.82);color:#fff;border-color:rgba(255,255,255,.2);backdrop-filter:blur(6px)} .ecran .badge.or{color:var(--or-lum);border-color:var(--filet-or)}
+@media (max-width:860px){.mq-couverture img.mq-flottant,.hero.tete img.mq-flottant{display:none}.hero.tete .mq-etincelle{z-index:-1;opacity:.6}}

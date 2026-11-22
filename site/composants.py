@@ -1,11 +1,12 @@
-"""Briques HTML du site (thème clair des fiches entreprise) : tuiles à pastilles, barres de pourcentage, encadré de lecture avec Mister Coin,
+"""Briques HTML du site (thème sombre et or) : tuiles à pastilles, barres de pourcentage, encadré de lecture avec Mister Coin,
 sections numérotées et graphiques SVG (barres empilées, flux du compte de résultat, barres avec courbe). Chaque fonction renvoie une chaîne HTML.
 Les chemins d'images sont relatifs : R (« ../ » répété selon la profondeur de la page) est fourni par build.py."""
 from html import escape
 
-INK = '#111418'; GREY = '#5F5F66'; LINE = '#E2DFD8'; NAVY = '#17375E'; GOLD = '#B8860B'
-TEAL = '#0B7A5F'; TEAL_R = '#A9CDC3'; LIME = '#6FA823'; LIME_R = '#CFE6B4'; GREEN = '#2E8C38'; GREEN_R = '#B2DBA8'
-RED = '#C9161D'; RED_R = '#EAA7A4'; GOLD_R = '#EBD9A6'
+# palette du thème sombre et or (mêmes teintes que les carrousels, lib/carrousel.py) ; *_R : rubans translucides des flux
+INK = '#F2F5FA'; GREY = '#9AA6B8'; LINE = 'rgba(255,255,255,.12)'; NAVY = '#35D6FF'; GOLD = '#FFC24A'; NUIT = '#0B0E14'
+TEAL = '#35D6FF'; TEAL_R = 'rgba(53,214,255,.30)'; LIME = '#FFC24A'; LIME_R = 'rgba(255,194,74,.30)'; GREEN = '#3FE08A'; GREEN_R = 'rgba(63,224,138,.30)'
+RED = '#FF4D5E'; RED_R = 'rgba(255,77,94,.30)'; GOLD_R = 'rgba(255,194,74,.30)'
 F = 'font-family:Inter,system-ui,sans-serif'
 
 def fr(v, d=1):
@@ -47,7 +48,7 @@ def carte(html, style=''):
 from pictos import PICTOS
 
 def _t(x, y, s, sz=14, c=INK, w=600, a='middle', halo=False):
-    h = ' stroke="#fff" stroke-width="5" stroke-linejoin="round" paint-order="stroke"' if halo else ''
+    h = ' stroke="#0E131D" stroke-width="5" stroke-linejoin="round" paint-order="stroke"' if halo else ''
     return f'<text x="{x:.1f}" y="{y:.1f}" font-size="{sz}" fill="{c}" font-weight="{w}" text-anchor="{a}"{h} style="{F}">{escape(str(s))}</text>'
 
 def _tip(texte):
@@ -126,7 +127,7 @@ def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident
     vmax = max(max(vals), 0); vmin = min(min(vals), 0); k = (base-top)/((vmax-vmin) or 1); y0 = base+vmin*k
     s = [_svg(W, H, aria),
          f'<defs><pattern id="{ident}" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="{color}"/>'
-         f'<line x1="0" y1="0" x2="0" y2="10" stroke="#fff" stroke-width="4" opacity=".45"/></pattern></defs>',
+         f'<line x1="0" y1="0" x2="0" y2="10" stroke="#0B0E14" stroke-width="4" opacity=".45"/></pattern></defs>',
          f'<line x1="{x0}" x2="{W-x0}" y1="{y0:.1f}" y2="{y0:.1f}" stroke="{LINE}" stroke-width="2"/>']
     pts = []
     if courbe:
@@ -143,6 +144,6 @@ def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident
         if courbe:
             (px, py), c = pts[i], courbe[i]
             # valeur au-dessus du point, avec un halo blanc : elle ne se mêle plus à la courbe
-            g += [f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5" fill="#fff" stroke="{TEAL}" stroke-width="3"/>', _t(px, py-13, fr(c, 0)+' %', 13, TEAL, 700, halo=True)]
+            g += [f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5" fill="#0E131D" stroke="{TEAL}" stroke-width="3"/>', _t(px, py-13, fr(c, 0)+' %', 13, TEAL, 700, halo=True)]
         s.append(''.join(g) + '</g>')
     return ''.join(s+['</svg>'])

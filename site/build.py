@@ -12,6 +12,7 @@ from composants import tuile, grille, lecture, carte, fr
 import fiche_nvidia
 from news import NEWS
 from pictos import PICTOS
+from maquette import maquette_accueil
 from donnees import LEXIQUE, VIDEOS, QUIZ, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
 
 SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
@@ -329,6 +330,9 @@ def construire():
     page('/mentions-legales/', 'Mentions légales', "Mentions légales du site Actions Bénéfices.", mentions, sans_lettre=True)
     # 404, plan du site, robots
     page('/404/', 'Page introuvable', "Cette page n'existe pas.", lambda r: entete('Erreur 404', 'PAGE', 'INTROUVABLE', f'Retour à <a href="{r}">l\'accueil</a>.', 'reflechit', r), sans_lettre=True, r=RACINE)
+    page('/maquette-accueil/', "Maquette de l'accueil", "Maquette de la future page d'accueil, pour validation.",
+         lambda r: maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_), sans_lettre=True, noindex=True)
+    PAGES.remove('/maquette-accueil/')   # hors plan du site
     shutil.move(SORTIE/'404'/'index.html', SORTIE/'404.html'); (SORTIE/'404').rmdir(); PAGES.remove('/404/')
     auj = date.today().isoformat()
     (SORTIE/'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

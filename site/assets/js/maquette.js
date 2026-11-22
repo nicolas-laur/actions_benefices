@@ -1,0 +1,39 @@
+/* Maquette de l'accueil : entrées à l'apparition (une fois), récit épinglé qui change d'étape au défilement,
+   tracé doré qui se dessine au rythme du défilement. Sans dépendance ; sans JavaScript, tout reste visible. */
+(function () {
+  document.documentElement.classList.add('js');
+  var calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // 1. entrées : chaque élément s'anime une seule fois quand il arrive à l'écran
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -12% 0px' });
+  document.querySelectorAll('.mq-anim, .mq-mot, .mq-pastille, .mq-note, .mq-trait').forEach(function (el) {
+    if (!el.closest('.mq-cote')) io.observe(el);
+  });
+  // 2. récit épinglé : l'étape active suit le repère qui passe au milieu de l'écran
+  var recit = document.querySelector('.mq-recit');
+  if (recit) {
+    var reperes = recit.querySelectorAll('.mq-repere');
+    function etape(k) {
+      recit.dataset.k = k;
+      recit.querySelectorAll('[data-k]').forEach(function (el) { if (el !== recit && !el.classList.contains('mq-repere')) el.classList.toggle('actif', el.dataset.k === String(k)); });
+    }
+    var io2 = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) etape(e.target.dataset.k); });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    reperes.forEach(function (r) { io2.observe(r); });
+  }
+  // 3. tracé doré : sa longueur dessinée suit la position de la zone dans l'écran
+  var zone = document.querySelector('.mq-trace-zone'), trace = zone && zone.querySelector('.mq-trace');
+  if (trace && !calme) {
+    var demande = false;
+    function maj() {
+      demande = false;
+      var r = zone.getBoundingClientRect(), h = innerHeight;
+      var p = Math.min(1, Math.max(0, (h - r.top) / (h * .8 + r.height)));
+      trace.style.setProperty('--avance', (1 - p).toFixed(3));
+    }
+    addEventListener('scroll', function () { if (!demande) { demande = true; requestAnimationFrame(maj); } }, { passive: true });
+    maj();
+  }
+})();

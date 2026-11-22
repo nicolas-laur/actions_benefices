@@ -38,3 +38,8 @@ Silences de réaction réglés au montage : après « gagne moins que ça » (Mi
 | 5 | decor_sommet | top 1 % | « 10 552 € · Top 1 % · ≈ 5 × la médiane » | parle_question ou confidence, puis vertige |
 | 6 | decor_chantier | pont | « Le salaire classe. L'épargne construit. » | parle_confidence |
 | 7 | decor_rue (soir) ou decor_sommet | chute | « Et toi, tu es à quel étage ? », puis « Source : Insee, salaires du privé 2025 · Contenu pédagogique, pas un conseil en investissement » | parle_question (clip différent de la scène 1 si possible) |
+
+## Décors : réglages (22/11, retours de Nicolas)
+- Rue : panoramique ralenti (vitesse 0,6) et interpolé par flux optique (`interp_flow.py`) au lieu de minterpolate, qui saccadait et figeait ; la question finale reprend la suite du panoramique (image source 110).
+- Cabine : la vidéo Gemini montrait la cabine qui descend ; elle est jouée à l'envers (`decor_cabine_src.mp4` = original) et recalée pour que les étages défilent pendant les trajets (moteur) et restent quasi immobiles aux arrêts.
+- Tous les décors passent désormais par `interp_flow.py` (60 i/s plus régulier).

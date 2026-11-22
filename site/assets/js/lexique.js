@@ -30,20 +30,21 @@
   var audios = {};
   function joue(n) {
     if (!son) return;
-    var a = audios[n] || (audios[n] = new Audio(r + 'assets/anim/' + n + '.mp3'));
+    var a = audios[n] || (audios[n] = new Audio(r + 'assets/anim/' + n + '.mp3?v=' + (window.ABV || '')));
     try { a.currentTime = 0; var p = a.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
   }
   function hasard(t) { return t[Math.floor(Math.random() * t.length)]; }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
-  function coin(pose) { var im = el('img', 'quiz-coin'); im.src = r + 'assets/img/' + pose + '.png'; im.alt = 'Mister Coin'; return im; }
+  function coin(pose) { var im = el('img', 'quiz-coin'); im.src = r + 'assets/img/' + pose + '.webp?v=' + (window.ABV || ''); im.alt = 'Mister Coin'; return im; }
   function boutonSon() {
     var b = el('button', 'quiz-son', son ? '🔊' : '🔇'); b.type = 'button'; b.setAttribute('aria-label', son ? 'Couper le son' : 'Activer le son');
     b.addEventListener('click', function () { son = !son; b.textContent = son ? '🔊' : '🔇'; b.setAttribute('aria-label', son ? 'Couper le son' : 'Activer le son'); try { localStorage.setItem('quiz-son', son ? '1' : '0'); } catch (e) {} });
     return b;
   }
   // l'animation de fin est chargée pendant le quiz, pour démarrer sans attente
-  var anim = null;
-  function prechargeFin() { if (!anim) anim = fetch(r + 'assets/anim/joie.webp').then(function (x) { return x.blob(); }).catch(function () { return null; }); return anim; }
+  var anim = null, WEBM = !!document.createElement('video').canPlayType('video/webm; codecs="vp9"') && !/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  var FIN = r + 'assets/anim/joie' + (WEBM ? '.webm' : '.webp') + '?v=' + (window.ABV || '');
+  function prechargeFin() { if (!anim) anim = fetch(FIN).then(function (x) { return x.blob(); }).catch(function () { return null; }); return anim; }
   function question() {
     var x = Q[i]; q.textContent = '';
     if (i === Q.length - 3) prechargeFin();
@@ -62,7 +63,7 @@
       bt.addEventListener('click', function () {
         var bon = k === x.b; if (bon) score++;
         Array.prototype.forEach.call(choix.children, function (o, j) { o.disabled = true; if (j === x.b) o.classList.add('bon'); else if (j === k) o.classList.add('faux'); });
-        img.src = r + 'assets/img/' + hasard(bon ? BRAVO : RATE) + '.png'; img.classList.remove('saute'); void img.offsetWidth; img.classList.add('saute');
+        img.src = r + 'assets/img/' + hasard(bon ? BRAVO : RATE) + '.webp?v=' + (window.ABV || ''); img.classList.remove('saute'); void img.offsetWidth; img.classList.add('saute');
         joue(bon ? 's_bon' : 's_rate');
         tete.querySelector('.quiz-pts').textContent = score + ' pt' + (score > 1 ? 's' : '');
         fb.appendChild(el('strong', bon ? 'ok' : 'ko', hasard(bon ? MOTS_OK : MOTS_KO)));
@@ -87,7 +88,11 @@
     var img = coin(top || moyen ? 'joie' : 'reflechit'); zone.appendChild(img); q.appendChild(zone);
     if (top || moyen) {
       // Mister Coin heureux et animé (clip « joie »), avec son cri de joie et une pluie de pièces
-      prechargeFin().then(function (b) { img.classList.add('anime'); img.src = b ? URL.createObjectURL(b) : r + 'assets/anim/joie.webp'; });
+      prechargeFin().then(function (b) {
+        var src = b ? URL.createObjectURL(b) : FIN;
+        if (WEBM) { var v = el('video', 'quiz-coin'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.src = src; v.setAttribute('aria-label', 'Mister Coin danse de joie'); img.replaceWith(v); var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        else { img.classList.add('anime'); img.src = src; }
+      });
       joue('joie'); setTimeout(function () { joue('s_fanfare'); }, 350);
       for (var k = 0; k < 18; k++) {
         var p = el('span', 'confetti-piece'); p.style.left = Math.random() * 100 + '%'; p.style.animationDelay = (Math.random() * 1.2) + 's';

@@ -26,6 +26,13 @@ _M = ICI/'donnees'/'marches.json'
 MARCHES = json.loads(_M.read_text()) if _M.exists() else None
 env = Environment(loader=FileSystemLoader(ICI/'templates'), autoescape=True)
 PAGES = []
+# empreinte du contenu de chaque fichier de assets/ : ajoutée aux adresses (?v=…) pour que les navigateurs ne gardent pas une ancienne version en cache
+import hashlib
+def _empreinte(f): return hashlib.sha1(f.read_bytes()).hexdigest()[:8]
+EMPREINTES = {str(f.relative_to(ICI)).replace('\\', '/'): _empreinte(f) for f in (ICI/'assets').rglob('*') if f.is_file()}
+VERSION = hashlib.sha1(''.join(sorted(EMPREINTES.values())).encode()).hexdigest()[:8]
+_RE_ASSET = re.compile(r'(assets/[\w./-]+\.(?:css|js|webp|png|jpg|svg|mp3|webm|json|woff2))(?=["\')\s])')
+def versionne(html): return _RE_ASSET.sub(lambda m: m.group(1) + '?v=' + EMPREINTES.get(m.group(1), VERSION), html)
 
 # racine absolue, utile seulement pour la page 404 (servie à n'importe quelle adresse)
 RACINE = '/'
@@ -34,9 +41,9 @@ def page(chemin, titre, description, corps, rubrique=None, r=None, **kw):
     """chemin : '/' ou '/a/b/' ; corps : fonction(r) → HTML"""
     prof = chemin.strip('/').count('/') + 1 if chemin != '/' else 0
     r = r if r is not None else '../'*prof
-    html = env.get_template('page.html').render(SITE=SITE, titre=titre, description=description, chemin=chemin, r=r,
+    html = env.get_template('page.html').render(SITE=SITE, VERSION=VERSION, titre=titre, description=description, chemin=chemin, r=r,
                                                 rubrique=rubrique, corps=corps(r), **kw)
-    f = SORTIE/chemin.strip('/')/'index.html'; f.parent.mkdir(parents=True, exist_ok=True); f.write_text(insecables(html))
+    f = SORTIE/chemin.strip('/')/'index.html'; f.parent.mkdir(parents=True, exist_ok=True); f.write_text(versionne(insecables(html)))
     PAGES.append(chemin)
 
 def insecables(html):
@@ -44,12 +51,12 @@ def insecables(html):
     return re.sub(r'>[^<]+<', lambda m: re.sub(r'(\d) (?=\d{3}(?!\d))', '\\1\u00a0', m.group(0)), html)
 def jj(d): return f'{d[8:]}/{d[5:7]}/{d[:4]}'
 def entete(surtitre, h1, mot, chapo, pose=None, r=''):
-    img = f'<img src="{r}assets/img/{pose}.png" alt="Mister Coin">' if pose else ''
+    img = f'<img src="{r}assets/img/{pose}.webp" alt="Mister Coin">' if pose else ''
     return (f'<div class="hero"><div><div class="surtitre">{surtitre}</div><h1>{h1} <em>{mot}</em></h1>'
             f'<p class="chapo">{chapo}</p></div>{img}</div>')
 def vignette(r, lien, badge, titre, texte, date_txt='', pose=None, logo=None):
     im = f'<img src="{r}assets/img/{logo}" alt="" style="height:32px;align-self:flex-start;margin:0">' if logo else ''
-    pz = f'<img src="{r}assets/img/{pose}.png" alt="">' if pose else ''
+    pz = f'<img src="{r}assets/img/{pose}.webp" alt="">' if pose else ''
     return (f'<a class="vignette" href="{r}{lien}"><span class="badge">{badge}</span>{im}<h3>{titre}</h3>'
             f'<span class="gris">{texte}</span>{f"<span class=date>{date_txt}</span>" if date_txt else ""}{pz}</a>')
 def liens(src): return ' · '.join(f'<a href="{u}">{escape(n)}</a>' for n, u in src)
@@ -74,7 +81,7 @@ def accueil(r):
             '<p class="chapo">Les News de chaque vendredi, des fiches entreprises, un lexique avec son quiz et des calculateurs. Chiffres exacts, sources en lien, jamais de conseil.</p>'
             f'<div class="pastilles"><a class="bouton" href="{r}news/{n["slug"]}/">Les News du {n["date_txt"][:5]}</a><a class="bouton clair" href="{r}fiches/{f["slug"]}/">La fiche {f["nom"]}</a></div></div>'
             f'<div class="coin-scene" data-r="{r}"><span class="coin-bulle" aria-live="polite"></span>'
-            f'<img class="coin-anim" src="{r}assets/img/salut.png" alt="Mister Coin salue : clique sur lui" tabindex="0" role="button">'
+            f'<img class="coin-anim" src="{r}assets/img/salut.webp" alt="Mister Coin salue : clique sur lui" tabindex="0" role="button">'
             '<button class="coin-son" type="button" aria-label="Activer le son">🔇</button></div></div>'
             f'<script src="{r}assets/js/coin.js" defer></script>'
             # News à la une, avec le kiosque
@@ -119,7 +126,7 @@ def galerie(r, n):
             f'<div class="gal-piste" tabindex="0" aria-label="Diapos du carrousel">{ims}</div>'
             f'<button class="gal-fleche suiv" type="button" aria-label="Diapos suivantes">›</button></div>')
 def coin_bulle(r, pose, bulle):
-    return (f'<figure class="coin"><span class="bulle">{escape(bulle)}</span><img src="{r}assets/img/{pose}.png" alt="Mister Coin" loading="lazy"></figure>')
+    return (f'<figure class="coin"><span class="bulle">{escape(bulle)}</span><img src="{r}assets/img/{pose}.webp" alt="Mister Coin" loading="lazy"></figure>')
 def news_liste(r):
     cartes = ''.join(f'<a class="vignette news" href="{r}news/{n["slug"]}/"><img class="couv" src="{r}{diapo(n, 1)}" alt="Couverture des News du {n["date_txt"]}" loading="lazy">'
                      f'<div class="pile" style="gap:8px"><span class="badge">Semaine {escape(n["semaine"])}</span><h3>{escape(n["titre"])}</h3>'
@@ -181,13 +188,13 @@ def lex_liste(r):
             + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Teste tes connaissances !</a></div>'
             + f'<div class="grille" style="--min:250px">{cartes}</div>' + tpl
             + f'<dialog class="fiche-terme" aria-label="Définition"><button class="v-fermer sombre" type="button" aria-label="Fermer">×</button><div class="fiche-corps"></div>'
-              f'<img src="{r}assets/img/montre.png" alt="" class="fiche-coin"></dialog>'
+              f'<img src="{r}assets/img/montre.webp" alt="" class="fiche-coin"></dialog>'
             + quiz(r) + f'<script src="{r}assets/js/lexique.js" defer></script>')
 def lex_page(e):
     s_, sig, dev, expl, exemple, src, voir = e
     def c(r):
         return (f'<p class="fil"><a href="{r}lexique/">Lexique</a> › {sig}</p><div class="hero"><div><div class="surtitre">Lexique</div><h1>{sig}</h1>'
-                f'<p class="chapo"><b>{escape(dev)}</b></p></div><img src="{r}assets/img/montre.png" alt="Mister Coin montre la définition"></div>'
+                f'<p class="chapo"><b>{escape(dev)}</b></p></div><img src="{r}assets/img/montre.webp" alt="Mister Coin montre la définition"></div>'
                 f'<div class="pile texte">{lex_contenu(r, e)}<p><a class="bouton or" href="{r}lexique/#quiz">Teste tes connaissances !</a></p></div>')
     return c
 
@@ -256,8 +263,8 @@ def logo(n): return f'<svg class="logo-reseau" viewBox="0 0 24 24" aria-hidden="
 def videos(r):
     cartes = []
     for k, (d, t, ty, tk, ig, vig) in enumerate(VIDEOS):
-        visu = (f'<img src="{r}assets/videos/{vig}" alt="" loading="lazy" width="360" height="640">' if vig else
-                f'<div class="sans-vig"><span>{escape(t)}</span><img src="{r}assets/img/{POSES_VID[k % len(POSES_VID)]}.png" alt="" loading="lazy"></div>')
+        visu = (f'<img src="{r}assets/videos/{vig}" alt="" loading="lazy" width="720" height="1280">' if vig else
+                f'<div class="sans-vig"><span>{escape(t)}</span><img src="{r}assets/img/{POSES_VID[k % len(POSES_VID)]}.webp" alt="" loading="lazy"></div>')
         data = f' data-titre="{escape(t, quote=True)}"' + (f' data-tiktok="{tk}"' if tk else '') + (f' data-insta="{ig}"' if ig else '')
         bt = ''.join(x for x in (
             f'<button class="bouton lecteur tiktok" type="button" data-plateforme="tiktok">{logo("tiktok")}TikTok</button>' if tk else '',
@@ -284,7 +291,7 @@ def produits(r):
          ('Le tableau de suivi', "Un tableau pour suivre tes versements, tes dividendes et tes frais, mois après mois.", 'reflechit')]
     return (entete('Bientôt', 'NOS', 'PRODUITS', "Des outils pour passer à l'action, en préparation. Ils arriveront après la lettre du dimanche, elle aussi en préparation : suis-nous sur TikTok ou Instagram pour être prévenu.", 'pouce', r)
             + grille(*[carte(f'<div class="pile" style="gap:10px"><span class="badge or">En préparation</span><h3>{t}</h3><p class="gris" style="margin:0">{x}</p>'
-                             f'<img src="{r}assets/img/{po}.png" alt="" style="height:110px;width:auto;align-self:flex-end"></div>') for t, x, po in p], mn=280))
+                             f'<img src="{r}assets/img/{po}.webp" alt="" style="height:110px;width:auto;align-self:flex-end"></div>') for t, x, po in p], mn=280))
 def lettre(r):
     return (entete('Chaque dimanche matin', 'LA LETTRE', 'DU DIMANCHE', "Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Gratuite, sans publicité, désinscription en un clic.", 'lit_journal_v2_titre', r)
             + carte('<div class="pile" style="gap:10px"><span class="badge or">En cours de préparation</span><h3>La lettre n\'est pas encore ouverte</h3>'

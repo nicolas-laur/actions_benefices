@@ -139,7 +139,7 @@ def corps(R):
             f'<img src="{R}assets/img/nvda.png" alt="Nvidia" style="height:40px;width:auto;align-self:flex-start">'
             f'<h1>QUE VAUT <em>NVIDIA ?</em></h1><p class="chapo">{m["accroche"]}</p>'
             f'<div class="pastilles"><span><b>Chiffres au {m["chiffres_au"]}</b> · 1 € = 1,0990 $ (BCE)</span><span class="alerte">Je détiens des actions Nvidia</span><span>Mise à jour à chaque trimestre</span></div></div>'
-            f'<img src="{R}assets/img/loupe.png" alt="Mister Coin examine les comptes à la loupe"></div>'
+            f'<img src="{R}assets/img/loupe.webp" alt="Mister Coin examine les comptes à la loupe"></div>'
             + grille(tuile('ok', "Chiffre d'affaires 12 mois", '329 Md€', '+103 % au dernier trimestre'), tuile('ok', 'Marge nette', '56 %', 'exercice 2026'),
                      tuile('ok', 'PER', '13,5', 'Broadcom 38,9, AMD 92'), tuile('neutre', 'Dividende', '0,8 %', '1 $ par an'))
             + f'<nav class="sommaire" aria-label="Sommaire de la fiche">{toc}</nav>')

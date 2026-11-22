@@ -3,7 +3,7 @@
 (function () {
   var sc = document.querySelector('.coin-scene'); if (!sc) return;
   var r = sc.dataset.r, img = sc.querySelector('.coin-anim'), bulle = sc.querySelector('.coin-bulle'), btSon = sc.querySelector('.coin-son');
-  var REPOS = r + 'assets/img/salut.png';
+  var REPOS = r + 'assets/img/salut.webp';
   // durée de chaque clip (images / 15 i/s) et son associé
   var CLIPS = { saut: [4000, 'saut'], joie: [4000, 'joie'], rire: [4000, 'rire'], danse: [4000, 'danse'], pouce: [3530, 's_bon'], choc: [3070, 's_rate'] };
   var REACTIONS = ['joie', 'rire', 'danse', 'pouce', 'saut'], PHRASES = ['Hé hé !', 'Encore !', 'Ça chatouille !', 'Youpi !', 'Pas si fort !', 'Tu me cherches ?'];
@@ -15,24 +15,35 @@
   var audios = {};
   function joue(nom) {
     if (!son || !nom) return;
-    var a = audios[nom] || (audios[nom] = new Audio(r + 'assets/anim/' + nom + '.mp3'));
+    var a = audios[nom] || (audios[nom] = new Audio(r + 'assets/anim/' + nom + '.mp3?v=' + (window.ABV || '')));
     try { a.currentTime = 0; var p = a.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
   }
   function dit(t, ms) { bulle.textContent = t; bulle.classList.add('visible'); clearTimeout(dit.t); dit.t = setTimeout(function () { bulle.classList.remove('visible'); }, ms || 2200); }
-  // charge les animations à l'avance pour qu'elles démarrent sans attendre
-  // (gardées en mémoire : chaque lecture repart de la première image sans retélécharger)
+  // Animations : vidéo WebM transparente (nette et légère) là où elle est gérée, WebP animé ailleurs (Safari, iPhone).
+  // Chargées à l'avance et gardées en mémoire : chaque lecture repart du début sans retélécharger.
+  var V = '?v=' + (window.ABV || '');
+  var WEBM = !!document.createElement('video').canPlayType('video/webm; codecs="vp9"') && !/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  var EXT = WEBM ? '.webm' : '.webp', vid = null;
+  if (WEBM) {
+    vid = document.createElement('video'); vid.className = 'coin-anim coin-video'; vid.muted = true; vid.playsInline = true; vid.setAttribute('playsinline', '');
+    vid.setAttribute('aria-hidden', 'true'); vid.hidden = true; img.parentNode.insertBefore(vid, img.nextSibling);
+  }
   var cache = {}, urlActive = null;
   function precharge(n) {
     if (cache[n]) return cache[n];
-    return cache[n] = fetch(r + 'assets/anim/' + n + '.webp').then(function (x) { return x.blob(); }).catch(function () { return null; });
+    return cache[n] = fetch(r + 'assets/anim/' + n + EXT + V).then(function (x) { return x.blob(); }).catch(function () { return null; });
   }
+  function repos() { img.src = REPOS; img.hidden = false; if (vid) { vid.pause(); vid.hidden = true; } sc.classList.remove('anime'); }
   function anime(n, fin) {
     var c = CLIPS[n]; occupe = true; clearTimeout(minuteur);
     precharge(n).then(function (b) {
       if (urlActive) URL.revokeObjectURL(urlActive);
       urlActive = b ? URL.createObjectURL(b) : null;
-      img.src = urlActive || r + 'assets/anim/' + n + '.webp'; sc.classList.add('anime'); joue(c[1]);
-      minuteur = setTimeout(function () { img.src = REPOS; sc.classList.remove('anime'); occupe = false; if (fin) fin(); }, c[0]);
+      var src = urlActive || r + 'assets/anim/' + n + EXT + V;
+      sc.classList.add('anime'); joue(c[1]);
+      if (WEBM) { vid.src = src; vid.currentTime = 0; vid.hidden = false; img.hidden = true; var p = vid.play(); if (p && p.catch) p.catch(function () {}); }
+      else img.src = src;
+      minuteur = setTimeout(function () { repos(); occupe = false; if (fin) fin(); }, c[0]);
     });
   }
   var calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -40,7 +51,7 @@
   else dit('Salut ! Clique sur moi 👋', 3500);
   setTimeout(function () { REACTIONS.forEach(precharge); }, 2500);
 
-  img.addEventListener('click', clic);
+  img.addEventListener('click', clic); if (vid) vid.addEventListener('click', clic);
   img.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clic(); } });
   function clic() {
     if (jeu || occupe) return;

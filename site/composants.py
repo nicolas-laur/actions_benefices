@@ -30,7 +30,7 @@ def pbar(lab, p, c):
             f'<div class="rail"><i style="width:{max(p, 1.2)}%;background:{c}"></i></div></div>')
 
 def lecture(R, texte, pose=None, alt='Mister Coin'):
-    img = f'<img src="{R}assets/img/{pose}.png" alt="{alt}" loading="lazy">' if pose else ''
+    img = f'<img src="{R}assets/img/{pose}.webp" alt="{alt}" loading="lazy">' if pose else ''
     return f'<div class="lecture">{img}<p>{texte}</p></div>'
 
 def section(num, titre, mot, sous, corps, R='', pose=None, texte=None, source=None, ident=None):

@@ -44,7 +44,7 @@ for i, (d, t, ty, tk, ig, cv) in enumerate(V):
     vig = None
     if cv and os.path.exists(f'{E}/{cv}'):
         vig = f'{d}_{i:02d}.webp'
-        Image.open(f'{E}/{cv}').convert('RGB').resize((360, 640), Image.LANCZOS).save(f'{O}/{vig}', quality=80, method=6)
+        Image.open(f'{E}/{cv}').convert('RGB').resize((720, 1280), Image.LANCZOS).save(f'{O}/{vig}', quality=84, method=6)
     elif cv: print('manque', cv)
     out.append((d, t, ty, tk, ig, vig))
 print(sum(1 for x in out if x[5]), 'vignettes sur', len(out))

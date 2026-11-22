@@ -3,10 +3,17 @@ Publiée à /maquette-accueil/ (non référencée) pour validation par Nicolas a
 Réutilise les données et composants du site ; styles dans assets/css/maquette.css, animations dans assets/js/maquette.js."""
 from html import escape
 
-DECOR = ['piece1', 'piece_etoile', 'piece3', 'eclat3', 'piece2', 'grappe', 'piece4', 'eclat0']
+DECOR = ['piece1', 'eclat', 'piece_etoile', 'piece3', 'eclat', 'piece2', 'grappe', 'eclat', 'piece4']
+ETINCELLE = ('<svg viewBox="-50 -50 100 100" aria-hidden="true"><defs><radialGradient id="ge" r="1"><stop offset="0" stop-color="#fff"/>'
+             '<stop offset=".35" stop-color="#FFF1B8"/><stop offset="1" stop-color="#FFC24A"/></radialGradient></defs>'
+             '<g class="rayons"><path d="M0-50V50M-50 0H50" /><path d="M-30-30L30 30M30-30L-30 30" class="fins"/></g>'
+             '<path class="etoile" fill="url(#ge)" d="M0-44C3-14 14-3 44 0 14 3 3 14 0 44-3 14-14 3-44 0-14-3-3-14 0-44Z"/></svg>')
 def deco(k, r, cls, style, extra=''):
+    """élément de décor : pièce peinte (accessoires des épisodes) ou étincelle vectorielle qui rayonne"""
     nom = DECOR[k % len(DECOR)]
-    return (f'<img class="mq-flottant {cls}{" eclat" if nom.startswith("eclat") else ""}" src="{r}assets/deco/{nom}.webp" alt="" aria-hidden="true" '
+    if nom.startswith('eclat'):
+        return f'<span class="mq-flottant mq-etincelle {cls}" aria-hidden="true" {extra} style="{style};--tw:{1.6 + (k % 5) * .35}s;--dl:-{(k * .37) % 2:.2f}s">{ETINCELLE}</span>'
+    return (f'<img class="mq-flottant {cls}" src="{r}assets/deco/{nom}.webp" alt="" aria-hidden="true" '
             f'loading="lazy" {extra} style="{style}">')
 def flottants(liste, r, decal=0):
     """pièces d'or peintes (accessoires des épisodes) qui défilent à des vitesses différentes : parallaxe ; les petites, floues, sont « loin »"""
@@ -24,7 +31,7 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
     pastilles = [(len(VIDEOS), 'vidéos et carrousels'), (len(LEXIQUE), 'mots du lexique'), (nb_marches, 'marchés suivis')]
     couverture = (
         '<section class="mq-plein mq-couverture hero">'
-        + flottants([(3, 10, 110, .55), (22, 96, 34, .1), (40, 4, 26, .06), (52, 88, 120, .42), (57, 20, 22, .05), (93, 10, 96, .4), (88, 74, 30, .12), (70, 92, 80, .6)], r, 3)
+        + flottants([(47, 4, 110, .55), (22, 96, 34, .1), (36, 94, 26, .06), (52, 88, 120, .42), (57, 20, 22, .05), (93, 10, 96, .4), (88, 74, 30, .12), (70, 92, 80, .6)], r, 3)
         + '<div class="mq-dedans mq-couv-grille">'
         '<div class="mq-couv-texte" data-vitesse="0.12">'
         '<p class="mq-surtitre mq-anim" style="--i:0">La bourse sans jargon</p>'
@@ -37,6 +44,7 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
         f'<div class="coin-scene mq-scene" data-r="{r}" data-vitesse="-0.1"><span class="coin-bulle" aria-live="polite"></span>'
         '<svg class="mq-arc" viewBox="0 0 400 400" aria-hidden="true"><circle cx="200" cy="200" r="182" pathLength="1"/></svg>'
         + ''.join(f'<span class="mq-pastille p{k}" data-vitesse="{(0.14, -0.1, 0.22)[k]}" style="--i:{k + 2}"><b>{v}</b>{escape(t)}</span>' for k, (v, t) in enumerate(pastilles))
+        + ''.join(deco(1, r, 'autour', f'left:{x}%;top:{y}%;width:{t}px') for x, y, t in ((14, 30, 34), (82, 22, 26), (88, 78, 38), (24, 86, 22)))
         + f'<img class="coin-anim" src="{r}assets/img/salut.webp" alt="Mister Coin salue : clique sur lui" tabindex="0" role="button">'
         '<button class="coin-son" type="button" aria-label="Activer le son">🔇</button>'
         '<span class="mq-note n1" aria-hidden="true"><svg viewBox="0 0 110 80"><path class="mq-trait" pathLength="1" d="M104 8 C 84 6, 52 14, 36 40 C 28 52, 22 62, 14 70 M12 52 L13 71 L31 67"/></svg>'
@@ -61,10 +69,10 @@ def maquette_accueil(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_
          '<path class="mq-trait pointille" pathLength="1" d="M10 150 L 290 95"/></svg>', 'Ta courbe, année par année'),
     ]
     recit = (
-        '<section class="mq-recit" aria-label="Ce que tu trouveras ici">'
+        '<section class="mq-recit mq-plein" aria-label="Ce que tu trouveras ici">'
         '<div class="mq-collant">'
         + ''.join(deco(k + 2, r, "recit" + (" loin" if d < 1 else ""), f'left:{x}%;top:{y}%;width:{t}px;--d:{d};--rot:{k * 23}deg')
-                  for k, (x, y, t, d) in enumerate([(1, 74, 110, 1.6), (46, 2, 40, .6), (50, 90, 70, 1.1), (93, 4, 120, 1.8), (95, 58, 40, .5), (1, 28, 32, .4), (58, 96, 56, .8)]))
+                  for k, (x, y, t, d) in enumerate([(-3, 74, 110, 1.6), (46, 2, 40, .6), (50, 90, 70, 1.1), (95, 4, 120, 1.8), (97, 58, 40, .5), (-1, 22, 32, .4), (58, 96, 56, .8)]))
         + '<div class="mq-coin-centre">' + ''.join(f'<img class="mq-pose{" actif" if k == 0 else ""}" data-k="{k}" src="{r}assets/img/{e[0]}.webp" alt="" loading="lazy">' for k, e in enumerate(etapes)) + '</div>'
         + ''.join(f'<article class="mq-etape{" actif" if k == 0 else ""} {"gauche" if k % 2 == 0 else "droite"}" data-k="{k}">'
                   f'<p class="mq-surtitre">{escape(st)}</p><h2 class="mq-grand">{h}</h2><p>{escape(tx)}</p><a class="bouton" href="{lien}">{escape(lab)}</a></article>'

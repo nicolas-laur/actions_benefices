@@ -233,3 +233,54 @@ body:has(.mq-couverture) .pied a{color:var(--or-pale)}
 .mq-flottant.eclat{filter:drop-shadow(0 0 10px rgba(255,227,160,.9));animation:scintille 2.4s ease-in-out infinite alternate}
 @keyframes scintille{from{opacity:.35;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
 .mq-flottant.recit{animation:none}
+
+/* ===== v4 ===== */
+/* Mister Coin centré sur l'arc : le disque de la pièce est à 49 % / 46 % de l'image « salut » */
+.mq-scene .coin-anim{position:absolute;left:50%;top:calc(280px - .463 * 330px);bottom:auto;margin-left:calc(-.49 * 330px * 565 / 720)}
+.mq-scene .coin-video{margin-left:0;translate:-50% 0}
+.mq-etincelle.autour{z-index:1}
+
+/* étincelles vectorielles : nettes à toute taille, scintillent, tournent, rayonnent et dérivent */
+.mq-etincelle{display:block;aspect-ratio:1;filter:drop-shadow(0 0 6px rgba(255,241,184,.95)) drop-shadow(0 0 18px rgba(255,194,74,.8));
+  animation:derive 7s ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
+.mq-etincelle svg{width:100%;height:100%;overflow:visible;animation:scintille2 var(--tw,2s) ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
+.mq-etincelle .etoile{transform-origin:0 0;animation:tourne 9s linear infinite}
+.mq-etincelle .rayons{stroke:#FFF1B8;stroke-width:1.6;stroke-linecap:round;opacity:.9;transform-origin:0 0;animation:rayonne var(--tw,2s) ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
+.mq-etincelle .rayons .fins{stroke-width:1;opacity:.6}
+.mq-etincelle::before{content:"";position:absolute;inset:20%;border-radius:50%;background:radial-gradient(circle,rgba(255,241,184,.85),rgba(255,194,74,0) 70%);
+  animation:onde calc(var(--tw,2s) * 1.4) ease-out infinite;animation-delay:var(--dl,0s)}
+.mq-etincelle.loin{opacity:.55;filter:blur(1px) drop-shadow(0 0 10px rgba(255,194,74,.7))}
+@keyframes scintille2{0%{opacity:.4;transform:scale(.55)}60%{opacity:1;transform:scale(1.05)}100%{opacity:.85;transform:scale(.9)}}
+@keyframes tourne{to{transform:rotate(360deg)}}
+@keyframes rayonne{from{transform:scale(.35) rotate(0deg);opacity:.2}to{transform:scale(1.25) rotate(45deg);opacity:.95}}
+@keyframes onde{from{transform:scale(.4);opacity:.9}to{transform:scale(2.6);opacity:0}}
+@keyframes derive{0%{transform:translate(0,0)}33%{transform:translate(10px,-14px)}66%{transform:translate(-8px,-6px)}100%{transform:translate(6px,12px)}}
+@media (prefers-reduced-motion:reduce){.mq-etincelle,.mq-etincelle *,.mq-etincelle::before{animation:none!important}}
+
+/* pleine largeur : la page occupe tout l'écran (marges de 4 % au lieu d'une colonne de 1 120 px) */
+body:has(.mq-couverture) .conteneur{max-width:none;padding-left:4vw;padding-right:4vw}
+.mq-dedans{max-width:none;padding:0 4vw}
+.mq-couv-grille{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
+.mq-titre{font-size:clamp(58px,8.2vw,168px)}
+.mq-chapo{font-size:clamp(18px,1.35vw,24px);max-width:min(640px,38vw)}
+.mq-recit{margin-top:40px}
+.mq-collant{margin:0 2vw;grid-template-columns:1fr minmax(240px,26vw) 1fr;padding:0 5vw}
+.mq-pose{max-height:min(46vh,440px)} .mq-coin-centre{height:min(48vh,460px)}
+.mq-etape p{font-size:clamp(17px,1.25vw,22px);max-width:34vw}
+.mq-grand{font-size:clamp(44px,6vw,124px)}
+.mq-visuel.incline{width:clamp(220px,17vw,340px)} .mq-visuel.sigles{max-width:clamp(250px,20vw,400px)} .mq-visuel.sigles span{font-size:clamp(20px,1.6vw,32px)}
+.mq-visuel.courbe{width:clamp(280px,22vw,440px)}
+.mq-vcarte{flex-basis:clamp(190px,15vw,300px)}
+.mq-liste{max-width:none;grid-template-columns:repeat(4,minmax(0,1fr));padding-right:22vw}
+.mq-coin-regles{height:clamp(260px,22vw,400px)}
+.mq-fin-grille{grid-template-columns:clamp(220px,20vw,360px) 1fr}
+.mq-fin img{height:clamp(260px,22vw,400px)}
+@media (min-width:1600px){.mq-scene.coin-scene{zoom:1.2}}
+@media (min-width:1900px){.mq-scene.coin-scene{zoom:1.4}}
+@media (max-width:1200px){.mq-liste{grid-template-columns:repeat(2,minmax(0,1fr));padding-right:0}}
+@media (max-width:860px){
+  .mq-couv-grille{grid-template-columns:1fr} .mq-chapo{max-width:none}
+  .mq-scene .coin-anim{top:calc(220px - .463 * 260px);height:260px;margin-left:calc(-.49 * 260px * 565 / 720)}
+  .mq-collant{margin:0;padding:24px 20px;grid-template-columns:1fr} .mq-etape p{max-width:none}
+  .mq-liste{grid-template-columns:1fr}
+}

@@ -406,3 +406,7 @@ img[src*="img/nvda.png"],img[src*="img/amd.png"],img[src*="img/avgo.png"],.carte
 .sec-tete>div{flex:1;min-width:0}
 .sec-coin{height:clamp(130px,11vw,190px);width:auto;flex:none;margin-bottom:-14px;filter:drop-shadow(0 0 24px rgba(255,194,74,.18))}
 @media (max-width:860px){.sec-coin{height:110px;margin-bottom:-6px}}
+/* Mister Coin caché derrière sa pile de pièces, posé sur le bord du pied de page */
+.pied{position:relative;margin-top:150px}
+.pied-coin{position:absolute;bottom:calc(100% - 4px);right:6vw;height:150px;width:auto;pointer-events:none;filter:drop-shadow(0 -6px 22px rgba(255,194,74,.16))}
+@media (max-width:860px){.pied{margin-top:110px}.pied-coin{height:110px;right:5vw}}

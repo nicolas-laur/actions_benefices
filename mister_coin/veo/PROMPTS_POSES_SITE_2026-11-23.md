@@ -1,6 +1,6 @@
 # Poses de Mister Coin pour le site actionsbenefices.com (23/11/2026)
 
-État au 23/11 au soir : 16 poses générées par Nicolas, détourées (`mister_coin/poses/site_*.png`, sources dans `mister_coin/src_site/`) et exportées pour le site. Reste la 16 (site_coucou), à refaire avec le prompt corrigé ci-dessous (la première version donnait trois mains et une jambe).
+État au 23/11 au soir : 16 poses générées par Nicolas, détourées (`mister_coin/poses/site_*.png`, sources dans `mister_coin/src_site/`) et exportées pour le site. La 16 (site_coucou) a demandé deux essais : voir son prompt retenu ci-dessous. Les 17 poses sont faites.
 
 Images fixes pour illustrer le site : en-têtes de pages, récit de l'accueil, états du quiz et des outils. Chaque pose répond à un endroit précis du site où l'on réutilise aujourd'hui une pose de carrousel faute de mieux, ou qui n'a pas d'illustration du tout.
 
@@ -43,7 +43,7 @@ Pose:
 13. [site_ardoise] Quiz à retenter. « He holds a small blank school chalkboard in one hand and a piece of chalk in the other, kind encouraging teacher smile, head slightly tilted. »
 14. [site_megaphone] Nouveautés, News de la semaine. « He shouts happily into a vintage cone-shaped brass megaphone held in one hand, pointing it to the right, other arm raised in excitement. »
 15. [site_dort] Marchés fermés (week-end, nuit) dans le bandeau. « He sleeps standing up, leaning back slightly, arms crossed, eyes closed, peaceful smile, top hat tilted over one eye. No letters or z symbols. »
-16. [site_coucou] Bords de page et pied de page (je le coupe moi-même au bord de l'écran sur le site). « He leans far to his right as if peeking around a corner, whole body tilted about 30 degrees, both feet still on the ground, waving with his free hand, friendly curious face. Exactly two arms, two hands and two legs. »
+16. [site_coucou] Pied de page (posé sur son bord, à droite), généré le 23/11. Prompt retenu, qui remplace le bloc commun : « Use the attached image ONLY as a reference for the character design (1930s rubber-hose cartoon style, round golden coin body, top hat, bow tie, white gloves, brown shoes, thick black outlines). Do NOT copy its pose: draw a completely new pose. Flat solid pure green background (#00FF00) everywhere, no floor, no cast shadow, no text. Clean crisp line art, highest resolution, vertical 3:4 framing with a wide empty green margin. Scene: a tall straight column of stacked gold coins stands in the center of the image, as tall as the character. He hides behind it and peeks out from its left side: only his head (with top hat), one gloved hand gripping the edge of the coin stack, and his other hand waving are visible; the rest of his body is hidden behind the stack. Friendly curious face, big smile. Exactly two hands visible, no extra limbs. » Leçon : quand la pose ressemble trop à l'image de référence, Gemini la recopie ; dire « ONLY as a reference for the character design… Do NOT copy its pose » et donner un accessoire.
 17. [site_saut_joie] Inscription réussie, confettis. « He jumps high in a joyful star jump, arms and legs spread wide, top hat lifted a little off his head, huge open smile. »
 
 ## Pour plus tard (animations Veo, si on veut les faire bouger sur le site)

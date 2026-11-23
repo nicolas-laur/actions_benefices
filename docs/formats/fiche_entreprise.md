@@ -47,6 +47,12 @@ Adaptation Actions_Bénéfices (avant le 21/11) :
 - Ratios calculés nous-mêmes, formule écrite dans `sources.md` (ex. marge nette = résultat net / chiffre d'affaires).
 - Un graphique par diapo au plus, toujours accompagné d'un encadré de 3 ou 4 lignes qui le traduit en français simple.
 
+## Sur le site (décisions du 23/11)
+- Cours, capitalisation, PER et rendement recalculés chaque soir avec la dernière clôture (`site/cours.py`) : aucun chiffre lié au cours écrit en dur.
+- Comptes mis à jour à chaque publication trimestrielle, en session dédiée (`site/outils/MAJ_FICHES.md`) ; la tâche du soir signale les résultats sortis.
+- Périodes en dates civiles (« trimestre de fin juillet à fin octobre 2026 ») ; la numérotation de l'entreprise (« T3 de l'exercice 2027 » chez Nvidia) seulement en complément, car elle prête à confusion.
+- Historique dans chaque fiche : une section par année, un bloc par trimestre civil ; chaque version passée reste consultable avec ses chiffres et son cours de l'époque.
+
 ## À trancher avec Nicolas avant le premier épisode
 - Fréquence : ponctuelle (quand l'actu s'y prête) ou rendez-vous fixe (ex. le mardi).
 - Nom de la série (« Que vaut… ? », « La fiche de Mister Coin », « Sous le capot »…).

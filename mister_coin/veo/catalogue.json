@@ -726,5 +726,92 @@
     239
    ]
   ]
+ },
+ "boulanger_jongle": {
+  "format": [
+   720,
+   1280
+  ],
+  "piece": 203,
+  "hauteur": 869,
+  "cx": 427,
+  "pieds": 1033,
+  "images": 240,
+  "parle": [
+   [
+    14,
+    207
+   ],
+   [
+    214,
+    239
+   ]
+  ],
+  "silence": [
+   [
+    0,
+    13
+   ]
+  ]
+ },
+ "classique_loupe_parle": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 212,
+  "hauteur": 541,
+  "cx": 631,
+  "pieds": 669,
+  "images": 240,
+  "parle": [
+   [
+    27,
+    79
+   ],
+   [
+    81,
+    132
+   ],
+   [
+    137,
+    176
+   ],
+   [
+    210,
+    235
+   ]
+  ],
+  "silence": []
+ },
+ "classique_parle_compte_doigts": {
+  "format": [
+   1280,
+   720
+  ],
+  "piece": 242,
+  "hauteur": 543,
+  "cx": 642,
+  "pieds": 643,
+  "images": 240,
+  "parle": [
+   [
+    4,
+    31
+   ],
+   [
+    38,
+    67
+   ],
+   [
+    106,
+    157
+   ],
+   [
+    163,
+    239
+   ]
+  ],
+  "silence": []
  }
 }

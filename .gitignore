@@ -12,3 +12,4 @@ __pycache__/
 !episodes/2026-11-24_top10_riches/decors/*.mp4
 site/_site/
 site/donnees/
+!episodes/2026-11-25_black_friday/decors/*.mp4

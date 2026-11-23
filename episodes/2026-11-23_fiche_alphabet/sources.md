@@ -3,7 +3,7 @@
 Passe de vérification complète le 23/11/2026 (chiffres et textes) ; cours et taux mis à jour à la clôture du 23/11 (voir section 0).
 
 Dossier daté du 23/11 (publication prévue en début de semaine, à renommer si besoin).
-Conversion : taux de référence BCE du 20/11/2026, 1 € = 1,0990 $ (publié par la Banca d'Italia, qui reprend les taux de référence de la BCE). https://www.bancaditalia.it/compiti/operazioni-cambi/cambio/cambi_rif_20261120
+Conversion : taux de référence BCE du 20/11/2026, 1 € = 1,0990 $ ; taux du 23/11/2026 relevé sur le site de la BCE : 1,0939 $ (à appliquer avec les clôtures du 23/11) (publié par la Banca d'Italia, qui reprend les taux de référence de la BCE). https://www.bancaditalia.it/compiti/operazioni-cambi/cambio/cambi_rif_20261120
 Statut : [OK] vérifié sur la source primaire ; [OK, calcul] calculé par nous, formule écrite ; [OK, presse] source secondaire recoupée ; [À CONFIRMER] pas utilisé sur les diapos tant que non recoupé.
 Exercice : Alphabet clôture au 31 décembre (année civile). Les 5 exercices analysés vont de 2021 à 2025. « 12 derniers mois » = T4 2025 + T1, T2, T3 2026 (clos le 30/09/2026).
 Chiffres comptables « GAAP » (normes américaines, non retraités) partout, sauf mention « hors effet des participations ».
@@ -13,7 +13,7 @@ Action retenue : GOOGL (classe A, une voix par action). Classe C (GOOG) : mêmes
 - [OK, presse] Clôture GOOGL du 20/11 : 265,29 $ (−2,70 %), semaine −10,31 % (295,77 $ le vendredi précédent), plus basse clôture depuis octobre 2025. https://www.fool.com/investing/2026/11/21/alphabet-stock-just-hit-a-1-year-low-why-is-google-s-parent-borrowing-so-much-money/ ; https://longbridge.com/en/news/306346897
 - [OK, calcul] Cours en euros : 265,29 / 1,0990 = 241,39 €.
 - [OK, presse] Record de clôture 402,62 $ le 13/05/2026 ; 265,29 / 402,62 − 1 = −34,1 %. Même article Fool (et cryptobriefing.com/alphabet-debt-ai-spending-stock-decline/).
-- [OK, presse] Reuters, 20/11 : « la chute de Nvidia la fait passer derrière Alphabet en valeur boursière ». Repère interne : capitalisation Nvidia ≈ 3 025 Md$ au 20/11 (sources.md de la fiche n°1), contre ≈ 3 260 Md$ pour Alphabet (calcul ci-dessous).
+- [RETIRÉ le 23/11] Reuters, 20/11 : « la chute de Nvidia la fait passer derrière Alphabet en valeur boursière ». Le 23/11, Nvidia a gagné 31 % (clôture 165,05 $, retour de Jensen Huang) et repasse à environ 4 000 Md$, devant Alphabet : sous-ligne de couverture remplacée. https://247wallst.com/investing/2026/11/23/nvidia-just-had-its-best-day-since-2003-on-jensen-huangs-return-heres-what-the-stock-did-after-its-5-biggest-days/ ; https://fortune.com/2026/11/23/wall-street-1-trillion-jensen-huang-nvidia-stock-market-cap/ Repère interne : capitalisation Nvidia ≈ 3 025 Md$ au 20/11 (sources.md de la fiche n°1), contre ≈ 3 260 Md$ pour Alphabet (calcul ci-dessous).
 - [OK] Nombre d'actions au 21/10/2026 (page de garde du 10-Q du T3) : classe A 5 888 M, classe B 827 M, classe C 5 579 M, soit 12 294 M. https://s206.q4cdn.com/479360582/files/doc_financials/2026/q3/GOOG-10-Q-Q3-2026.pdf
 - [OK, calcul] Capitalisation ≈ 12 294 M × 265,29 $ = 3 261 Md$, soit ≈ 2 968 Md€. Approximation : toutes les classes valorisées au cours GOOGL (le cours GOOG du 20/11 n'a pas été trouvé ; les deux cotent à quelques dollars d'écart). Affiché « ≈ 3 260 Md$ » et « ≈ 2 970 Md€ ».
 - [OK] Introduction en bourse : 19/08/2004 (Google), Alphabet holding depuis le 02/10/2015.

@@ -7,7 +7,7 @@ Accroche validée : C (le paradoxe), B en sous-ligne.
 ## 1. Couverture
 - Logo Alphabet (complet) en haut.
 - Titre : QUE VAUT / ALPHABET ? (le second mot en or)
-- Carte : « Cloud +103 % » (vert) puis « et pourtant −34 % en bourse » (rouge), sous-ligne grise : « Depuis son record de mai. Et Nvidia vient de passer derrière elle en bourse. »
+- Carte : « Cloud +103 % » (vert) puis « et pourtant −34 % en bourse » (rouge), sous-ligne grise : « Depuis son record du 13 mai. Que disent vraiment ses comptes ? » (la phrase sur Nvidia est retirée le 23/11 : Nvidia est repassée devant Alphabet après le retour de Jensen Huang)
 - Quatre pictos : Croissance · Rentabilité · Solidité · Rivaux.
 - Mister Coin : `lit_journal_v2_titre` ; bulle : « On ouvre|les comptes ! »
 - « SWIPE 👉 » en bas à droite.

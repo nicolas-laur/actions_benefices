@@ -45,8 +45,8 @@ def s_cover(cv, c):
     carte(c, 90, 700, 900, 300)
     text(c, "Cloud +103" + NB + "%", 540, 772, 'k', 70, CL_GREEN, 'c')
     text(c, "et pourtant "+fmt(CHUTE, 0).replace("-", "−")+NB+"% en bourse", 540, 846, 'k', 46, CL_RED, 'c')
-    text(c, "Depuis son record de mai. Et Nvidia vient", 540, 914, 'sb', 27, CL_GREY, 'c')
-    text(c, "de passer derrière elle en bourse.", 540, 952, 'sb', 27, CL_GREY, 'c')
+    text(c, "Depuis son record du 13 mai.", 540, 914, 'sb', 27, CL_GREY, 'c')
+    text(c, "Que disent vraiment ses comptes ?", 540, 952, 'sb', 27, CL_GREY, 'c')
     for j, (pc, t) in enumerate([('trending-up', 'Croissance'), ('cash-multiple', 'Rentabilité'), ('bank', 'Solidité'), ('account-group-outline', 'Rivaux')]):
         x = 180+j*240; picto(cv, pc, x, 1080, 54, CL_TEAL); text(c, t, x, 1135, 'xb', 24, CL_INK, 'c')
     bb = coin(cv, 'lit_journal_v2_titre', 250, 1500, 400); bulle_pres(c, "On ouvre|les comptes !", bb, 30, .28, bg=CL_NAVY, fg=WHITE)

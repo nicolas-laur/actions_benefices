@@ -1,12 +1,22 @@
-"""Fiche entreprise n°2 : « Que vaut Alphabet ? » (chiffres arrêtés à la clôture du vendredi 20/11/2026), 9 diapos, thème clair.
+"""Fiche entreprise n°2 : « Que vaut Alphabet ? » (cours et taux BCE : paramètres du jour ci-dessous), 9 diapos, thème clair.
 Modèle : episodes/2026-11-22_fiche_nvidia/carrousel.py (mêmes fonctions de pied, rangées et bulles). Chiffres et formules : sources.md.
 usage : python3 carrousel.py [numéros…] [planche]"""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'lib'))
 from carrousel import *
 
-R = 1.0990                                                                  # BCE, 20/11/2026 : 1 € = 1,0990 $
+# ---------- paramètres du jour (seul bloc à changer pour mettre la fiche à jour ; voir sources.md, section 0) ----------
+JOUR = "20/11"                    # date de clôture retenue
+R = 1.0990                        # taux de référence BCE du même jour : 1 € = R $
+PA, PC = 265.29, 264.00           # clôtures GOOGL (classe A, aussi pour la classe B non cotée) et GOOG (classe C)
+RECORD = 402.62                   # record de clôture GOOGL (13/05/2026)
+NA, NB_, NC = 5888, 827, 5579     # actions A, B, C en circulation (M), page de garde du 10-Q, 21/10/2026
+BPA_12M = 10.94                   # BPA des 12 derniers mois hors effet des participations ($)
 def e(usd): return usd/R
+def md(usd, d=1): return fmt(e(usd), d)+NB+'Md€'
+CAP = ((NA+NB_)*PA+NC*PC)/1000     # capitalisation (Md$)
+CHUTE = round((PA/RECORD-1)*100)   # variation depuis le record (%)
+PER = PA/BPA_12M
 def rangee(c, y, items, h=90, x0=40, x1=1040, gap=16):
     """rangée de tuiles de même largeur, alignée sur les bords des cartes principales (40 → 1040), au-dessus de y = 1000 (retour du 21/11)"""
     n = len(items); w = (x1-x0-gap*(n-1))/n; assert y+h <= 1000, (y, h)
@@ -34,7 +44,7 @@ def s_cover(cv, c):
     text(c, "QUE VAUT", 540, 470, 'k', 128, CL_INK, 'c'); text(c, "ALPHABET ?", 540, 600, 'k', 124, CL_GOLD, 'c')
     carte(c, 90, 700, 900, 300)
     text(c, "Cloud +103" + NB + "%", 540, 772, 'k', 70, CL_GREEN, 'c')
-    text(c, "et pourtant −34" + NB + "% en bourse", 540, 846, 'k', 46, CL_RED, 'c')
+    text(c, "et pourtant "+fmt(CHUTE, 0).replace("-", "−")+NB+"% en bourse", 540, 846, 'k', 46, CL_RED, 'c')
     text(c, "Depuis son record de mai. Et Nvidia vient", 540, 914, 'sb', 27, CL_GREY, 'c')
     text(c, "de passer derrière elle en bourse.", 540, 952, 'sb', 27, CL_GREY, 'c')
     for j, (pc, t) in enumerate([('trending-up', 'Croissance'), ('cash-multiple', 'Rentabilité'), ('bank', 'Solidité'), ('account-group-outline', 'Rivaux')]):
@@ -58,10 +68,10 @@ def s_identite(cv, c):
     carte(c, 40, 570, 1000, 315)
     famille(c, "PUBLICITÉ · 64,3 %", ['ok'], 80, 608); barres_pct(c, PUB, 80, 652, 420)
     famille(c, "HORS PUBLICITÉ · 35,7 %", ['ok'], 580, 608); barres_pct(c, HORS, 580, 652, 420)
-    rangee(c, 905, [('neutre', "En bourse depuis", "2004"), ('neutre', "Capitalisation", "≈" + NB + "2" + NB + "970 Md€"), ('ko', "Cours (20/11)", "241,39 €")])
-    src(c, "Source : Alphabet, communiqué du 28/10/2026 ; cours GOOGL (classe A) ; 1 € = 1,0990 $ (BCE, 20/11).", 1030)
+    rangee(c, 905, [('neutre', "En bourse depuis", "2004"), ('neutre', "Capitalisation", "≈"+NB+fmt(round(e(CAP), -1), 0)+NB+"Md€"), ('ko', "Cours ("+JOUR+")", fmt(e(PA), 2)+NB+"€")])
+    src(c, "Source : Alphabet, communiqué du 28/10/2026 ; cours GOOGL (classe A) ; 1 € = "+fmt(R, 4)+" $ (BCE, "+JOUR+").", 1030)
     pied(cv, c, "La moitié des ventes vient encore de la recherche Google. Mais le Cloud pèse déjà un quart du total, contre moins d'un dixième en 2021. "
-         "Alphabet détient aussi environ 10 % d'Anthropic, entrée en bourse cette semaine.", 'loupe', "Pas que Google !", 1060)
+         "Alphabet détient aussi 13,7"+NB+"% d'Anthropic, entrée en bourse le 19 novembre.", 'loupe', "Pas que Google !", 1060)
 
 # ---------- 3. croissance : CA annuel ----------
 CA = [257.637, 282.836, 307.394, 350.018, 402.836]; CLOUD = [19.206, 26.280, 33.088, 43.229, 58.705]
@@ -77,7 +87,7 @@ def s_croissance(cv, c):
         text(c, str(2021+i), cx, base+30, 'sb', 22, CL_GREY, 'c')
         text(c, '–' if gg is None else '+'+fmt(gg*100, 0)+NB+'%', cx, base+60, 'xb', 21, CL_GREEN if gg else CL_GREY, 'c')
     picto(cv, 'cloud-outline', 70, 862, 30, CL_TEAL)
-    rangee(c, 905, [('ok', "Sur 4 ans", "+11,8" + NB + "%/an"), ('ok', "Dernier trimestre", "+25" + NB + "%"), ('ok', "12 derniers mois", "428,7 Md€")])
+    rangee(c, 905, [('ok', "Sur 4 ans", "+11,8" + NB + "%/an"), ('ok', "Dernier trimestre", "+25" + NB + "%"), ('ok', "12 derniers mois", md(471.097))])
     src(c, "Source : Alphabet, 10-K et communiqués. Exercices = années civiles.", 1030)
     pied(cv, c, "En 4 ans, le chiffre d'affaires a gagné 56 %. Et la croissance accélère : +25 % au dernier trimestre, 13e trimestre d'affilée au-dessus de +10 %. "
          "Le Cloud a doublé en un an.", 'court', "Ça accélère !", 1060)
@@ -117,7 +127,7 @@ def s_flux(cv, c):
     picto(cv, 'magnify', 60, 470+v['se']*k/2-60, 40, CL_LIME); picto(cv, 'cloud-outline', 336+13, 1060+v['cl']*k+150, 46, CL_TEAL)
     picto(cv, 'server', 659, 1378, 36, CL_RED); picto(cv, 'flask-outline', 815, 900+v['ch']*k+205, 40, CL_RED)
     picto(cv, 'cash-multiple', 1030, 528, 36, CL_GREEN)
-    source(c, "Source : Alphabet, résultats du 28/10/2026", 1440, CX, 18); source(c, "(CA 127,6 Md$). 1 € = 1,0990 $ (BCE, 20/11).", 1462, CX, 18)
+    source(c, "Source : Alphabet, résultats du 28/10/2026", 1440, CX, 18); source(c, "(CA 127,6 Md$). 1 € = "+fmt(R, 4)+" $ (BCE, "+JOUR+").", 1462, CX, 18)
     text(c, "Mise en page inspirée de App Economy Insights (How They Make Money)", 600, 1488, 'sb', 17, CL_GREY, 'c')
     coin(cv, 'neutre', 105, 1450, 240)
 
@@ -128,7 +138,7 @@ def s_rentab(cv, c):
     graphique(c, [str(y) for y in range(2021, 2026)], [e(x) for x in (76.033, 59.972, 73.795, 100.118, 132.170)], 80, 1000, 690, 430,
               courbe=[29.5, 21.2, 24.0, 28.6, 32.8], cbase=860, ctop=790, couleur=CL_GREEN)
     text(c, "Marge nette", 80, 752, 'xb', 21, CL_TEAL, 'l')
-    rangee(c, 880, [('ok', "BPA 2025", "9,84 €", "×1,9 depuis 2021"), ('neutre', "PER*", "24,2", "cours ÷ bénéfice par action, 12 mois")])
+    rangee(c, 880, [('ok', "BPA 2025", fmt(e(10.81), 2)+NB+"€", "×1,9 depuis 2021"), ('neutre', "PER*", fmt(PER, 1), "cours ÷ bénéfice par action, 12 mois")])
     src(c, "* Hors réévaluation de SpaceX et d'Anthropic : 99 Md$ de bénéfice sur papier en 9 mois. Avec elle,", 995)
     src(c, "le PER tombe à 13,9 et donne une image trompeuse. Source : Alphabet, 10-K et communiqués.", 1019)
     pied(cv, c, "Sur 100 € de ventes, Alphabet garde 33 € de bénéfice net en 2025. Le creux de 2022 : des pertes sur ses placements (après 12 Md$ de gains en 2021) et des coûts en hausse.",
@@ -139,13 +149,13 @@ def s_solid(cv, c):
     titre_clair(c, "LA", "SOLIDITÉ", "Bilan au 30/09/2026, flux sur 12 mois")
     carte(c, 40, 345, 1000, 625)
     famille(c, "BILAN", ['ok', 'ko'], 80, 385)
-    tuile(c, 70, 410, 460, 'ok', "Trésorerie nette", "+126 Md€", "dont 68 d'actions SpaceX", fond='F5F3EE')
-    tuile(c, 550, 410, 460, 'ko', "Dette", "115 Md€", "×2,7 depuis janvier", fond='F5F3EE')
+    tuile(c, 70, 410, 460, 'ok', "Trésorerie nette", "+"+md(138.980, 0), "dont "+fmt(e(75.2), 0)+" d'actions SpaceX", fond='F5F3EE')
+    tuile(c, 550, 410, 460, 'ko', "Dette", md(126.118, 0), "×2,7 depuis janvier", fond='F5F3EE')
     famille(c, "ARGENT GÉNÉRÉ", ['ko', 'neutre'], 80, 535)
-    tuile(c, 70, 560, 460, 'ko', "Flux de trésorerie libre", "−8,2 Md€", "au T3, 2e négatif", fond='F5F3EE')
-    tuile(c, 550, 560, 460, 'neutre', "Sur 12 mois", "+18,0 Md€", "66,7 Md€ en 2025", fond='F5F3EE')
+    tuile(c, 70, 560, 460, 'ko', "Flux de trésorerie libre", "−"+md(9.065), "au T3, 2e négatif", fond='F5F3EE')
+    tuile(c, 550, 560, 460, 'neutre', "Sur 12 mois", "+"+md(19.747), md(73.266)+" en 2025", fond='F5F3EE')
     famille(c, "INVESTISSEMENTS", ['ko'], 80, 685)
-    tuile(c, 70, 710, 940, 'ko', "Prévision 2026 : deux fois plus qu'en 2025, encore plus en 2027", "177 à 187 Md€", "(195 à 205 Md$)", fond='F5F3EE')
+    tuile(c, 70, 710, 940, 'ko', "Prévision 2026 : deux fois plus qu'en 2025, encore plus en 2027", fmt(e(195), 0)+" à "+md(205, 0), "(195 à 205 Md$)", fond='F5F3EE')
     for j, l in enumerate(["Trésorerie nette = cash − dettes.", "Flux de trésorerie libre = l'argent qui reste après les investissements.",
                            "Investissements = centres de données, serveurs, puces."]):
         text(c, l, 80, 855+j*40, 'sb', 23, CL_GREY, 'l')
@@ -160,8 +170,8 @@ def s_div(cv, c):
     graphique(c, ["2024", "2025", "2026*"], [e(x) for x in (0.60, 0.83, 0.87)], 120, 960, 700, 450, couleur=CL_GOLD,
               fmt_b=lambda v: fmt(v, 2)+NB+'€', bw=170, hachure=(2,))
     text(c, "* dont 0,22 $ versé le 14/12. Premier dividende de l'histoire en juin 2024.", 70, 752, 'sb', 18, CL_GREY, 'l')
-    rangee(c, 795, [('ok', "+5 % par an", "0,22 $", "par trimestre"), ('neutre', "Rendement (20/11)", "0,3" + NB + "%", "0,88 $ par an")])
-    rangee(c, 901, [('ko', "Rachats 2026", "0 €", "41,6 Md€ en 2025"), ('ko', "Nombre d'actions", "+1,7" + NB + "%", "depuis janvier")])
+    rangee(c, 795, [('ok', "+5 % par an", "0,22 $", "par trimestre"), ('neutre', "Rendement ("+JOUR+")", fmt(0.88/PA*100, 1)+NB+"%", "0,88 $ par an")])
+    rangee(c, 901, [('ko', "Rachats 2026", "0 €", md(45.709)+" en 2025"), ('ko', "Nombre d'actions", "+1,7" + NB + "%", "depuis janvier")])
     pied(cv, c, "Le dividende monte, mais il reste petit. Le vrai changement : Alphabet ne rachète plus ses actions, elle en émet. Environ 50 Md$ levés en juin, "
          "dont 10 Md$ par Berkshire Hathaway. Action américaine : compte-titres, pas de PEA.", 'haussement', "Elle n'en rachète plus,|elle en émet !", 1030)
 
@@ -172,14 +182,14 @@ def s_rivaux(cv, c):
     xs = [165, 415, 665, 915]
     for x, (kk, w) in zip(xs, [('ALPH_complet', 180), ('MSFT_complet', 190), ('META_complet', 170), ('AMZN_complet', 95)]): logo_plein(cv, kk, x-w/2, 405, w)
     text(c, "INVESTISSEMENTS POUR 100 € DE VENTES", 80, 470, 'xb', 21, CL_GREY, 'l', 1, 3)
-    graphique(c, ["", "", "", ""], [40.3, 42.7, 54.0, 38.3], 40, 1040, 700, 530, couleur=CL_GOLD, fmt_b=lambda v: fmt(v, 0)+NB+'€', bw=130)
+    graphique(c, ["", "", "", ""], [c_/v_*100 for c_, v_ in ((51.355, 127.577), (39.367, 92.3), (33.942, 64.601), (77.259, 201.944))], 40, 1040, 700, 530, couleur=CL_GOLD, fmt_b=lambda v: fmt(v, 0)+NB+'€', bw=130)
     for lab, vals, cols_, y in [("CROISSANCE SUR UN AN", ["+25" + NB + "%", "+19" + NB + "%", "+26" + NB + "%", "+12" + NB + "%"], [CL_GREEN]*4, 765),
                                 ("MARGE D'EXPLOITATION", ["32" + NB + "%", "50" + NB + "%", "20" + NB + "%*", "14" + NB + "%"], [CL_INK]*4, 865)]:
         text(c, lab, 80, y, 'xb', 21, CL_GREY, 'l', 1, 3)
         for x, vv, cc in zip(xs, vals, cols_): text(c, vv, x, y+48, 'k', 40, cc, 'c')
-    src(c, "Sources : résultats publiés. Investissements = achats d'immobilisations (Meta : y compris", 995)
-    src(c, "location-financement). * Meta : 35 % hors charge judiciaire de 9,9 Md$.", 1019)
-    pied(cv, c, "Les quatre géants réinvestissent 38 à 54 € pour 100 € de ventes. Alphabet croît plus vite que Microsoft et Amazon, avec une marge plus faible que Microsoft.",
+    src(c, "Sources : résultats publiés. Investissements = achats d'immobilisations (tableau des flux).", 995)
+    src(c, "* Meta : 35 % hors charge judiciaire de 9,9 Md$.", 1019)
+    pied(cv, c, "Les quatre géants réinvestissent 38 à 53 € pour 100 € de ventes. Alphabet croît plus vite que Microsoft et Amazon, avec une marge plus faible que Microsoft.",
          'reflechit', "Tous dans la même course !", 1050)
 
 # ---------- 9. ce qu'il faut surveiller ----------

@@ -18,7 +18,7 @@ Accroche validée : C (le paradoxe), B en sous-ligne.
 - Barres de pourcentage, une seule colonne large « D'OÙ VIENT L'ARGENT » : Recherche Google 49,7 % · Cloud 24,1 % · Abonnements, Play, appareils 11,2 % · Publicité YouTube 8,8 % · Réseau publicitaire 5,8 % · Autres (Waymo…) 0,4 %.
 - Rangée de tuiles : – En bourse depuis 2004 · – Capitalisation ≈ 2 970 Md€ (≈ 3 260 Md$) · ✗ Cours (20/11) 241,39 € (265,29 $).
 - Source : « Alphabet, communiqué du 28/10/2026 ; cours GOOGL (classe A) ; 1 € = 1,0990 $ (BCE, 20/11). »
-- Encadré : « La moitié des ventes vient encore de la recherche Google. Mais le Cloud pèse déjà un quart du total, contre moins d'un dixième en 2021. Alphabet détient aussi environ 10 % d'Anthropic, entrée en bourse cette semaine. »
+- Encadré : « La moitié des ventes vient encore de la recherche Google. Mais le Cloud pèse déjà un quart du total, contre moins d'un dixième en 2021. Alphabet détient aussi 13,7 % d'Anthropic, entrée en bourse le 19 novembre. »
 - Mister Coin : `loupe` ; bulle : « Pas que Google ! »
 
 ## 3. Croissance
@@ -70,10 +70,10 @@ Accroche validée : C (le paradoxe), B en sous-ligne.
 ## 8. Face à ses rivaux
 - Titre : FACE À SES RIVAUX ; sous-titre « Trimestre clos le 30/09/2026 pour les quatre »
 - Logos : Alphabet · Microsoft · Meta · Amazon.
-- Graphique en barres : investissements / chiffre d'affaires du trimestre : 40 % · 43 % · 54 % · 38 %.
+- Graphique en barres : investissements / chiffre d'affaires du trimestre : 40 % · 43 % · 53 % · 38 %.
 - Lignes chiffrées : CROISSANCE SUR UN AN +25 % · +19 % · +26 % · +12 % ; MARGE D'EXPLOITATION 32 % · 50 % · 20 %* · 14 %.
-- Sources : « Résultats publiés. Investissements = achats d'immobilisations (Meta : y compris location-financement). » / « * Meta : 35 % hors charge judiciaire de 9,9 Md$. »
-- Encadré : « Les quatre géants réinvestissent environ 40 € ou plus pour 100 € de ventes. Alphabet croît plus vite que Microsoft et Amazon, avec une marge plus faible que Microsoft. »
+- Sources : « Résultats publiés. Investissements = achats d'immobilisations (tableau des flux). » / « * Meta : 35 % hors charge judiciaire de 9,9 Md$. »
+- Encadré : « Les quatre géants réinvestissent 38 à 53 € pour 100 € de ventes. Alphabet croît plus vite que Microsoft et Amazon, avec une marge plus faible que Microsoft. »
 - Mister Coin : `reflechit` ; bulle : « Tous dans la même course ! »
 
 ## 9. Ce qu'il faut surveiller

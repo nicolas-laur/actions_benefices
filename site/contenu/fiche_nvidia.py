@@ -4,6 +4,7 @@ from composants import *
 META = dict(slug='nvidia', titre='Que vaut Nvidia ?', nom='Nvidia', date='2026-11-21', date_txt='21/11/2026', chiffres_au='20/11/2026',
             # comptes : à mettre à jour après chaque publication trimestrielle (site/outils/MAJ_FICHES.md)
             comptes="trimestre de fin juillet à fin octobre 2026", comptes_officiel="3e trimestre de l'exercice 2027, clos le 25/10/2026 (année comptable de Nvidia : février à janvier)", comptes_publies='2026-11-17',
+            annee=2026, trimestre=3, version='2026-t3',   # trimestre civil des comptes (milieu de la période), sert à l'historique
             prochains_resultats='2027-02-28', prochains_txt='fin février 2027 (date pas encore annoncée)', ticker='nvda',
             description="Fiche entreprise Nvidia : croissance, rentabilité, solidité, dividende et PER face à AMD et Broadcom (recalculé chaque soir), comptes du 3e trimestre 2026, sources en lien.",
             accroche="−14 % vendredi, plus bas depuis mai 2025, premiers résultats sans Jensen Huang et une enquête de la SEC : on remet les chiffres à plat.",
@@ -13,12 +14,13 @@ def e(x): return x/EUR
 
 # ---- ce qui bouge chaque soir avec le cours (site/cours.py) ; BPA, dividende et actions : derniers comptes publiés ----
 from cours import cours, taux, per, fr_per, fr_var, jj_mm, jj_mm_aaaa
+FIGE = False   # True dans la copie archivée d'une version (site/outils/MAJ_FICHES.md) : cours et taux gelés aux valeurs ci-dessous
 BPA12 = {'nvda': 9.31, 'avgo': 7.83, 'amd': 4.60}     # BPA dilué des 4 derniers trimestres publiés, en $ (sources.md)
 ACTIONS = 24.1                                         # milliards d'actions (moyenne diluée du 3e trimestre)
 DIV_AN = 1.00                                          # dividende annuel actuel, 4 × 0,25 $
-CN = cours('nvda', 125.53, '2026-11-20', -14.01)
-CR = {'avgo': cours('avgo', 304.65, '2026-11-20'), 'amd': cours('amd', 424.3, '2026-11-20')}
-TX, TX_DATE = taux(1.0990, '2026-11-20')
+CN = cours('nvda', 125.53, '2026-11-20', -14.01, fige=FIGE)
+CR = {'avgo': cours('avgo', 304.65, '2026-11-20', fige=FIGE), 'amd': cours('amd', 424.3, '2026-11-20', fige=FIGE)}
+TX, TX_DATE = taux(1.0990, '2026-11-20', fige=FIGE)
 JOUR = jj_mm(CN['date'])
 PER_N = per(CN['c'], BPA12['nvda'])
 PER_R = {k: per(v['c'], BPA12[k]) for k, v in CR.items()}
@@ -153,11 +155,11 @@ def corps(R):
     S.append(f'<section class="section" id="sources"><h3 style="font-size:22px">Sources et méthode</h3><ul style="margin:0;padding-left:20px;line-height:1.9;font-size:15px">{src}</ul>'
              '<p class="gris petit" style="margin:0">Ratios calculés par Actions Bénéfices : marge nette = résultat net ÷ chiffre d\'affaires ; PER = cours ÷ bénéfice par action des 12 derniers mois ; '
              'BPA et dividendes ajustés des divisions d\'actions. Comptes convertis au taux de référence BCE du 20/11/2026 ; cours, capitalisation, PER et rendement recalculés chaque soir avec le dernier cours de clôture et le dernier taux BCE. Le détail de chaque chiffre est dans le fichier de sources de l\'épisode.</p></section>')
-    toc = ''.join(f'<a href="#s{i}">{x}</a>' for i, x in enumerate(['Identité', 'Croissance', "D'où vient l'argent", 'Rentabilité', 'Solidité', 'Dividende', 'Rivaux', 'À surveiller'], 1))
+    toc = ''.join(f'<a href="#s{i}">{x}</a>' for i, x in enumerate(['Identité', 'Croissance', "D'où vient l'argent", 'Rentabilité', 'Solidité', 'Dividende', 'Rivaux', 'À surveiller'], 1)) + '<a href="#historique">Historique</a>'
     tete = (f'<p class="fil"><a href="{R}fiches/">Fiches entreprises</a> › {m["nom"]}</p><div class="hero"><div>'
             f'<img src="{R}assets/img/nvda.png" alt="Nvidia" style="height:40px;width:auto;align-self:flex-start">'
             f'<h1>QUE VAUT <em>NVIDIA ?</em></h1><p class="chapo">{m["accroche"]}</p>'
-            f'<div class="pastilles"><span title="{m['comptes_officiel']}"><b>Comptes du {m["comptes"]}</b>, publiés le {jj_mm_aaaa(m["comptes_publies"])}</span><span><b>Cours et PER au {jj_mm_aaaa(CN["date"])}</b>, recalculés chaque soir</span>'
+            f'<div class="pastilles"><span title="{m['comptes_officiel']}"><b>Comptes du {m["comptes"]}</b>, publiés le {jj_mm_aaaa(m["comptes_publies"])}</span><span><b>Cours et PER au {jj_mm_aaaa(CN["date"])}</b>, {'recalculés chaque soir' if not FIGE else 'figés (version archivée)'}</span>'
             f'<span>Prochaine mise à jour des comptes : après les résultats de {m["prochains_txt"]}</span><span class="alerte">Je détiens des actions Nvidia</span></div></div>'
             f'<img src="{R}assets/img/loupe.webp" alt="Mister Coin examine les comptes à la loupe"></div>'
             + grille(tuile('ok', "Chiffre d'affaires 12 mois", '329 Md€', '+103 % au dernier trimestre'), tuile('ok', 'Marge nette', '56 %', 'exercice 2026'),

@@ -12,14 +12,15 @@ except Exception: _D = {}
 def jj_mm(iso): return dt.date.fromisoformat(iso).strftime('%d/%m')
 def jj_mm_aaaa(iso): return dt.date.fromisoformat(iso).strftime('%d/%m/%Y')
 
-def taux(defaut, date_defaut):
+def taux(defaut, date_defaut, fige=False):
     """(1 € = x $, date ISO) : BCE du dernier jour publié, sinon la valeur figée de la fiche"""
-    b = _D.get('bce')
+    b = None if fige else _D.get('bce')
     return (b['usd'], b['date']) if b and b.get('usd') else (defaut, date_defaut)
 
-def cours(ident, defaut, date_defaut, var_defaut=None):
-    """dict(c=cours en $, date ISO, var=% de la dernière séance) : dernier cours de clôture, sinon la valeur figée"""
-    c = _D.get('cours', {}).get(ident)
+def cours(ident, defaut, date_defaut, var_defaut=None, fige=False):
+    """dict(c=cours en $, date ISO, var=% de la dernière séance) : dernier cours de clôture, sinon la valeur figée.
+    fige=True (version archivée d'une fiche) : toujours la valeur figée, celle du dernier soir où cette version était la fiche à jour."""
+    c = None if fige else _D.get('cours', {}).get(ident)
     if c and c.get('c') and c.get('date', '') >= date_defaut: return c
     return dict(c=defaut, date=date_defaut, var=var_defaut)
 

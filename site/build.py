@@ -20,7 +20,41 @@ SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
                   ('videos/', 'Vidéos')],
             tiktok='https://www.tiktok.com/@actions_bnfices', instagram='https://www.instagram.com/actions_benefices/',
             lettre_action=None)  # adresse du formulaire Brevo une fois le compte ouvert
-FICHES = [fiche_nvidia]
+# une entrée par entreprise : ses versions trimestrielles, la plus récente d'abord (versions archivées : site/outils/MAJ_FICHES.md)
+ENTREPRISES = [[fiche_nvidia]]
+FICHES = [v[0] for v in ENTREPRISES]      # versions à jour (liste des fiches, accueil)
+MOIS_T = {1: 'janvier à mars', 2: 'avril à juin', 3: 'juillet à septembre', 4: 'octobre à décembre'}
+
+def historique(versions, r, actuelle):
+    """section « Historique des comptes » d'une fiche : une sous-section par année, un bloc par trimestre civil"""
+    ans = {}
+    for v in versions: ans.setdefault(v.META['annee'], []).append(v)
+    blocs = ''
+    for an in sorted(ans, reverse=True):
+        lignes = ''
+        for v in sorted(ans[an], key=lambda v: -v.META['trimestre']):
+            m = v.META; ici = v is actuelle; a_jour = v is versions[0]
+            lien = f'{r}fiches/{m["slug"]}/' + ('' if a_jour else f'{m["version"]}/')
+            etat = '<span class="badge or">Version à jour</span>' if a_jour else '<span class="badge">Archivée</span>'
+            titre = f'T{m["trimestre"]} {an}'
+            lignes += (f'<li class="hist-t{" ici" if ici else ""}"><div><b>{titre}</b> {etat}{" <span class=\"gris petit\">(cette page)</span>" if ici else ""}</div>'
+                       f'<span class="gris">Comptes du {m["comptes"]}, publiés le {m["comptes_publies"][8:10]}/{m["comptes_publies"][5:7]}/{m["comptes_publies"][:4]}</span>'
+                       + ('' if ici else f'<a href="{lien}">Voir cette version →</a>') + '</li>')
+        blocs += f'<div class="hist-an"><h4>{an}</h4><ul>{lignes}</ul></div>'
+    return (f'<section class="section" id="historique"><h3 style="font-size:22px">Historique des comptes</h3>'
+            f'<p class="gris" style="margin:0 0 14px">La fiche est mise à jour après chaque publication de résultats. Les trimestres sont ceux du calendrier '
+            f'({", ".join(f"T{k} : {x}" for k, x in MOIS_T.items())}), quel que soit l\'exercice comptable de l\'entreprise. Chaque version passée reste consultable, avec ses chiffres et son cours de l\'époque.</p>'
+            f'{blocs}</section>')
+
+def page_fiche(versions, v):
+    """corps d'une version de fiche : bandeau si archivée, contenu, historique"""
+    def corps(r):
+        m = v.META; tete = ''
+        if v is not versions[0]:
+            tete = (f'<p class="carte" style="padding:14px 20px;border-color:var(--filet-or)">Version archivée : comptes du T{m["trimestre"]} {m["annee"]} ({m["comptes"]}), '
+                    f'cours figé au {v.CN["date"][8:10]}/{v.CN["date"][5:7]}/{v.CN["date"][:4]}. <a href="{r}fiches/{m["slug"]}/">Voir la fiche à jour →</a></p>')
+        return tete + v.corps(r) + historique(versions, r, v)
+    return corps
 # rappel du processus trimestriel (site/outils/MAJ_FICHES.md) : la tâche du soir relaie ces alertes à Nicolas
 import datetime as _dt
 for _m in FICHES:
@@ -290,8 +324,11 @@ def construire():
     page('/', SITE['nom'], "Comprendre la bourse sans jargon avec Mister Coin : fiches entreprises, News de la semaine, lexique et calculateurs. Contenu pédagogique.",
          lambda r: accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_), sans_lettre=True)
     page('/fiches/', 'Fiches entreprises', "Les comptes des grandes entreprises remis à plat, en euros, sources en lien.", fiches, 'fiches/')
-    for m in FICHES:
-        page(f'/fiches/{m.META["slug"]}/', m.META['titre'], m.META['description'], m.corps, 'fiches/', image_og=m.META['logo'])
+    for vs in ENTREPRISES:
+        for m in vs:
+            chemin = f'/fiches/{m.META["slug"]}/' + ('' if m is vs[0] else f'{m.META["version"]}/')
+            page(chemin, m.META['titre'] + ('' if m is vs[0] else f' (T{m.META["trimestre"]} {m.META["annee"]})'), m.META['description'], page_fiche(vs, m), 'fiches/',
+                 image_og=m.META['logo'], **({} if m is vs[0] else dict(noindex=True)))
     page('/news/', 'Les News', "La semaine en bourse en 5 actus, chaque vendredi.", news_liste, 'news/')
     for n in NEWS: page(f'/news/{n["slug"]}/', f'Les News du {n["date_txt"]} : {n["titre"]}', n['chapo'], news_page(n), 'news/', image_og=f'../news/{n["slug"]}/01.webp')
     page('/lexique/', 'Lexique de la bourse', "PEA, CTO, ETF, PFU, PER… les sigles de la bourse expliqués simplement.", lex_liste, 'lexique/')

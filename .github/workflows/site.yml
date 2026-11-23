@@ -30,7 +30,7 @@ jobs:
             # dernier relevé gardé sur la branche « donnees » (un seul commit, écrasé chaque nuit)
             cd site/donnees && git init -q -b donnees && git add marches.json \
               && git -c user.name="actions_benefices" -c user.email="actions@github.com" commit -q -m "Relevé des marchés" \
-              && git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" donnees && rm -rf .git
+              && { git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" donnees || echo "::warning::sauvegarde du relevé sur la branche donnees impossible (sans effet sur le site)"; } ; rm -rf .git
           else
             echo "::warning::Yahoo Finance indisponible : on reprend le dernier relevé"
             mkdir -p site/donnees && git fetch -q origin donnees && git show origin/donnees:marches.json > site/donnees/marches.json || rm -f site/donnees/marches.json

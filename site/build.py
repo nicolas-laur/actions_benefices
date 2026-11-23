@@ -58,6 +58,11 @@ def page_fiche(versions, v):
 # rappel du processus trimestriel (site/outils/MAJ_FICHES.md) : la tâche du soir relaie ces alertes à Nicolas
 import datetime as _dt
 for _m in FICHES:
+    _j = (_dt.date.fromisoformat(_m.META['prochains_resultats']) - _dt.date.today()).days
+    if not _m.META.get('date_confirmee') and _j <= 60:
+        print(f"RAPPEL fiche {_m.META['nom']} : date des prochains résultats à confirmer ({_m.META['prochains_txt']}), chercher l'annonce officielle")
+    if 0 <= _j <= 7:
+        print(f"RAPPEL fiche {_m.META['nom']} : résultats dans {_j} jour(s), le {_m.META['prochains_resultats'][8:10]}/{_m.META['prochains_resultats'][5:7]} ; prévoir la session de mise à jour")
     if _dt.date.today().isoformat() > _m.META['prochains_resultats']:
         print(f"ALERTE fiche {_m.META['nom']} : résultats attendus ({_m.META['prochains_txt']}) passés, comptes à mettre à jour (site/outils/MAJ_FICHES.md)")
 SORTIE = ICI/'_site'

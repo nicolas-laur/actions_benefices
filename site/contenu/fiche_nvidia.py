@@ -5,7 +5,7 @@ META = dict(slug='nvidia', titre='Que vaut Nvidia ?', nom='Nvidia', date='2026-1
             # comptes : à mettre à jour après chaque publication trimestrielle (site/outils/MAJ_FICHES.md)
             comptes="trimestre de fin juillet à fin octobre 2026", comptes_officiel="3e trimestre de l'exercice 2027, clos le 25/10/2026 (année comptable de Nvidia : février à janvier)", comptes_publies='2026-11-17',
             annee=2026, trimestre=3, version='2026-t3',   # trimestre civil des comptes (milieu de la période), sert à l'historique
-            prochains_resultats='2027-02-28', prochains_txt='fin février 2027 (date pas encore annoncée)', ticker='nvda',
+            prochains_resultats='2027-02-28', date_confirmee=False, prochains_txt='fin février 2027 (date pas encore annoncée)', ticker='nvda',
             description="Fiche entreprise Nvidia : croissance, rentabilité, solidité, dividende et PER face à AMD et Broadcom (recalculé chaque soir), comptes du 3e trimestre 2026, sources en lien.",
             accroche="−14 % vendredi, plus bas depuis mai 2025, premiers résultats sans Jensen Huang et une enquête de la SEC : on remet les chiffres à plat.",
             detient=True, pose='loupe', logo='nvda.png')

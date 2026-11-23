@@ -24,5 +24,5 @@ Procédure suivie par la tâche planifiée du soir (créée le 22/11/2026) pour 
 - S'il n'y a rien de nouveau : aucun commit.
 
 ## 5. Compte rendu
-Si `python3 site/build.py` affiche une ligne « ALERTE fiche … », la recopier telle quelle dans le compte rendu : des résultats trimestriels sont sortis et la fiche attend sa mise à jour (`site/outils/MAJ_FICHES.md`, session dédiée avec Nicolas).
+Si `python3 site/build.py` affiche une ligne « RAPPEL fiche … date à confirmer », chercher la date officielle des prochains résultats et, si elle est annoncée par l'entreprise, mettre à jour `prochains_resultats`, `date_confirmee=True` et `prochains_txt` dans la fiche (lien de l'annonce dans le message de commit), puis le signaler. Recopier les autres lignes « RAPPEL » telles quelles. Si `python3 site/build.py` affiche une ligne « ALERTE fiche … », la recopier telle quelle dans le compte rendu : des résultats trimestriels sont sortis et la fiche attend sa mise à jour (`site/outils/MAJ_FICHES.md`, session dédiée avec Nicolas).
 Un message court à Nicolas : publications ajoutées (date, titre, plateformes), ce qui manque (couverture, page News, lien d'une plateforme) et le résultat du déploiement. Rien de nouveau : une ligne suffit.

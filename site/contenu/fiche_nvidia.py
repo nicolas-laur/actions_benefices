@@ -3,7 +3,7 @@ from composants import *
 
 META = dict(slug='nvidia', titre='Que vaut Nvidia ?', nom='Nvidia', date='2026-11-21', date_txt='21/11/2026', chiffres_au='20/11/2026',
             # comptes : à mettre à jour après chaque publication trimestrielle (site/outils/MAJ_FICHES.md)
-            comptes="3e trimestre de l'exercice 2027 (clos le 25/10/2026)", comptes_publies='2026-11-17',
+            comptes="trimestre de fin juillet à fin octobre 2026", comptes_officiel="3e trimestre de l'exercice 2027, clos le 25/10/2026 (année comptable de Nvidia : février à janvier)", comptes_publies='2026-11-17',
             prochains_resultats='2027-02-28', prochains_txt='fin février 2027 (date pas encore annoncée)', ticker='nvda',
             description="Fiche entreprise Nvidia : croissance, rentabilité, solidité, dividende et PER face à AMD et Broadcom (recalculé chaque soir), comptes du 3e trimestre 2026, sources en lien.",
             accroche="−14 % vendredi, plus bas depuis mai 2025, premiers résultats sans Jensen Huang et une enquête de la SEC : on remet les chiffres à plat.",
@@ -157,7 +157,7 @@ def corps(R):
     tete = (f'<p class="fil"><a href="{R}fiches/">Fiches entreprises</a> › {m["nom"]}</p><div class="hero"><div>'
             f'<img src="{R}assets/img/nvda.png" alt="Nvidia" style="height:40px;width:auto;align-self:flex-start">'
             f'<h1>QUE VAUT <em>NVIDIA ?</em></h1><p class="chapo">{m["accroche"]}</p>'
-            f'<div class="pastilles"><span><b>Comptes du {m["comptes"]}</b>, publiés le {jj_mm_aaaa(m["comptes_publies"])}</span><span><b>Cours et PER au {jj_mm_aaaa(CN["date"])}</b>, recalculés chaque soir</span>'
+            f'<div class="pastilles"><span title="{m['comptes_officiel']}"><b>Comptes du {m["comptes"]}</b>, publiés le {jj_mm_aaaa(m["comptes_publies"])}</span><span><b>Cours et PER au {jj_mm_aaaa(CN["date"])}</b>, recalculés chaque soir</span>'
             f'<span>Prochaine mise à jour des comptes : après les résultats de {m["prochains_txt"]}</span><span class="alerte">Je détiens des actions Nvidia</span></div></div>'
             f'<img src="{R}assets/img/loupe.webp" alt="Mister Coin examine les comptes à la loupe"></div>'
             + grille(tuile('ok', "Chiffre d'affaires 12 mois", '329 Md€', '+103 % au dernier trimestre'), tuile('ok', 'Marge nette', '56 %', 'exercice 2026'),

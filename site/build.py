@@ -84,7 +84,7 @@ def bandeau(r):
 # ---------- fiches ----------
 def fiches(r):
     return (entete('Une entreprise, ses chiffres', 'FICHES', 'ENTREPRISES', "Croissance, rentabilité, solidité, dividende et rivaux : les comptes remis à plat, en euros, sources en lien. Aucun verdict, aucun objectif de cours.", 'loupe', r)
-            + grille(*[vignette(r, f'fiches/{m.META["slug"]}/', 'Fiche n°' + str(i+1), m.META['titre'], m.META['accroche'], 'Comptes au ' + m.META['comptes'].split(' (')[0].replace("de l'exercice", 'exercice') + ' · cours et PER du soir', logo=m.META['logo'])
+            + grille(*[vignette(r, f'fiches/{m.META["slug"]}/', 'Fiche n°' + str(i+1), m.META['titre'], m.META['accroche'], 'Comptes du ' + m.META['comptes'] + ' · cours et PER du soir', logo=m.META['logo'])
                        for i, m in enumerate(FICHES)], mn=320))
 
 # ---------- news ----------

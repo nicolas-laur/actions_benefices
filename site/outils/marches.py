@@ -3,6 +3,7 @@ Lancé chaque nuit par le workflow .github/workflows/site.yml avant la construct
 Cours de clôture ajustés des divisions d'actions mais PAS des dividendes (performances « hors dividendes »), en devise locale.
 Le site n'affiche que des variations et des performances calculées (base 100), pas de flux de cours brut."""
 import json, math, os, sys, datetime as dt
+from zoneinfo import ZoneInfo
 import pandas as pd
 import yfinance as yf
 
@@ -93,6 +94,9 @@ def main():
     cours = {}
     for k in COURS:
         c = h[SERIES[k][0]].dropna() if SERIES[k][0] in h else []
+        # séance new-yorkaise pas encore close (lancement à la main en journée) : on garde la dernière clôture, pas un cours en direct
+        ny = dt.datetime.now(ZoneInfo('America/New_York'))
+        if len(c) and c.index[-1].date() == ny.date() and (ny.hour, ny.minute) < (16, 30): c = c.iloc[:-1]
         if len(c) < 2: continue
         cours[k] = dict(c=round(float(c.iloc[-1]), 2), date=c.index[-1].strftime('%Y-%m-%d'), var=round(100 * (c.iloc[-1] / c.iloc[-2] - 1), 2))
     out = dict(maj=dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'), source='Yahoo Finance', dates=dates, series=series, bandeau=band,

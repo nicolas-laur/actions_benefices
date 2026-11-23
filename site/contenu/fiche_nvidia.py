@@ -82,6 +82,7 @@ SOURCES = [("Nvidia, résultats du 3e trimestre de l'exercice 2027 (17/11/2026)"
            ("Nvidia, résultats de l'exercice 2026", "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-Financial-Results-for-Fourth-Quarter-and-Fiscal-2026"),
            ("Nvidia, rachat d'actions relevé de 150 Md$ (28/09/2026)", "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-a-150-Billion-Share-Repurchase-Authorization-Increase/"),
            ("Motley Fool, la séance du 20/11/2026", "https://www.fool.com/investing/2026/11/20/here-is-why-nvidia-stock-crashed-on-friday/"),
+           ("CNBC, Jensen Huang réintégré comme PDG (23/11/2026)", "https://www.cnbc.com/2026/11/23/anthropic-nvidia-shares.html"),
            ("Yahoo Finance, enquête de la SEC (Reuters, WSJ)", "https://finance.yahoo.com/markets/article/nvidia-stock-extends-25-trillion-rout-as-sec-probe-reportedly-investigates-its-accounting-194945274.html"),
            ("AMD, résultats du 3e trimestre 2026", "https://mfn.se/all/a/advanced-micro-devices/amd-reports-third-quarter-2026-financial-results-f24509e4"),
            ("Broadcom, résultats du 3e trimestre de l'exercice 2026 (SEC)", "https://www.sec.gov/Archives/edgar/data/0001730168/000173016826000076/avgo-08022026x8kxex99.htm")]
@@ -145,7 +146,7 @@ def corps(R):
         R, 'rocking', f"Nvidia est la plus rentable des trois et, au cours du {JOUR}, {_place} par rapport à ses bénéfices. L'autre rival : les puces maison des géants du cloud (TPU de Google, Trainium d'Amazon).",
         f"* croissance du chiffre d'affaires du dernier trimestre sur un an. PER = cours de clôture du {JOUR}, recalculé chaque soir, ÷ bénéfice par action des 12 derniers mois. Trimestres clos fin octobre (Nvidia), fin septembre (AMD), début août (Broadcom)."))
     surv = ''.join(f'<li style="display:flex;flex-direction:column;padding:14px 0;border-top:1px solid {LINE}"><b style="font-size:18px">{a}</b><span class="gris">{b}</span></li>'
-                   for a, b in [("Le nouveau PDG", "Colette Kress assure l'intérim depuis le 12/11."), ("L'enquête de la SEC", "Elle porte sur les comptes : aucune conclusion à ce jour."),
+                   for a, b in [("Le retour de Jensen Huang", "Le conseil l'a réintégré comme PDG le 23/11, douze jours après sa démission."), ("L'enquête de la SEC", "Elle porte sur les comptes : aucune conclusion à ce jour."),
                                 ("Les résultats de fin février", "Nvidia vise 130 Md$ de ventes au 4e trimestre.")])
     S.append(section(8, "CE QU'IL FAUT", 'SURVEILLER', "Trois rendez-vous datés", f'<ul class="carte" style="list-style:none;margin:0;padding:4px 24px">{surv}</ul>'))
     src = ''.join(f'<li><a href="{u}">{n}</a></li>' for n, u in SOURCES)

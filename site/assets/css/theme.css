@@ -401,3 +401,8 @@ img[src*="img/nvda.png"],img[src*="img/amd.png"],img[src*="img/avgo.png"],.carte
 .hist-t>div{display:flex;gap:10px;align-items:center} .hist-t b{font-size:18px;color:#fff}
 .hist-t.ici{border-color:var(--filet-or)}
 .hist-t>span.gris{flex:1;min-width:260px}
+/* têtes de sections illustrées par Mister Coin (poses site_*) */
+.sec-tete{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.sec-tete>div{flex:1;min-width:0}
+.sec-coin{height:clamp(130px,11vw,190px);width:auto;flex:none;margin-bottom:-14px;filter:drop-shadow(0 0 24px rgba(255,194,74,.18))}
+@media (max-width:860px){.sec-coin{height:110px;margin-bottom:-6px}}

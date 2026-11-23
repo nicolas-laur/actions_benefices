@@ -143,14 +143,15 @@ def corps(R):
     rows = ''.join(f'<tr><td><img src="{R}assets/img/{lg}" alt="{n}" style="height:24px;width:auto;max-width:130px"></td>'
                    f'<td><div style="display:flex;align-items:center;gap:10px"><span style="display:block;height:14px;border-radius:7px;background:{GREEN};width:{mg/62.5*100:.0f}%;max-width:70%"></span><b>{fr(mg)} %</b></div></td>'
                    f'<td style="font-weight:700;color:{GREEN}">{g}</td><td style="font-weight:800;font-size:20px;color:{pc}">{p}</td></tr>' for n, lg, mg, g, p, pc in riv)
-    S.append(section(7, 'FACE À SES', 'RIVAUX', "12 derniers mois publiés, chiffres comptables",
+    _illus = lambda coin: (lambda *a, **k: section(*a, coin=coin, **k))   # section avec Mister Coin illustré à droite du titre
+    S.append(_illus('site_balance')(7, 'FACE À SES', 'RIVAUX', "12 derniers mois publiés, chiffres comptables",
         carte(f'<div class="tableau"><table><thead><tr><th scope="col">Entreprise</th><th scope="col">Marge nette</th><th scope="col">Croissance*</th><th scope="col">PER</th></tr></thead><tbody>{rows}</tbody></table></div>'),
         R, 'rocking', f"Nvidia est la plus rentable des trois et, au cours du {JOUR}, {_place} par rapport à ses bénéfices. L'autre rival : les puces maison des géants du cloud (TPU de Google, Trainium d'Amazon).",
         f"* croissance du chiffre d'affaires du dernier trimestre sur un an. PER = cours de clôture du {JOUR}, recalculé chaque soir, ÷ bénéfice par action des 12 derniers mois. Trimestres clos fin octobre (Nvidia), fin septembre (AMD), début août (Broadcom)."))
     surv = ''.join(f'<li style="display:flex;flex-direction:column;padding:14px 0;border-top:1px solid {LINE}"><b style="font-size:18px">{a}</b><span class="gris">{b}</span></li>'
                    for a, b in [("Le retour de Jensen Huang", "Le conseil l'a réintégré comme PDG le 23/11, douze jours après sa démission."), ("L'enquête de la SEC", "Elle porte sur les comptes : aucune conclusion à ce jour."),
                                 ("Les résultats de fin février", "Nvidia vise 130 Md$ de ventes au 4e trimestre.")])
-    S.append(section(8, "CE QU'IL FAUT", 'SURVEILLER', "Trois rendez-vous datés", f'<ul class="carte" style="list-style:none;margin:0;padding:4px 24px">{surv}</ul>'))
+    S.append(_illus('site_longue_vue')(8, "CE QU'IL FAUT", 'SURVEILLER', "Trois rendez-vous datés", R=R, corps=f'<ul class="carte" style="list-style:none;margin:0;padding:4px 24px">{surv}</ul>'))
     src = ''.join(f'<li><a href="{u}">{n}</a></li>' for n, u in SOURCES)
     S.append(f'<section class="section" id="sources"><h3 style="font-size:22px">Sources et méthode</h3><ul style="margin:0;padding-left:20px;line-height:1.9;font-size:15px">{src}</ul>'
              '<p class="gris petit" style="margin:0">Ratios calculés par Actions Bénéfices : marge nette = résultat net ÷ chiffre d\'affaires ; PER = cours ÷ bénéfice par action des 12 derniers mois ; '

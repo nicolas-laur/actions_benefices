@@ -1,5 +1,7 @@
 # Poses de Mister Coin pour le site actionsbenefices.com (23/11/2026)
 
+État au 23/11 au soir : 16 poses générées par Nicolas, détourées (`mister_coin/poses/site_*.png`, sources dans `mister_coin/src_site/`) et exportées pour le site. Reste la 16 (site_coucou), à refaire avec le prompt corrigé ci-dessous (la première version donnait trois mains et une jambe).
+
 Images fixes pour illustrer le site : en-têtes de pages, récit de l'accueil, états du quiz et des outils. Chaque pose répond à un endroit précis du site où l'on réutilise aujourd'hui une pose de carrousel faute de mieux, ou qui n'a pas d'illustration du tout.
 
 Ce qu'on a déjà, à ne pas refaire : choc, court, etoiles, facepalm, haussement, inquiet, joie, journal, loupe, montre, neutre, pouce, question, reflechit, rire, rocking, salut, sceptique, sueur, triste, assis. Écartées du site par Nicolas (jugées moches) : applaudit et doigt levé ; aucune pose ci-dessous n'en reprend le geste.
@@ -41,7 +43,7 @@ Pose:
 13. [site_ardoise] Quiz à retenter. « He holds a small blank school chalkboard in one hand and a piece of chalk in the other, kind encouraging teacher smile, head slightly tilted. »
 14. [site_megaphone] Nouveautés, News de la semaine. « He shouts happily into a vintage cone-shaped brass megaphone held in one hand, pointing it to the right, other arm raised in excitement. »
 15. [site_dort] Marchés fermés (week-end, nuit) dans le bandeau. « He sleeps standing up, leaning back slightly, arms crossed, eyes closed, peaceful smile, top hat tilted over one eye. No letters or z symbols. »
-16. [site_coucou] Bords de page et pied de page. « He peeks in from the right edge of the frame: only his left half is visible, one gloved hand gripping the edge, waving with the other hand, friendly curious face. The cut at the right edge is clean and straight. »
+16. [site_coucou] Bords de page et pied de page (je le coupe moi-même au bord de l'écran sur le site). « He leans far to his right as if peeking around a corner, whole body tilted about 30 degrees, both feet still on the ground, waving with his free hand, friendly curious face. Exactly two arms, two hands and two legs. »
 17. [site_saut_joie] Inscription réussie, confettis. « He jumps high in a joyful star jump, arms and legs spread wide, top hat lifted a little off his head, huge open smile. »
 
 ## Pour plus tard (animations Veo, si on veut les faire bouger sur le site)

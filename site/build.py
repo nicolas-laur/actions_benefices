@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 
 ICI = Path(__file__).resolve().parent
 sys.path[:0] = [str(ICI), str(ICI/'contenu')]
-from composants import tuile, grille, lecture, carte, fr
+from composants import tuile, grille, lecture, carte, fr, coin_section
 import fiche_nvidia
 from news import NEWS
 from pictos import PICTOS
@@ -98,7 +98,7 @@ def jj(d): return f'{d[8:]}/{d[5:7]}/{d[:4]}'
 def entete(surtitre, h1, mot, chapo, pose=None, r=''):
     """en-tête de page façon couverture de l'accueil : halo doré, pièces peintes en parallaxe, titre qui monte, Mister Coin en léger décalage"""
     img = f'<img class="tete-coin mq-anim" style="--i:3" data-vitesse="0.12" src="{r}assets/img/{pose}.webp" alt="Mister Coin">' if pose else ''
-    return (f'<div class="hero tete">' + flottants([(70, 10, 60, .35), (84, 90, 30, .08), (97, 32, 50, .25), (58, 94, 24, .05)], r, 1)
+    return (f'<div class="hero tete">' + flottants([(64, 84, 54, .35), (84, 90, 30, .08), (97, 32, 50, .25), (58, 94, 24, .05)], r, 1)
             + f'<div><div class="surtitre mq-anim">{surtitre}</div><h1><span class="mq-ligne"><span class="mq-mot" style="--i:1">{h1} <em>{mot}</em></span></span></h1>'
             f'<p class="chapo mq-anim" style="--i:2">{chapo}</p></div>{img}</div>')
 def vignette(r, lien, badge, titre, texte, date_txt='', pose=None, logo=None):
@@ -203,7 +203,7 @@ def lex_liste(r):
     cartes = ''.join(f'<a class="vignette terme-carte" href="{r}lexique/{e[0]}/" data-terme="{e[0]}"><span class="terme">{e[1]}</span><b>{escape(e[2])}</b>'
                      f'<span class="gris">{escape(e[3])}</span><span class="date">Voir la définition et un exemple →</span></a>' for e in LEXIQUE)
     tpl = ''.join(f'<template id="t-{e[0]}"><div class="surtitre">Lexique</div><h2 class="lex-sigle">{e[1]}</h2><p class="lex-dev">{escape(e[2])}</p>{lex_contenu(r, e, True)}</template>' for e in LEXIQUE)
-    return (entete('Les sigles de la bourse', 'LE', 'LEXIQUE', "Dix mots pour comprendre ce qu'on raconte, dont un piège. Clique sur un sigle pour sa définition et un exemple concret, puis teste-toi avec le quiz.", 'question', r)
+    return (entete('Les sigles de la bourse', 'LE', 'LEXIQUE', "Dix mots pour comprendre ce qu'on raconte, dont un piège. Clique sur un sigle pour sa définition et un exemple concret, puis teste-toi avec le quiz.", 'site_dictionnaire', r)
             + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Teste tes connaissances !</a></div>'
             + f'<div class="grille" style="--min:250px">{cartes}</div>' + tpl
             + f'<dialog class="fiche-terme" aria-label="Définition"><button class="v-fermer sombre" type="button" aria-label="Fermer">×</button><div class="fiche-corps"></div>'
@@ -219,19 +219,19 @@ def lex_page(e):
 
 # ---------- calculateurs ----------
 def calculateurs(r):
-    def bloc(ident, titre, mot, sous, champs, sortie, note):
+    def bloc(ident, titre, mot, sous, champs, sortie, note, coin=None):
         ch = ''.join(f'<div><label for="{i}">{l}</label><input id="{i}" type="number" inputmode="decimal" value="{v}" min="0" step="{st}"></div>' if typ == 'n'
                      else f'<div><label for="{i}">{l}</label><select id="{i}">{v}</select></div>' for i, l, v, st, typ in champs)
-        return (f'<section class="section" id="{ident}"><div><h2>{titre} <em>{mot}</em></h2><p class="gris" style="margin:6px 0 0">{sous}</p></div>'
+        return (f'<section class="section" id="{ident}"><div class="sec-tete"><div><h2>{titre} <em>{mot}</em></h2><p class="gris" style="margin:6px 0 0">{sous}</p></div>{coin_section(r, coin)}</div>'
                 + carte(f'<div class="pile"><div class="champs">{ch}</div><div aria-live="polite">{sortie}</div></div>') + f'<p class="source">{note}</p></section>')
     env_opt = '<option value="pea">PEA de plus de 5 ans (18,6 %)</option><option value="cto">Compte-titres (PFU 31,4 %)</option>'
-    return (entete('Fais tes calculs', 'LES', 'CALCULATEURS', "Quatre outils simples pour te faire une idée. Ce sont des simulations : aucun rendement n'est garanti.", 'reflechit', r)
+    return (entete('Fais tes calculs', 'LES', 'CALCULATEURS', "Quatre outils simples pour te faire une idée. Ce sont des simulations : aucun rendement n'est garanti.", 'site_calculatrice', r)
             + bloc('composes', 'LES INTÉRÊTS', 'COMPOSÉS', "Ce que devient une épargne placée chaque mois",
                    [('c-init', 'Départ (€)', 1000, 100, 'n'), ('c-mois', 'Chaque mois (€)', 100, 10, 'n'), ('c-taux', 'Rendement par an (%)', 7, .1, 'n'), ('c-ans', 'Durée (ans)', 30, 1, 'n')],
                    '<div class="surtitre">Capital à la fin</div><div class="resultat" id="c-res">–</div><p class="gris" id="c-det" style="margin:4px 0 0"></p>'
                    '<figure class="graph-composes"><div id="c-graph"></div><figcaption class="legende"><span><i style="background:#3FE08A"></i>Ton capital</span>'
                    '<span><i style="background:#35D6FF"></i>Ce que tu as versé</span><span class="gris">Passe la souris (ou le doigt) sur la courbe pour le détail de chaque année.</span></figcaption></figure>',
-                   "Calcul mensuel, rendement constant, avant impôts et frais. 7 % par an est une hypothèse, pas une promesse : les actions ont des années de baisse.")
+                   "Calcul mensuel, rendement constant, avant impôts et frais. 7 % par an est une hypothèse, pas une promesse : les actions ont des années de baisse.", 'site_arrosoir')
             + bloc('dividendes', 'VIVRE DE SES', 'DIVIDENDES', "Le capital nécessaire pour un revenu mensuel après impôts",
                    [('d-rev', 'Revenu voulu par mois (€)', 2000, 100, 'n'), ('d-rdt', 'Rendement du dividende (%)', 4, .1, 'n'), ('d-env', 'Enveloppe', env_opt, 0, 's')],
                    '<div class="surtitre">Capital nécessaire</div><div class="resultat" id="d-res">–</div><p class="gris" id="d-det" style="margin:4px 0 0"></p>',
@@ -242,8 +242,8 @@ def calculateurs(r):
 def performances(r):
     if not MARCHES: return ''
     per = ''.join(f'<button type="button" class="bouton clair" data-periode="{v}">{t}</button>' for v, t in (('1', '1 an'), ('5', '5 ans'), ('10', '10 ans'), ('20', '20 ans'), ('30', '30 ans'), ('max', 'Max')))
-    return (f'<section class="section" id="performances"><div><h2>LES PERFORMANCES <em>HISTORIQUES</em></h2><p class="gris" style="margin:6px 0 0">'
-            "Compare les grandes places boursières et les actions les plus connues : ce qu'est devenue une même somme placée au départ.</p></div>"
+    return (f'<section class="section" id="performances"><div class="sec-tete"><div><h2>LES PERFORMANCES <em>HISTORIQUES</em></h2><p class="gris" style="margin:6px 0 0">'
+            "Compare les grandes places boursières et les actions les plus connues : ce qu'est devenue une même somme placée au départ.</p></div>" + coin_section(r, 'site_graphique') + "</div>"
             + carte(f'<div class="pile" id="perf" data-src="{r}assets/data/marches.json"><div class="perf-choix"></div>'
                     f'<div class="pastilles perf-periodes">{per}</div><div class="perf-res"></div>'
                     '<div class="perf-zone"><div class="perf-graph" aria-live="polite">Chargement…</div><div class="perf-bulle" hidden></div></div>'
@@ -273,7 +273,7 @@ def pea_cto(r):
             "Dividendes américains : retenue de 15 % aux États-Unis, compensée par un crédit d'impôt (simulation simplifiée : il efface au plus l'impôt français). "
             "Le choix du barème vaut pour tous tes revenus de placement de l'année ; la CSG déductible n'est pas comptée. Simulation pédagogique, pas un conseil fiscal. "
             f'Sources : {liens([SP_PFU_, ("impots.gouv.fr, abattement pour durée de détention", "https://www.impots.gouv.fr/particulier/questions/jai-realise-des-plus-values-ai-je-droit-un-abattement-pour-duree-de-detention"), ("service-public.gouv.fr, revenus de placement 2026", "https://www.service-public.gouv.fr/particuliers/vosdroits/F34913"), ("BOFiP, convention France–États-Unis", "https://bofip.impots.gouv.fr/bofip/3042-PGP.html")])}.')
-    return (f'<section class="section" id="pea-cto"><div><h2>PEA OU <em>CTO ?</em></h2><p class="gris" style="margin:6px 0 0">Ce que l\'État prend sur ton gain, selon ton compte, tes actions et depuis quand tu les as</p></div>'
+    return (f'<section class="section" id="pea-cto"><div class="sec-tete"><div><h2>PEA OU <em>CTO ?</em></h2><p class="gris" style="margin:6px 0 0">Ce que l\'État prend sur ton gain, selon ton compte, tes actions et depuis quand tu les as</p></div>' + coin_section(r, 'site_tirelire') + '</div>'
             + carte(f'<div class="pile">{champs}<div aria-live="polite" class="pile" style="gap:14px">{sortie}</div></div>') + f'<p class="source">{note}</p></section>')
 
 # ---------- vidéos ----------
@@ -298,14 +298,14 @@ def videos(r):
                f'<div class="lp-onglets" role="tablist"><button type="button" role="tab" class="lp-onglet tiktok" data-plateforme="tiktok">{logo("tiktok")}TikTok</button>'
                f'<button type="button" role="tab" class="lp-onglet insta" data-plateforme="insta">{logo("instagram")}Instagram</button></div>'
                '<div class="lp-ecran"></div><p class="lp-pied"><a class="lp-ouvrir" target="_blank" rel="noopener" href="#">Ouvrir dans l\'appli ↗</a></p></dialog>')
-    return (entete('TikTok et Instagram', 'NOS', 'VIDÉOS', f"{len(VIDEOS)} vidéos et carrousels depuis le 15/10/2026. Clique sur une vignette pour la regarder ici, sur TikTok ou sur Instagram.", 'rocking', r)
+    return (entete('TikTok et Instagram', 'NOS', 'VIDÉOS', f"{len(VIDEOS)} vidéos et carrousels depuis le 15/10/2026. Clique sur une vignette pour la regarder ici, sur TikTok ou sur Instagram.", 'site_clap', r)
             + f'<div class="pastilles" style="margin-bottom:14px"><a class="bouton tiktok" href="{SITE["tiktok"]}">{logo("tiktok")}Nous suivre sur TikTok</a><a class="bouton insta" href="{SITE["instagram"]}">{logo("instagram")}Nous suivre sur Instagram</a></div>'
             + filtres + f'<p class="gris petit">Le lecteur TikTok ou Instagram ne se charge que quand tu ouvres une vidéo : ce service peut alors déposer ses propres cookies.</p>'
             + f'<div class="grille videos" style="--min:240px">{"".join(cartes)}</div>{lecteur}<script src="{r}assets/js/videos.js" defer></script>')
 
 # ---------- lettre, mentions (page Produits retirée le 22/11 tant que rien n'est proposé) ----------
 def lettre(r):
-    return (entete('Chaque dimanche matin', 'LA LETTRE', 'DU DIMANCHE', "Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Gratuite, sans publicité, désinscription en un clic.", 'lit_journal_v2_titre', r)
+    return (entete('Chaque dimanche matin', 'LA LETTRE', 'DU DIMANCHE', "Les News de la semaine, la prochaine fiche entreprise et un mot du lexique, en 5 minutes de lecture. Gratuite, sans publicité, désinscription en un clic.", 'site_enveloppe', r)
             + carte('<div class="pile" style="gap:10px"><span class="badge or">En cours de préparation</span><h3>La lettre n\'est pas encore ouverte</h3>'
                     '<p style="margin:0">On y travaille et elle arrive bientôt. En attendant, toutes nos publications sont sur TikTok et Instagram, et les News de chaque vendredi sont sur ce site.</p>'
                     f'<div class="pastilles"><a class="bouton" href="{r}news/">Lire les News</a><a class="bouton clair" href="{SITE["tiktok"]}">TikTok</a><a class="bouton clair" href="{SITE["instagram"]}">Instagram</a></div></div>'))
@@ -343,7 +343,7 @@ def construire():
     page('/lettre/', 'La lettre du dimanche', "Les News, la prochaine fiche et un mot du lexique, chaque dimanche.", lettre)
     page('/mentions-legales/', 'Mentions légales', "Mentions légales du site Actions Bénéfices.", mentions, sans_lettre=True)
     # 404, plan du site, robots
-    page('/404/', 'Page introuvable', "Cette page n'existe pas.", lambda r: entete('Erreur 404', 'PAGE', 'INTROUVABLE', f'Retour à <a href="{r}">l\'accueil</a>.', 'reflechit', r), sans_lettre=True, r=RACINE)
+    page('/404/', 'Page introuvable', "Cette page n'existe pas.", lambda r: entete('Erreur 404', 'PAGE', 'INTROUVABLE', f'Retour à <a href="{r}">l\'accueil</a>.', 'site_carte_perdu', r), sans_lettre=True, r=RACINE)
     shutil.move(SORTIE/'404'/'index.html', SORTIE/'404.html'); (SORTIE/'404').rmdir(); PAGES.remove('/404/')
     auj = date.today().isoformat()
     (SORTIE/'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

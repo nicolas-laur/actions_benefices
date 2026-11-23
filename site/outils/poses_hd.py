@@ -14,9 +14,14 @@ def source(n):
     for a in ALIAS.get(n, [n]):
         c += glob.glob(f'{R}/mister_coin/poses/{a}.png') + glob.glob(f'{R}/episodes/*/coin/{a}.png') + glob.glob(f'{R}/episodes/*/decors/coin_{a}_couverture.png')
     return max(c, key=lambda p: Image.open(p).size[1])
+# poses dont l'accessoire contient du vert ou de petits éléments détachés : déjà détourées finement par mister_coin/detoure_poses.py,
+# on les convertit telles quelles (un second détourage effacerait la flèche verte, les gouttes, les pièces qui tombent)
+DIRECTES = {'site_graphique', 'site_arrosoir', 'site_parapluie'}
 VERT = (26, 240, 20)   # BGR du fond vert Gemini
 for n in (sys.argv[1:] or NOMS):
     p = source(n); im = Image.open(p)
+    if n in DIRECTES:
+        im = im.resize((round(im.width * H / im.height), H), Image.LANCZOS); im.save(f'{OUT}/{n}.webp', quality=88, method=6); print(n, 'converti tel quel'); continue
     if im.mode == 'RGBA':     # détourage existant : on le repose sur du vert pour que l'agrandissement traite les bords comme dans les clips
         fond = Image.new('RGBA', im.size, VERT[::-1] + (255,)); fond.alpha_composite(im); bgr = cv2.cvtColor(np.array(fond.convert('RGB')), cv2.COLOR_RGB2BGR)
     else: bgr = cv2.cvtColor(np.array(im.convert('RGB')), cv2.COLOR_RGB2BGR)

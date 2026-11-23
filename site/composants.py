@@ -34,9 +34,13 @@ def lecture(R, texte, pose=None, alt='Mister Coin'):
     img = f'<img src="{R}assets/img/{pose}.webp" alt="{alt}" loading="lazy">' if pose else ''
     return f'<div class="lecture">{img}<p>{texte}</p></div>'
 
-def section(num, titre, mot, sous, corps, R='', pose=None, texte=None, source=None, ident=None):
-    return (f'<section class="section" id="{ident or f"s{num}"}"><div><div class="surtitre">{num:02d}</div>'
-            f'<h2>{titre} <em>{mot}</em></h2><p class="gris" style="margin:6px 0 0">{sous}</p></div>{corps}'
+def coin_section(R, coin):
+    """Mister Coin illustré (poses « site_* ») à droite du titre d'une section"""
+    return f'<img class="sec-coin" data-vitesse="0.06" src="{R}assets/img/{coin}.webp" alt="" loading="lazy">' if coin else ''
+
+def section(num, titre, mot, sous, corps, R='', pose=None, texte=None, source=None, ident=None, coin=None):
+    return (f'<section class="section" id="{ident or f"s{num}"}"><div class="sec-tete"><div><div class="surtitre">{num:02d}</div>'
+            f'<h2>{titre} <em>{mot}</em></h2><p class="gris" style="margin:6px 0 0">{sous}</p></div>{coin_section(R, coin)}</div>{corps}'
             + (lecture(R, texte, pose) if texte else '') + (f'<p class="source">{source}</p>' if source else '') + '</section>')
 
 def carte(html, style=''):

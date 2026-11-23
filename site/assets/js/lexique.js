@@ -85,14 +85,18 @@
     var re = el('button', 'bouton', 'Recommencer'); re.type = 'button';
     re.addEventListener('click', function () { i = 0; score = 0; question(); q.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     g.appendChild(re); zone.appendChild(g);
-    var img = coin(top || moyen ? 'joie' : 'reflechit'); zone.appendChild(img); q.appendChild(zone);
-    if (top || moyen) {
+    var parfait = score === Q.length;
+    var img = coin(parfait ? 'site_trophee' : top || moyen ? 'joie' : 'site_ardoise'); zone.appendChild(img); q.appendChild(zone);
+    if ((top || moyen) && !parfait) {
       // Mister Coin heureux et animé (clip « joie »), avec son cri de joie et une pluie de pièces
       prechargeFin().then(function (b) {
         var src = b ? URL.createObjectURL(b) : FIN;
         if (WEBM) { var v = el('video', 'quiz-coin'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.src = src; v.setAttribute('aria-label', 'Mister Coin danse de joie'); img.replaceWith(v); var p = v.play(); if (p && p.catch) p.catch(function () {}); }
         else { img.classList.add('anime'); img.src = src; }
       });
+    }
+    if (top || moyen) {
+      // fanfare et pluie de pièces ; sans faute, Mister Coin brandit son trophée (image fixe) au lieu du clip « joie »
       joue('joie'); setTimeout(function () { joue('s_fanfare'); }, 350);
       for (var k = 0; k < 18; k++) {
         var p = el('span', 'confetti-piece'); p.style.left = Math.random() * 100 + '%'; p.style.animationDelay = (Math.random() * 1.2) + 's';

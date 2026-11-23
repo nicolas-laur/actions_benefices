@@ -116,8 +116,8 @@ Pose: He sleeps standing up, leaning back slightly, arms crossed, eyes closed, p
 ### 16. site_coucou.png (Bords de page et pied de page)
 
 ```
-Redraw the attached character exactly as drawn: same 1930s rubber-hose cartoon style, same colors, same thick black outlines, same proportions, same top hat and bow tie, round golden coin body, thick golden rubber-hose arms and legs, white gloves, brown shoes. Do not change his face design or add any clothing or accessory other than the prop described below. Same size as in the attached image, both hands fully visible. Flat solid pure green background (#00FF00) everywhere, no gradient, no floor, no cast shadow, no other character, no text. Any prop is blank: no letters, no numbers, no logos, no brand marks. Clean crisp line art, highest resolution, vertical 3:4 framing with a wide empty green margin around him on all sides.
-Pose: He peeks in from the right edge of the frame: only his left half is visible, one gloved hand gripping the edge, waving with the other hand, friendly curious face. The cut at the right edge is clean and straight.
+Redraw the attached character exactly as drawn: same 1930s rubber-hose cartoon style, same colors, same thick black outlines, same proportions, same top hat and bow tie, round golden coin body, thick golden rubber-hose arms and legs, white gloves, brown shoes. Do not change his face design or add any clothing or accessory other than the prop described below. Full body, centered, same size as in the attached image, both hands fully visible. Flat solid pure green background (#00FF00) everywhere, no gradient, no floor, no cast shadow, no other character, no text. Any prop is blank: no letters, no numbers, no logos, no brand marks. Clean crisp line art, highest resolution, vertical 3:4 framing with a wide empty green margin around him on all sides.
+Pose: He leans far to his right as if peeking around a corner, whole body tilted about 30 degrees, both feet still on the ground, waving with his free hand, friendly curious face. Exactly two arms, two hands and two legs.
 ```
 
 ### 17. site_saut_joie.png (Inscription réussie, confettis)

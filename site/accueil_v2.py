@@ -57,7 +57,7 @@ def accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
          f'{r}news/{n["slug"]}/', f'Lire « {phrase_(n["titre"])} »', f'<img class="mq-visuel incline" src="{r}assets/news/{n["slug"]}/01.webp" alt="Couverture des News" loading="lazy">',
          'Nouveau chaque vendredi'),
         ('loupe', 'Fiches entreprises', 'LES FICHES', "Une entreprise passée à la loupe : ce qu'elle vend, ce qu'elle gagne, ce qui l'attend. Graphiques à explorer.",
-         f'{r}fiches/{f["slug"]}/', f'Que vaut {f["nom"]} ?', f'<div class="mq-visuel carte-logo"><img src="{r}assets/img/{f["logo"]}" alt="{f["nom"]}"><span>Chiffres au {f["chiffres_au"]}</span></div>',
+         f'{r}fiches/{f["slug"]}/', f'Que vaut {f["nom"]} ?', f'<div class="mq-visuel carte-logo"><img src="{r}assets/img/{f["logo"]}" alt="{f["nom"]}"><span>Cours et PER mis à jour chaque soir</span></div>',
          'Survole les graphiques'),
         ('question', 'Lexique et quiz', 'LE LEXIQUE', "PEA, ETF, PFU, DCA… chaque sigle expliqué avec un exemple concret, puis un quiz pour vérifier.",
          f'{r}lexique/#quiz', 'Teste tes connaissances !', '<div class="mq-visuel sigles">' + ''.join(f'<span>{e[1]}</span>' for e in LEXIQUE[:9]) + '</div>',

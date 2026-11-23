@@ -21,6 +21,11 @@ SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
             tiktok='https://www.tiktok.com/@actions_bnfices', instagram='https://www.instagram.com/actions_benefices/',
             lettre_action=None)  # adresse du formulaire Brevo une fois le compte ouvert
 FICHES = [fiche_nvidia]
+# rappel du processus trimestriel (site/outils/MAJ_FICHES.md) : la tâche du soir relaie ces alertes à Nicolas
+import datetime as _dt
+for _m in FICHES:
+    if _dt.date.today().isoformat() > _m.META['prochains_resultats']:
+        print(f"ALERTE fiche {_m.META['nom']} : résultats attendus ({_m.META['prochains_txt']}) passés, comptes à mettre à jour (site/outils/MAJ_FICHES.md)")
 SORTIE = ICI/'_site'
 # relevé des marchés (Yahoo Finance), écrit chaque nuit par outils/marches.py ; absent : pas de bandeau ni de graphique
 _M = ICI/'donnees'/'marches.json'
@@ -79,7 +84,7 @@ def bandeau(r):
 # ---------- fiches ----------
 def fiches(r):
     return (entete('Une entreprise, ses chiffres', 'FICHES', 'ENTREPRISES', "Croissance, rentabilité, solidité, dividende et rivaux : les comptes remis à plat, en euros, sources en lien. Aucun verdict, aucun objectif de cours.", 'loupe', r)
-            + grille(*[vignette(r, f'fiches/{m.META["slug"]}/', 'Fiche n°' + str(i+1), m.META['titre'], m.META['accroche'], 'Chiffres au ' + m.META['chiffres_au'], logo=m.META['logo'])
+            + grille(*[vignette(r, f'fiches/{m.META["slug"]}/', 'Fiche n°' + str(i+1), m.META['titre'], m.META['accroche'], 'Comptes au ' + m.META['comptes'].split(' (')[0].replace("de l'exercice", 'exercice') + ' · cours et PER du soir', logo=m.META['logo'])
                        for i, m in enumerate(FICHES)], mn=320))
 
 # ---------- news ----------

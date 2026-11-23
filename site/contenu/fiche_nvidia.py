@@ -2,11 +2,26 @@
 from composants import *
 
 META = dict(slug='nvidia', titre='Que vaut Nvidia ?', nom='Nvidia', date='2026-11-21', date_txt='21/11/2026', chiffres_au='20/11/2026',
-            description="Fiche entreprise Nvidia : croissance, rentabilité, solidité, dividende et PER face à AMD et Broadcom, chiffres au 20/11/2026, sources en lien.",
+            # comptes : à mettre à jour après chaque publication trimestrielle (site/outils/MAJ_FICHES.md)
+            comptes="3e trimestre de l'exercice 2027 (clos le 25/10/2026)", comptes_publies='2026-11-17',
+            prochains_resultats='2027-02-28', prochains_txt='fin février 2027 (date pas encore annoncée)', ticker='nvda',
+            description="Fiche entreprise Nvidia : croissance, rentabilité, solidité, dividende et PER face à AMD et Broadcom (recalculé chaque soir), comptes du 3e trimestre 2026, sources en lien.",
             accroche="−14 % vendredi, plus bas depuis mai 2025, premiers résultats sans Jensen Huang et une enquête de la SEC : on remet les chiffres à plat.",
             detient=True, pose='loupe', logo='nvda.png')
-EUR = 1.0990
+EUR = 1.0990          # taux BCE du 20/11/2026, pour convertir les comptes (figés jusqu'au prochain trimestre)
 def e(x): return x/EUR
+
+# ---- ce qui bouge chaque soir avec le cours (site/cours.py) ; BPA, dividende et actions : derniers comptes publiés ----
+from cours import cours, taux, per, fr_per, fr_var, jj_mm, jj_mm_aaaa
+BPA12 = {'nvda': 9.31, 'avgo': 7.83, 'amd': 4.60}     # BPA dilué des 4 derniers trimestres publiés, en $ (sources.md)
+ACTIONS = 24.1                                         # milliards d'actions (moyenne diluée du 3e trimestre)
+DIV_AN = 1.00                                          # dividende annuel actuel, 4 × 0,25 $
+CN = cours('nvda', 125.53, '2026-11-20', -14.01)
+CR = {'avgo': cours('avgo', 304.65, '2026-11-20'), 'amd': cours('amd', 424.3, '2026-11-20')}
+TX, TX_DATE = taux(1.0990, '2026-11-20')
+JOUR = jj_mm(CN['date'])
+PER_N = per(CN['c'], BPA12['nvda'])
+PER_R = {k: per(v['c'], BPA12[k]) for k, v in CR.items()}
 
 Q = [(2.05, 3.61), (2.37, 4.14), (2.94, 4.16), (3.26, 4.38), (3.75, 4.54), (3.81, 2.89), (3.83, 2.10), (3.62, 2.43), (4.28, 2.91), (10.32, 3.19), (14.51, 3.61),
      (18.40, 3.70), (22.56, 3.48), (26.27, 3.77), (30.77, 4.31), (35.58, 3.75), (39.11, 4.95), (41.10, 5.64), (51.2, 5.8), (62.3, 5.8), (75.2, 6.4), (89.0, 7.2), (107.6, 8.2)]
@@ -82,10 +97,10 @@ def corps(R):
                 + pbar('Automobile, robotique', 1.1, LIME) + pbar('Autres (visualisation pro…)', 1.8, '#8A8A8A') + '</div>')
         + carte('<div class="pile" style="gap:14px"><div class="surtitre">Par région du client</div>' + pbar('États-Unis', 69.3, NAVY) + pbar('Taïwan', 19.6, '#4F79A8')
                 + pbar('Chine', 9.1, '#6F8FB5') + pbar('Autres', 2.0, '#8A8A8A') + '</div>') + '</div>'
-        + grille(tuile('neutre', 'En bourse depuis', '1999', 'Nasdaq'), tuile('neutre', 'Capitalisation', '≈ 2 750 Md€', '≈ 3 025 Md$'),
-                 tuile('ko', 'Cours au 20/11', '114,22 €', '125,53 $, −14 % sur la séance')),
+        + grille(tuile('neutre', 'En bourse depuis', '1999', 'Nasdaq'), tuile('neutre', 'Capitalisation', f"≈ {fr(CN['c']*ACTIONS/TX, 0)} Md€", f"≈ {fr(CN['c']*ACTIONS, 0)} Md$"),
+                 tuile('ok' if (CN['var'] or 0) > 0 else 'ko' if (CN['var'] or 0) < 0 else 'neutre', f'Cours au {JOUR}', f"{fr(CN['c']/TX, 2)} €", f"{fr(CN['c'], 2)} $" + (', ' + fr_var(CN['var']) if CN['var'] is not None else ''))),
         R, 'loupe', "9 euros de ventes sur 10 viennent des centres de données. Les comptes publiés par Nvidia sont examinés par la SEC (enquête en cours, aucune conclusion à ce jour).",
-        "Source : Nvidia, rapport annuel 10-K de l'exercice 2026 ; cours Nasdaq ; 1 € = 1,0990 $ (BCE, 20/11/2026). Capitalisation = cours × 24,1 milliards d'actions (moyenne du 3e trimestre)."))
+        f"Source : Nvidia, rapport annuel 10-K de l'exercice 2026 ; cours de clôture du {jj_mm_aaaa(CN['date'])} (Nasdaq, via Yahoo Finance), recalculé chaque soir ; 1 € = {fr(TX, 4)} $ (BCE, {jj_mm_aaaa(TX_DATE)}). Capitalisation = cours × 24,1 milliards d'actions (moyenne du 3e trimestre)."))
     S.append(section(2, 'LA', 'CROISSANCE', "Chiffre d'affaires par trimestre, en milliards d'euros",
         carte('<figure class="fin">' + barres_empilees(Q, "Chiffre d'affaires trimestriel de Nvidia en milliards d'euros, de l'exercice 2022 au 3e trimestre 2027", conv=EUR, tips=_tips_croissance())
               + f'<figcaption class="petit" style="display:flex;gap:22px;flex-wrap:wrap;margin-top:8px"><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:{TEAL};margin-right:6px"></i>Centres de données</span>'
@@ -115,17 +130,20 @@ def corps(R):
                                   tips=[f"Exercice {a}{' (en cours)' if a == 2027 else ''}\n{fr(x/EUR, 3)} € par action ({fr(x, 4 if x < .1 else 2)} $)" + ("\ndont 0,25 $ versé le 23/12" if a == 2027 else "\nAjusté des divisions d'actions")
                                         for a, x in zip(range(2018, 2028), (0.0143, 0.0153, 0.016, 0.016, 0.016, 0.016, 0.016, 0.034, 0.04, 0.76))])
               + '<figcaption class="source">* exercice en cours, dont 0,25 $ versé le 23/12. Ajusté des divisions d\'actions (×4 en 2021, ×10 en 2024).</figcaption></figure>')
-        + grille(tuile('ok', 'Dividende ×25 en mai', '0,25 $', 'par trimestre'), tuile('neutre', 'Rendement au 20/11', '0,8 %', '1 $ par an'),
-                 tuile('neutre', 'Part du bénéfice versée', '11 %'), tuile('ok', 'Prochain versement', '23/12', 'détachement vers le 2/12'), mn=240),
+        + grille(tuile('ok', 'Dividende ×25 en mai', '0,25 $', 'par trimestre'), tuile('neutre', f'Rendement au {JOUR}', f"{fr(100*DIV_AN/CN['c'])} %", '1 $ par an'),
+                 tuile('neutre', 'Part du bénéfice versée', f"{fr(100*DIV_AN/BPA12['nvda'], 0)} %"), tuile('ok', 'Prochain versement', '23/12', 'détachement vers le 2/12'), mn=240),
         R, 'joie', "Pendant 10 ans, le dividende était symbolique. Mais l'essentiel part ailleurs : en 9 mois, 5 fois plus de rachats d'actions que de dividendes."))
-    riv = [('Nvidia', 'nvda.png', 62.5, '+103 %', '13,5', GREEN), ('Broadcom', 'avgo.png', 42.9, '+86 %', '38,9', INK), ('AMD', 'amd.png', 16.8, '+45 %', '92', RED)]
+    _p = {'Nvidia': PER_N, 'Broadcom': PER_R['avgo'], 'AMD': PER_R['amd']}
+    _rang = sorted(_p, key=lambda k: _p[k]); _coul = {_rang[0]: GREEN, _rang[1]: INK, _rang[2]: RED}
+    riv = [(n, lg, mg, g, fr_per(_p[n]), _coul[n]) for n, lg, mg, g in [('Nvidia', 'nvda.png', 62.5, '+103 %'), ('Broadcom', 'avgo.png', 42.9, '+86 %'), ('AMD', 'amd.png', 16.8, '+45 %')]]
+    _place = ['la moins chère', 'la deuxième moins chère', 'la plus chère'][_rang.index('Nvidia')]
     rows = ''.join(f'<tr><td><img src="{R}assets/img/{lg}" alt="{n}" style="height:24px;width:auto;max-width:130px"></td>'
                    f'<td><div style="display:flex;align-items:center;gap:10px"><span style="display:block;height:14px;border-radius:7px;background:{GREEN};width:{mg/62.5*100:.0f}%;max-width:70%"></span><b>{fr(mg)} %</b></div></td>'
                    f'<td style="font-weight:700;color:{GREEN}">{g}</td><td style="font-weight:800;font-size:20px;color:{pc}">{p}</td></tr>' for n, lg, mg, g, p, pc in riv)
     S.append(section(7, 'FACE À SES', 'RIVAUX', "12 derniers mois publiés, chiffres comptables",
         carte(f'<div class="tableau"><table><thead><tr><th scope="col">Entreprise</th><th scope="col">Marge nette</th><th scope="col">Croissance*</th><th scope="col">PER</th></tr></thead><tbody>{rows}</tbody></table></div>'),
-        R, 'rocking', "Nvidia est la plus rentable des trois et, après la chute de vendredi, la moins chère par rapport à ses bénéfices. L'autre rival : les puces maison des géants du cloud (TPU de Google, Trainium d'Amazon).",
-        "* croissance du chiffre d'affaires du dernier trimestre sur un an. PER = cours du 20/11 ÷ bénéfice par action des 12 derniers mois. Trimestres clos fin octobre (Nvidia), fin septembre (AMD), début août (Broadcom)."))
+        R, 'rocking', f"Nvidia est la plus rentable des trois et, au cours du {JOUR}, {_place} par rapport à ses bénéfices. L'autre rival : les puces maison des géants du cloud (TPU de Google, Trainium d'Amazon).",
+        f"* croissance du chiffre d'affaires du dernier trimestre sur un an. PER = cours de clôture du {JOUR}, recalculé chaque soir, ÷ bénéfice par action des 12 derniers mois. Trimestres clos fin octobre (Nvidia), fin septembre (AMD), début août (Broadcom)."))
     surv = ''.join(f'<li style="display:flex;flex-direction:column;padding:14px 0;border-top:1px solid {LINE}"><b style="font-size:18px">{a}</b><span class="gris">{b}</span></li>'
                    for a, b in [("Le nouveau PDG", "Colette Kress assure l'intérim depuis le 12/11."), ("L'enquête de la SEC", "Elle porte sur les comptes : aucune conclusion à ce jour."),
                                 ("Les résultats de fin février", "Nvidia vise 130 Md$ de ventes au 4e trimestre.")])
@@ -133,14 +151,15 @@ def corps(R):
     src = ''.join(f'<li><a href="{u}">{n}</a></li>' for n, u in SOURCES)
     S.append(f'<section class="section" id="sources"><h3 style="font-size:22px">Sources et méthode</h3><ul style="margin:0;padding-left:20px;line-height:1.9;font-size:15px">{src}</ul>'
              '<p class="gris petit" style="margin:0">Ratios calculés par Actions Bénéfices : marge nette = résultat net ÷ chiffre d\'affaires ; PER = cours ÷ bénéfice par action des 12 derniers mois ; '
-             'BPA et dividendes ajustés des divisions d\'actions. Montants convertis au taux de référence BCE du 20/11/2026. Le détail de chaque chiffre est dans le fichier de sources de l\'épisode.</p></section>')
+             'BPA et dividendes ajustés des divisions d\'actions. Comptes convertis au taux de référence BCE du 20/11/2026 ; cours, capitalisation, PER et rendement recalculés chaque soir avec le dernier cours de clôture et le dernier taux BCE. Le détail de chaque chiffre est dans le fichier de sources de l\'épisode.</p></section>')
     toc = ''.join(f'<a href="#s{i}">{x}</a>' for i, x in enumerate(['Identité', 'Croissance', "D'où vient l'argent", 'Rentabilité', 'Solidité', 'Dividende', 'Rivaux', 'À surveiller'], 1))
     tete = (f'<p class="fil"><a href="{R}fiches/">Fiches entreprises</a> › {m["nom"]}</p><div class="hero"><div>'
             f'<img src="{R}assets/img/nvda.png" alt="Nvidia" style="height:40px;width:auto;align-self:flex-start">'
             f'<h1>QUE VAUT <em>NVIDIA ?</em></h1><p class="chapo">{m["accroche"]}</p>'
-            f'<div class="pastilles"><span><b>Chiffres au {m["chiffres_au"]}</b> · 1 € = 1,0990 $ (BCE)</span><span class="alerte">Je détiens des actions Nvidia</span><span>Mise à jour à chaque trimestre</span></div></div>'
+            f'<div class="pastilles"><span><b>Comptes du {m["comptes"]}</b>, publiés le {jj_mm_aaaa(m["comptes_publies"])}</span><span><b>Cours et PER au {jj_mm_aaaa(CN["date"])}</b>, recalculés chaque soir</span>'
+            f'<span>Prochaine mise à jour des comptes : après les résultats de {m["prochains_txt"]}</span><span class="alerte">Je détiens des actions Nvidia</span></div></div>'
             f'<img src="{R}assets/img/loupe.webp" alt="Mister Coin examine les comptes à la loupe"></div>'
             + grille(tuile('ok', "Chiffre d'affaires 12 mois", '329 Md€', '+103 % au dernier trimestre'), tuile('ok', 'Marge nette', '56 %', 'exercice 2026'),
-                     tuile('ok', 'PER', '13,5', 'Broadcom 38,9, AMD 92'), tuile('neutre', 'Dividende', '0,8 %', '1 $ par an'))
+                     tuile('ok' if PER_N == min(_p.values()) else 'neutre', f'PER au {JOUR}', fr_per(PER_N), f"Broadcom {fr_per(PER_R['avgo'])}, AMD {fr_per(PER_R['amd'])}"), tuile('neutre', 'Dividende', '0,8 %', '1 $ par an'))
             + f'<nav class="sommaire" aria-label="Sommaire de la fiche">{toc}</nav>')
     return tete + ''.join(S)

@@ -28,6 +28,7 @@ SERIES = {
     'tsla': ('TSLA', 'Tesla', 'Actions américaines', 'USD'),
     'nflx': ('NFLX', 'Netflix', 'Actions américaines', 'USD'),
     'amd':  ('AMD', 'AMD', 'Actions américaines', 'USD'),
+    'avgo': ('AVGO', 'Broadcom', 'Actions américaines', 'USD'),
     'pltr': ('PLTR', 'Palantir', 'Actions américaines', 'USD'),
     'ko':   ('KO', 'Coca-Cola', 'Actions américaines', 'USD'),
     'ttwo': ('TTWO', 'Take-Two', 'Actions américaines', 'USD'),
@@ -46,6 +47,18 @@ SERIES = {
 }
 BANDEAU = ['cac40', 'sp500', 'nasdaq', 'dow', 'dax', 'stoxx50', 'nikkei', 'eurusd', 'gold', 'btc',
            'nvda', 'aapl', 'msft', 'amzn', 'googl', 'meta', 'tsla', 'mc', 'rms', 'tte', 'air', 'asml', 'novo']
+
+# valeurs dont les fiches entreprises recalculent chaque soir le cours, la capitalisation, le PER et le rendement (site/cours.py)
+COURS = ['nvda', 'amd', 'avgo', 'googl', 'msft', 'aapl', 'amzn', 'meta']
+
+def taux_bce():
+    """taux de référence BCE du jour (1 € = x $), publié vers 16 h ; None si la BCE ne répond pas"""
+    import urllib.request, re
+    try:
+        x = urllib.request.urlopen('https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml', timeout=20).read().decode()
+        return dict(usd=float(re.search(r"currency='USD' rate='([\d.]+)'", x).group(1)), date=re.search(r"time='([\d-]+)'", x).group(1))
+    except Exception as err:
+        print('BCE indisponible :', err, file=sys.stderr); return None
 
 def arrondi(x):
     if x is None or (isinstance(x, float) and math.isnan(x)): return None
@@ -76,7 +89,14 @@ def main():
         c = h[t].dropna()
         if len(c) < 2: continue
         band.append(dict(id=k, nom=SERIES[k][1], var=round(100 * (c.iloc[-1] / c.iloc[-2] - 1), 2), date=c.index[-1].strftime('%Y-%m-%d')))
-    out = dict(maj=dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'), source='Yahoo Finance', dates=dates, series=series, bandeau=band)
+    # cours de clôture du dernier jour pour les fiches entreprises
+    cours = {}
+    for k in COURS:
+        c = h[SERIES[k][0]].dropna() if SERIES[k][0] in h else []
+        if len(c) < 2: continue
+        cours[k] = dict(c=round(float(c.iloc[-1]), 2), date=c.index[-1].strftime('%Y-%m-%d'), var=round(100 * (c.iloc[-1] / c.iloc[-2] - 1), 2))
+    out = dict(maj=dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'), source='Yahoo Finance', dates=dates, series=series, bandeau=band,
+               cours=cours, bce=taux_bce())
     os.makedirs(os.path.dirname(SORTIE), exist_ok=True)
     json.dump(out, open(SORTIE, 'w'), ensure_ascii=False, separators=(',', ':'))
     print(f'{len(series)} séries, {len(dates)} semaines, bandeau de {len(band)} valeurs, {os.path.getsize(SORTIE)//1024} Ko')

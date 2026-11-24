@@ -392,7 +392,7 @@ html,body{overflow-x:clip}
 .ecran .badge{background:rgba(11,14,20,.82);color:#fff;border-color:rgba(255,255,255,.2);backdrop-filter:blur(6px)} .ecran .badge.or{color:var(--or-lum);border-color:var(--filet-or)}
 @media (max-width:860px){.mq-couverture img.mq-flottant,.hero.tete img.mq-flottant{display:none}.hero.tete .mq-etincelle{z-index:-1;opacity:.6}}
 /* logos d'entreprises (couleurs d'origine, souvent noires) : posés sur une plaque claire pour rester lisibles sur fond nuit */
-img[src*="img/nvda.png"],img[src*="img/amd.png"],img[src*="img/avgo.png"],.carte-logo img{background:#F2F5FA;padding:6px 12px;border-radius:10px;box-sizing:content-box}
+img[src*="img/nvda.png"],img[src*="img/amd.png"],img[src*="img/avgo.png"],img[src*="img/googl.png"],img[src*="img/msft.png"],img[src*="img/meta.png"],img[src*="img/amzn.png"],.carte-logo img{background:#F2F5FA;padding:6px 12px;border-radius:10px;box-sizing:content-box}
 /* historique des comptes des fiches */
 .hist-an{border-top:1px solid var(--filet);padding:14px 0}
 .hist-an h4{margin:0 0 8px;font-family:var(--titre,inherit);font-size:28px;color:var(--or-lum);letter-spacing:.02em}

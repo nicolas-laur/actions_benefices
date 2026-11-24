@@ -20,7 +20,7 @@ def flottants(liste, r, decal=0):
                    for k, (x, y, t, v) in enumerate(liste))
 
 def accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
-    n = NEWS[0]; f = FICHES[0].META
+    n = NEWS[0]; f = FICHES[-1].META   # la fiche la plus récente (FICHES suit l'ordre de publication)
     nb_marches = len(MARCHES['series']) if MARCHES else 0
     vids = [v for v in VIDEOS if v[5]][:5]
 

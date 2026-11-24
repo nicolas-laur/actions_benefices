@@ -73,7 +73,8 @@ def barres_empilees(data, aria, groupes=4, premier=2022, conv=1.0, etiq=None, ti
     W, H = 1000, 400; x0, base, top = 40, 340, 40; n = len(data); st = (W-x0-10)/n; bw = st*.72
     vals = [(a/conv, b/conv) for a, b in data]; k = (base-top)/max(a+b for a, b in vals)
     s = [_svg(W, H, aria)]
-    for g in (25, 50, 75, 100):
+    vmax = max(a+b for a, b in vals); pas = 25 if vmax <= 125 else 50 if vmax <= 250 else 100   # graduations adaptées à l'échelle
+    for g in range(pas, int(vmax)+pas, pas):
         y = base-g*k
         if y > top-10: s += [f'<line x1="{x0}" x2="{W}" y1="{y:.1f}" y2="{y:.1f}" stroke="{LINE}"/>', _t(x0-6, y+4, g, 11, GREY, 500, 'end')]
     for i, (a, b) in enumerate(vals):

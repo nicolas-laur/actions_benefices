@@ -23,7 +23,42 @@
   // ---------- quiz ----------
   var q = document.querySelector('[data-quiz]'), src = document.getElementById('quiz-donnees');
   if (!q || !src) return;
-  var Q = JSON.parse(src.textContent), r = q.dataset.r, i = 0, score = 0, son = true;
+  // banque de questions en trois niveaux ; chaque partie tire 10 questions du niveau choisi, d'abord parmi celles pas encore vues
+  var BANQUE = JSON.parse(src.textContent), r = q.dataset.r, i = 0, score = 0, son = true, Q = [], niveau = null, PAR_PARTIE = 10;
+  function melange(t) { t = t.slice(); for (var k = t.length - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)), x = t[k]; t[k] = t[j]; t[j] = x; } return t; }
+  function vus(n, ajout) {
+    var cle = 'quiz-vus-' + n, l = [];
+    try { l = JSON.parse(localStorage.getItem(cle) || '[]'); } catch (e) {}
+    if (ajout) { l = l.concat(ajout); try { localStorage.setItem(cle, JSON.stringify(l)); } catch (e) {} }
+    return l;
+  }
+  function tirage(n) {
+    var pool = BANQUE.q.filter(function (x) { return x.n === n; }), deja = vus(n);
+    var neuves = melange(pool.filter(function (x) { return deja.indexOf(x.id) < 0; }));
+    if (neuves.length < PAR_PARTIE) {   // tout a été vu : on repart de zéro, en gardant les questions neuves en tête
+      try { localStorage.removeItem('quiz-vus-' + n); } catch (e) {}
+      neuves = neuves.concat(melange(pool.filter(function (x) { return neuves.indexOf(x) < 0; })));
+    }
+    return neuves.slice(0, PAR_PARTIE).map(function (x) {   // réponses mélangées à chaque partie
+      var ordre = melange(x.c.map(function (_, k) { return k; }));
+      return { id: x.id, q: x.q, e: x.e, p: x.p, c: ordre.map(function (k) { return x.c[k]; }), b: ordre.indexOf(x.b) };
+    });
+  }
+  function lancer(n) { niveau = n; Q = tirage(n); vus(n, Q.map(function (x) { return x.id; })); i = 0; score = 0; question(); }
+  function accueil() {
+    q.textContent = '';
+    var zone = el('div', 'quiz-zone'), g = el('div', 'pile'); g.style.gap = '14px'; zone.appendChild(g);
+    g.appendChild(el('h3', 'quiz-q', 'Choisis ton niveau'));
+    var l = el('div', 'quiz-niveaux');
+    BANQUE.niveaux.forEach(function (nv, k) {
+      var b = el('button', 'quiz-niveau'); b.type = 'button';
+      b.appendChild(el('span', 'surtitre', 'Niveau ' + (k + 1))); b.appendChild(el('b', null, nv.nom)); b.appendChild(el('span', 'gris petit', nv.txt));
+      b.appendChild(el('span', 'date', PAR_PARTIE + ' questions tirées parmi ' + nv.n));
+      b.addEventListener('click', function () { lancer(nv.k); });
+      l.appendChild(b);
+    });
+    g.appendChild(l); zone.appendChild(coin('question')); q.appendChild(zone);
+  }
   try { son = localStorage.getItem('quiz-son') !== '0'; } catch (e) {}
   var BRAVO = ['pouce', 'rire', 'joie', 'etoiles'], RATE = ['facepalm', 'choc', 'triste', 'haussement'];
   var MOTS_OK = ['Bonne réponse !', 'Exact !', 'Bien vu !', 'Parfait !'], MOTS_KO = ['Raté !', 'Pas tout à fait…', 'Oups !', 'Presque !'];
@@ -49,12 +84,12 @@
     var x = Q[i]; q.textContent = '';
     if (i === Q.length - 3) prechargeFin();
     var tete = el('div', 'quiz-tete');
-    tete.appendChild(el('span', 'badge', 'Question ' + (i + 1) + ' / ' + Q.length));
+    tete.appendChild(el('span', 'badge', BANQUE.niveaux.filter(function (nv) { return nv.k === niveau; })[0].nom + ' · question ' + (i + 1) + ' / ' + Q.length));
     var barre = el('div', 'quiz-barre'), b = el('i'); b.style.width = (100 * i / Q.length) + '%'; barre.appendChild(b); tete.appendChild(barre);
     tete.appendChild(el('span', 'quiz-pts', score + ' pt' + (score > 1 ? 's' : ''))); tete.appendChild(boutonSon());
     q.appendChild(tete);
     var zone = el('div', 'quiz-zone'); q.appendChild(zone);
-    var g = el('div', 'pile'); g.style.gap = '14px'; zone.appendChild(g); var img = coin(x.p || 'question'); zone.appendChild(img);
+    var g = el('div', 'pile'); g.style.gap = '14px'; zone.appendChild(g); var img = coin(x.p || ['question', 'reflechit', 'loupe', 'sceptique'][i % 4]); zone.appendChild(img);
     g.appendChild(el('h3', 'quiz-q', x.q));
     var choix = el('div', 'quiz-choix'); g.appendChild(choix);
     var fb = el('div', 'quiz-fb'); fb.setAttribute('aria-live', 'polite'); g.appendChild(fb);
@@ -82,9 +117,11 @@
     var tete = el('div', 'quiz-tete'); tete.appendChild(el('span', 'badge or', 'Ton score')); tete.appendChild(el('span', 'quiz-pts', '')); tete.appendChild(boutonSon()); q.appendChild(tete);
     g.appendChild(el('div', 'resultat', score + ' / ' + Q.length));
     g.appendChild(el('p', null, top ? 'Bravo, tu parles couramment la bourse ! Mister Coin danse de joie.' : moyen ? 'Pas mal ! Relis les définitions et retente ta chance.' : 'Les définitions sont juste au-dessus : relis-les et retente.'));
-    var re = el('button', 'bouton', 'Recommencer'); re.type = 'button';
-    re.addEventListener('click', function () { i = 0; score = 0; question(); q.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-    g.appendChild(re); zone.appendChild(g);
+    var re = el('button', 'bouton or', 'Nouvelle partie'); re.type = 'button';
+    re.addEventListener('click', function () { lancer(niveau); q.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    var ch = el('button', 'bouton', 'Changer de niveau'); ch.type = 'button';
+    ch.addEventListener('click', function () { accueil(); q.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    var bs = el('div', 'pastilles'); bs.appendChild(re); bs.appendChild(ch); g.appendChild(bs); zone.appendChild(g);
     var parfait = score === Q.length;
     var img = coin(parfait ? 'site_trophee' : top || moyen ? 'joie' : 'site_ardoise'); zone.appendChild(img); q.appendChild(zone);
     if ((top || moyen) && !parfait) {
@@ -104,5 +141,5 @@
       }
     } else joue('s_rate');
   }
-  question();
+  accueil();
 })();

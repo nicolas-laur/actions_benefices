@@ -14,8 +14,11 @@ from news import NEWS
 from pictos import PICTOS
 from accueil_v2 import accueil_v2, flottants
 from donnees import LEXIQUE, VIDEOS, QUIZ, SP_PEA as SP_PEA_, SP_PFU as SP_PFU_
+from lexique_plus import assembler, NIVEAUX
+LEXIQUE, NIVEAU, QUIZ = assembler(LEXIQUE, QUIZ)   # 75 termes en trois niveaux, banque de quiz
 
-SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com',
+SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com', contact='actionsbenefices@gmail.com',   # e-mail de contact (mentions légales)
+           
             menu=[('fiches/', 'Fiches entreprises'), ('news/', 'Les News'), ('lexique/', 'Lexique'), ('calculateurs/', 'Calculateurs'),
                   ('videos/', 'Vidéos')],
             tiktok='https://www.tiktok.com/@actions_bnfices', instagram='https://www.instagram.com/actions_benefices/',
@@ -194,18 +197,25 @@ def lex_contenu(r, e, pop=False):
             + (f'<p class="source">Source : {liens(src)}</p>' if src else '')
             + (f'<div><div class="surtitre" style="margin-bottom:10px">Voir aussi</div><div class="pastilles">{lex_voir(r, voir, pop)}</div></div>' if voir else ''))
 def quiz(r):
-    data = json.dumps([dict(q=q, c=c, b=b, e=e, p=p) for q, c, b, e, p in QUIZ], ensure_ascii=False).replace('</', '<\\/')
+    data = json.dumps(dict(niveaux=[dict(k=k, nom=nom, txt=txt, n=sum(1 for x in QUIZ if x[5] == k)) for k, nom, txt in NIVEAUX],
+                           q=[dict(id=i, q=q, c=c, b=b, e=e, p=p, n=n) for i, (q, c, b, e, p, n) in enumerate(QUIZ)]), ensure_ascii=False).replace('</', '<\\/')
     return (f'<section class="section" id="quiz"><div><div class="surtitre">Teste-toi</div><h2>TESTE TES <em>CONNAISSANCES !</em></h2>'
-            f'<p class="gris" style="margin:6px 0 0">{len(QUIZ)} questions sur les mots de la bourse. Réponds, Mister Coin te corrige.</p></div>'
+            f'<p class="gris" style="margin:6px 0 0">{len(QUIZ)} questions en trois niveaux. Choisis le tien : 10 questions tirées au hasard à chaque partie, Mister Coin te corrige.</p></div>'
             f'<div class="carte quiz" data-quiz data-r="{r}"><noscript>Le quiz a besoin de JavaScript.</noscript></div>'
             f'<script type="application/json" id="quiz-donnees">{data}</script></section>')
 def lex_liste(r):
-    cartes = ''.join(f'<a class="vignette terme-carte" href="{r}lexique/{e[0]}/" data-terme="{e[0]}"><span class="terme">{e[1]}</span><b>{escape(e[2])}</b>'
-                     f'<span class="gris">{escape(e[3])}</span><span class="date">Voir la définition et un exemple →</span></a>' for e in LEXIQUE)
+    def carte(e):
+        return (f'<a class="vignette terme-carte" href="{r}lexique/{e[0]}/" data-terme="{e[0]}"><span class="terme">{e[1]}</span><b>{escape(e[2])}</b>'
+                f'<span class="gris">{escape(e[3])}</span><span class="date">Voir la définition et un exemple →</span></a>')
+    blocs = ''.join(f'<section class="section lex-niveau" id="niveau-{k}"><div class="sec-tete"><div><div class="surtitre">Niveau {i + 1}</div><h2>{nom.upper()}</h2>'
+                    f'<p class="gris" style="margin:6px 0 0">{txt} {sum(1 for e in LEXIQUE if NIVEAU[e[0]] == k)} termes.</p></div></div>'
+                    f'<div class="grille" style="--min:250px">{"".join(carte(e) for e in LEXIQUE if NIVEAU[e[0]] == k)}</div></section>'
+                    for i, (k, nom, txt) in enumerate(NIVEAUX))
     tpl = ''.join(f'<template id="t-{e[0]}"><div class="surtitre">Lexique</div><h2 class="lex-sigle">{e[1]}</h2><p class="lex-dev">{escape(e[2])}</p>{lex_contenu(r, e, True)}</template>' for e in LEXIQUE)
-    return (entete('Les sigles de la bourse', 'LE', 'LEXIQUE', "Dix mots pour comprendre ce qu'on raconte, dont un piège. Clique sur un sigle pour sa définition et un exemple concret, puis teste-toi avec le quiz.", 'site_dictionnaire', r)
-            + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Teste tes connaissances !</a></div>'
-            + f'<div class="grille" style="--min:250px">{cartes}</div>' + tpl
+    sommaire = ''.join(f'<a href="#niveau-{k}">{nom}</a>' for k, nom, _ in NIVEAUX)
+    return (entete('Les mots de la bourse', 'LE', 'LEXIQUE', f"{len(LEXIQUE)} mots et sigles en trois niveaux, du livret A à l'option de vente. Clique sur un terme pour sa définition et un exemple concret, puis teste-toi avec le quiz.", 'site_dictionnaire', r)
+            + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Teste tes connaissances !</a></div><nav class="sommaire">{sommaire}<a href="#quiz">Quiz</a></nav>'
+            + blocs + tpl
             + f'<dialog class="fiche-terme" aria-label="Définition"><button class="v-fermer sombre" type="button" aria-label="Fermer">×</button><div class="fiche-corps"></div>'
               f'<img src="{r}assets/img/montre.webp" alt="" class="fiche-coin"></dialog>'
             + quiz(r) + f'<script src="{r}assets/js/lexique.js" defer></script>')
@@ -243,7 +253,7 @@ def performances(r):
     if not MARCHES: return ''
     per = ''.join(f'<button type="button" class="bouton clair" data-periode="{v}">{t}</button>' for v, t in (('1', '1 an'), ('5', '5 ans'), ('10', '10 ans'), ('20', '20 ans'), ('30', '30 ans'), ('max', 'Max')))
     return (f'<section class="section" id="performances"><div class="sec-tete"><div><h2>LES PERFORMANCES <em>HISTORIQUES</em></h2><p class="gris" style="margin:6px 0 0">'
-            "Compare les grandes places boursières et les actions les plus connues : ce qu'est devenue une même somme placée au départ.</p></div>" + coin_section(r, 'site_graphique') + "</div>"
+            "Grandes places boursières, actions américaines et européennes par secteur, pétrole, or et cryptos : ce qu'est devenue une même somme placée au départ.</p></div>" + coin_section(r, 'site_graphique') + "</div>"
             + carte(f'<div class="pile" id="perf" data-src="{r}assets/data/marches.json"><div class="perf-choix"></div>'
                     f'<div class="pastilles perf-periodes">{per}</div><div class="perf-res"></div>'
                     '<div class="perf-zone"><div class="perf-graph" aria-live="polite">Chargement…</div><div class="perf-bulle" hidden></div></div>'
@@ -310,15 +320,31 @@ def lettre(r):
                     '<p style="margin:0">On y travaille et elle arrive bientôt. En attendant, toutes nos publications sont sur TikTok et Instagram, et les News de chaque vendredi sont sur ce site.</p>'
                     f'<div class="pastilles"><a class="bouton" href="{r}news/">Lire les News</a><a class="bouton clair" href="{SITE["tiktok"]}">TikTok</a><a class="bouton clair" href="{SITE["instagram"]}">Instagram</a></div></div>'))
 def mentions(r):
-    return ('<div class="pile texte" style="padding:28px 0"><h1>MENTIONS <em>LÉGALES</em></h1>'
-            '<h3>Éditeur</h3><p>Nicolas LAUR, Toulouse. Contact : [À COMPLÉTER].</p>'
-            '<h3>Hébergement</h3><p>GitHub Pages, GitHub Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, États-Unis.</p>'
-            '<h3>Contenu</h3><p>Les contenus d\'Actions Bénéfices sont pédagogiques. Ils ne constituent pas un conseil en investissement ni une recommandation d\'achat ou de vente. '
-            'Investir comporte un risque de perte en capital ; les performances passées ne préjugent pas des performances futures. Quand l\'auteur détient un titre présenté, la fiche le précise.</p>'
-            '<h3>Données personnelles et cookies</h3><p>Ce site ne dépose aucun cookie et n\'utilise aucun outil de mesure d\'audience. Les polices sont hébergées sur le site. '
+    contact = (f'<a href="mailto:{SITE["contact"]}">{SITE["contact"]}</a>' if SITE.get('contact') else
+               f'par message privé sur <a href="{SITE["tiktok"]}">TikTok</a> ou <a href="{SITE["instagram"]}">Instagram</a>')
+    return ('<div class="pile texte mentions" style="padding:28px 0;max-width:820px"><h1>MENTIONS <em>LÉGALES</em></h1>'
+            '<p class="gris">Dernière mise à jour : 24/11/2026.</p>'
+            '<h3>Éditeur du site</h3><p>Le site actionsbenefices.com est édité par Nicolas Laur, particulier, à titre non professionnel, à Toulouse (France). '
+            f'Directeur de la publication : Nicolas Laur. Contact : {contact}.</p>'
+            '<h3>Hébergement</h3><p>GitHub Pages, service de GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis (github.com). '
+            'Nom de domaine enregistré auprès d\'OVH SAS, 2 rue Kellermann, 59100 Roubaix, France.</p>'
+            '<h3>Nature des contenus</h3><p>Les contenus d\'Actions Bénéfices (site, vidéos, carrousels) sont pédagogiques et informatifs. Ils ne constituent ni un conseil en investissement, '
+            'ni une recommandation personnalisée, ni une sollicitation d\'achat ou de vente d\'un instrument financier. L\'éditeur n\'est pas conseiller en investissements financiers. '
+            'Investir comporte un risque de perte en capital ; les performances passées ne préjugent pas des performances futures. Quand l\'éditeur détient un titre présenté, la fiche le précise.</p>'
+            '<h3>Chiffres et sources</h3><p>Les chiffres des fiches et des News viennent des documents publiés par les entreprises (rapports annuels et trimestriels, communiqués) et de la presse financière, '
+            'listés en bas de chaque page. Les cours de bourse et les historiques viennent de Yahoo Finance, relevés chaque nuit après la clôture de Wall Street ; les conversions en euros utilisent le taux de référence de la Banque centrale européenne. '
+            'Malgré le soin apporté, une erreur reste possible : signale-la et elle sera corrigée.</p>'
+            '<h3>Propriété intellectuelle</h3><p>Le nom Actions Bénéfices, le personnage de Mister Coin, les textes, illustrations, graphiques et vidéos du site appartiennent à l\'éditeur ; '
+            'toute reproduction sans accord préalable est interdite, sauf courte citation avec mention de la source. Les logos d\'entreprises et les marques citées appartiennent à leurs propriétaires '
+            'et servent uniquement à illustrer les fiches. Polices : Inter Display, Anton et Caveat, sous licence SIL Open Font License.</p>'
+            '<h3>Données personnelles et cookies</h3><p>Ce site ne dépose aucun cookie, n\'utilise aucun outil de mesure d\'audience et ne collecte aucune donnée personnelle ; les polices sont hébergées sur le site. '
+            'Quelques préférences (son de Mister Coin activé ou non, meilleur score du mini-jeu) restent dans ton navigateur et ne sont jamais transmises. '
             'Sur la page Vidéos, les lecteurs TikTok et Instagram ne se chargent que si tu cliques sur leur bouton : ces services peuvent alors déposer leurs propres cookies, selon leurs règles. '
-            'L\'adresse e-mail donnée pour la lettre du dimanche sert uniquement à l\'envoyer ; tu peux te désinscrire à tout moment depuis chaque lettre.</p>'
-            '<h3>Marques</h3><p>Les logos d\'entreprises appartiennent à leurs propriétaires et servent uniquement à illustrer les fiches. Mister Coin et le nom Actions Bénéfices appartiennent à l\'éditeur.</p></div>')
+            'L\'hébergeur peut conserver des journaux techniques de connexion (adresse IP) pour la sécurité du service. '
+            'Quand la lettre du dimanche ouvrira, l\'adresse e-mail donnée servira uniquement à l\'envoyer, avec une désinscription en un clic dans chaque lettre. '
+            f'Pour toute question sur tes données, ou pour exercer tes droits (accès, rectification, effacement) : {contact}. Tu peux aussi saisir la CNIL (cnil.fr).</p>'
+            '<h3>Liens externes</h3><p>Les liens vers d\'autres sites (sources, réseaux sociaux) sont donnés à titre d\'information ; l\'éditeur n\'est pas responsable de leur contenu.</p>'
+            '<h3>Droit applicable</h3><p>Le site et ces mentions sont soumis au droit français.</p></div>')
 
 # ---------- assemblage ----------
 def construire():

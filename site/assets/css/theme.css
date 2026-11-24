@@ -410,3 +410,26 @@ img[src*="img/nvda.png"],img[src*="img/amd.png"],img[src*="img/avgo.png"],.carte
 .pied{position:relative;margin-top:150px}
 .pied-coin{position:absolute;bottom:calc(100% - 4px);right:6vw;height:150px;width:auto;pointer-events:none;filter:drop-shadow(0 -6px 22px rgba(255,194,74,.16))}
 @media (max-width:860px){.pied{margin-top:110px}.pied-coin{height:110px;right:5vw}}
+/* 24/11 : air sous les couvertures des pages intérieures (liste des fiches, fiche, vidéos…) */
+main .hero:not(.mq-couverture){margin-bottom:clamp(40px,4.5vw,72px)}
+/* vidéos : tuiles de même hauteur (titre sur 2 lignes réservées, boutons alignés en bas) */
+.grille.videos{align-items:stretch}
+.video>.pile{flex:1}
+.video h3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;min-height:calc(2 * 1.35em)}
+.video .choix-lecteur{margin-top:auto}
+/* comparateur : familles repliables, secteurs en lignes */
+details.perf-groupe{border:1px solid var(--filet);border-radius:14px;padding:10px 16px;margin-bottom:10px;background:rgba(255,255,255,.025)}
+details.perf-groupe>summary{cursor:pointer;display:flex;gap:12px;align-items:baseline;list-style:none}
+details.perf-groupe>summary::-webkit-details-marker{display:none}
+details.perf-groupe>summary::before{content:"▸";color:var(--or-lum);transition:rotate .3s var(--ressort)}
+details.perf-groupe[open]>summary::before{rotate:90deg}
+details.perf-groupe[open]>summary{margin-bottom:10px}
+.perf-secteur{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:start;padding:6px 0;border-top:1px solid rgba(255,255,255,.05)}
+.perf-sec-nom{font-size:13px;color:var(--texte-clair);padding-top:8px}
+@media (max-width:860px){.perf-secteur{grid-template-columns:1fr;gap:4px}}
+/* quiz : choix du niveau */
+.quiz-niveaux{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.quiz-niveau{display:flex;flex-direction:column;gap:6px;text-align:left;padding:18px;border-radius:16px;background:var(--verre);border:1px solid var(--filet);color:#fff;cursor:pointer;font:inherit;transition:translate .4s var(--ressort),border-color .3s}
+.quiz-niveau:hover{translate:0 -4px;border-color:var(--or-lum)} .quiz-niveau b{font-size:22px}
+.lex-niveau{scroll-margin-top:90px}
+.mentions{gap:6px}.mentions h3{margin:22px 0 0;font-size:20px;color:var(--or-pale)}.mentions p{margin:0}

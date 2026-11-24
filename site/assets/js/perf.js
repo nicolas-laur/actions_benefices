@@ -13,23 +13,37 @@
     .catch(function () { box.querySelector('.perf-graph').textContent = 'Données momentanément indisponibles.'; });
 
   function menu() {
-    var m = box.querySelector('.perf-choix'), groupes = {};
-    Object.keys(D.series).forEach(function (k) { var s = D.series[k]; if (k === 'eurusd') return; (groupes[s.groupe] = groupes[s.groupe] || []).push(k); });
-    Object.keys(groupes).forEach(function (g) {
-      var bloc = document.createElement('div'); bloc.className = 'perf-groupe';
-      var t = document.createElement('span'); t.className = 'surtitre'; t.textContent = g; bloc.appendChild(t);
-      var l = document.createElement('div'); l.className = 'pastilles';
-      groupes[g].forEach(function (k) {
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'bouton clair puce'; b.dataset.k = k; b.textContent = D.series[k].nom;
-        b.addEventListener('click', function () {
-          var i = choix.indexOf(k);
-          if (i >= 0) { if (choix.length > 1) choix.splice(i, 1); }
-          else { if (choix.length >= 5) choix.shift(); choix.push(k); }
-          trace();
-        });
-        l.appendChild(b);
+    // familles (Indices, Actions américaines…) puis secteurs : groupe « Famille|Secteur » dans marches.json
+    var m = box.querySelector('.perf-choix'), familles = {}, ordre = [];
+    Object.keys(D.series).forEach(function (k) {
+      var s = D.series[k]; if (k === 'eurusd') return;
+      var p = s.groupe.split('|'), f = p[0], sec = p[1] || '';
+      if (!familles[f]) { familles[f] = {}; ordre.push(f); }
+      (familles[f][sec] = familles[f][sec] || []).push(k);
+    });
+    function puce(k) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'bouton clair puce'; b.dataset.k = k; b.textContent = D.series[k].nom;
+      b.addEventListener('click', function () {
+        var i = choix.indexOf(k);
+        if (i >= 0) { if (choix.length > 1) choix.splice(i, 1); }
+        else { if (choix.length >= 5) choix.shift(); choix.push(k); }
+        trace();
       });
-      bloc.appendChild(l); m.appendChild(bloc);
+      return b;
+    }
+    ordre.forEach(function (f) {
+      var secs = familles[f], n = 0; Object.keys(secs).forEach(function (x) { n += secs[x].length; });
+      var bloc = document.createElement('details'); bloc.className = 'perf-groupe';
+      if (f === 'Indices' || Object.keys(secs).some(function (x) { return secs[x].some(function (k) { return choix.indexOf(k) >= 0; }); })) bloc.open = true;
+      var t = document.createElement('summary'); t.innerHTML = '<span class="surtitre"></span><span class="gris petit"></span>';
+      t.firstChild.textContent = f; t.lastChild.textContent = n + ' au choix'; bloc.appendChild(t);
+      Object.keys(secs).forEach(function (x) {
+        var ligne = document.createElement('div'); ligne.className = 'perf-secteur';
+        if (x) { var lab = document.createElement('span'); lab.className = 'perf-sec-nom'; lab.textContent = x; ligne.appendChild(lab); }
+        var l = document.createElement('div'); l.className = 'pastilles'; secs[x].forEach(function (k) { l.appendChild(puce(k)); });
+        ligne.appendChild(l); bloc.appendChild(ligne);
+      });
+      m.appendChild(bloc);
     });
     box.querySelectorAll('[data-periode]').forEach(function (b) {
       b.addEventListener('click', function () { periode = b.dataset.periode; trace(); });

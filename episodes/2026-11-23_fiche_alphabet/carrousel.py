@@ -6,12 +6,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from carrousel import *
 
 # ---------- paramètres du jour (seul bloc à changer pour mettre la fiche à jour ; voir sources.md, section 0) ----------
-JOUR = "20/11"                    # date de clôture retenue
-R = 1.0990                        # taux de référence BCE du même jour : 1 € = R $
-PA, PC = 265.29, 264.00           # clôtures GOOGL (classe A, aussi pour la classe B non cotée) et GOOG (classe C)
+JOUR = "23/11"                    # date de clôture retenue
+R = 1.0939                        # taux de référence BCE du même jour : 1 € = R $
+PA, PC = 282.10, 279.53           # clôtures GOOGL (classe A, aussi pour la classe B non cotée) et GOOG (classe C)
 RECORD = 402.62                   # record de clôture GOOGL (13/05/2026)
 NA, NB_, NC = 5888, 827, 5579     # actions A, B, C en circulation (M), page de garde du 10-Q, 21/10/2026
 BPA_12M = 10.94                   # BPA des 12 derniers mois hors effet des participations ($)
+BPA_PUBLIE = 19.15                # BPA des 12 derniers mois publié ($)
 def e(usd): return usd/R
 def md(usd, d=1): return fmt(e(usd), d)+NB+'Md€'
 CAP = ((NA+NB_)*PA+NC*PC)/1000     # capitalisation (Md$)
@@ -112,9 +113,9 @@ def s_flux(cv, c):
      'cl': dict(x=X[1], y=1060, v=v['cl'], c=CL_TEAL, rib=CL_TEAL_R, side='b', lab=L('Cloud', f(v['cl']), ['+103 % sur 1 an'], CL_TEAL)),
      'ca': dict(x=X[2], y=660, v=v['ca'], c=CL_INK, rib=CL_LIME_R, side='t', lab=L("Chiffre|d'affaires", f(v['ca']), ['+25 % sur 1 an'], CL_INK)),
      'mb': dict(x=X[3], y=600, v=v['mb'], c=CL_GREEN, rib=CL_GREEN_R, side='t', lab=L('Marge|brute', f(v['mb']), ['60 % des ventes'], CL_GREEN)),
-     'cr': dict(x=X[3], y=1000, v=v['cr'], c=CL_RED, rib=CL_RED_R, side='b', lab=L('Coût des|ventes', p(v['cr']), ['dont 14,9 aux', 'partenaires'], CL_RED)),
+     'cr': dict(x=X[3], y=1000, v=v['cr'], c=CL_RED, rib=CL_RED_R, side='b', lab=L('Coût des|ventes', p(v['cr']), ['dont '+fmt(e(16.366))+' aux', 'partenaires'], CL_RED)),
      're': dict(x=X[4], y=600, v=v['re'], c=CL_GREEN, rib=CL_GREEN_R, side='t', lab=L("Résultat|d'exploitation", f(v['re']), ['32 % des ventes', '+30 % sur 1 an'], CL_GREEN)),
-     'ch': dict(x=X[4], y=900, v=v['ch'], c=CL_RED, rib=CL_RED_R, side='b', lab=L('Recherche|et frais', p(v['ch']), ['dont 18,8 de', 'recherche'], CL_RED)),
+     'ch': dict(x=X[4], y=900, v=v['ch'], c=CL_RED, rib=CL_RED_R, side='b', lab=L('Recherche|et frais', p(v['ch']), ['dont '+fmt(e(20.640))+' de', 'recherche'], CL_RED)),
      'rn': dict(x=X[5], y=560, v=v['rn'], c=CL_GREEN, rib=CL_GREEN_R, side='r', lab=L('Résultat|net', f(v['rn']), ['21 % des', 'ventes'], CL_GREEN, 23)),
      'pa': dict(x=X[5], y=720, v=v['pa'], c=CL_RED, rib=CL_RED_R, side='r', lab=L('Participations', p(v['pa']), ['surtout SpaceX'], CL_RED, 21)),
      'im': dict(x=X[5], y=860, v=v['im'], c=CL_RED, rib=CL_RED_R, side='r', lab=L('Impôts', p(v['im']), [], CL_RED, 23)),
@@ -140,7 +141,7 @@ def s_rentab(cv, c):
     text(c, "Marge nette", 80, 752, 'xb', 21, CL_TEAL, 'l')
     rangee(c, 880, [('ok', "BPA 2025", fmt(e(10.81), 2)+NB+"€", "×1,9 depuis 2021"), ('neutre', "PER*", fmt(PER, 1), "cours ÷ bénéfice par action, 12 mois")])
     src(c, "* Hors réévaluation de SpaceX et d'Anthropic : 99 Md$ de bénéfice sur papier en 9 mois. Avec elle,", 995)
-    src(c, "le PER tombe à 13,9 et donne une image trompeuse. Source : Alphabet, 10-K et communiqués.", 1019)
+    src(c, "le PER tombe à "+fmt(PA/BPA_PUBLIE, 1)+" et donne une image trompeuse. Source : Alphabet, 10-K et communiqués.", 1019)
     pied(cv, c, "Sur 100 € de ventes, Alphabet garde 33 € de bénéfice net en 2025. Le creux de 2022 : des pertes sur ses placements (après 12 Md$ de gains en 2021) et des coûts en hausse.",
          'sceptique', "Bénéfice… sur papier ?", 1050)
 

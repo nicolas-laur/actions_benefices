@@ -213,12 +213,12 @@ def lex_liste(r):
                     for i, (k, nom, txt) in enumerate(NIVEAUX))
     tpl = ''.join(f'<template id="t-{e[0]}"><div class="surtitre">Lexique</div><h2 class="lex-sigle">{e[1]}</h2><p class="lex-dev">{escape(e[2])}</p>{lex_contenu(r, e, True)}</template>' for e in LEXIQUE)
     sommaire = ''.join(f'<a href="#niveau-{k}">{nom}</a>' for k, nom, _ in NIVEAUX)
-    return (entete('Les mots de la bourse', 'LE', 'LEXIQUE', f"{len(LEXIQUE)} mots et sigles en trois niveaux, du livret A à l'option de vente. Clique sur un terme pour sa définition et un exemple concret, puis teste-toi avec le quiz.", 'site_dictionnaire', r)
-            + f'<div class="pastilles" style="margin-bottom:18px"><a class="bouton or" href="#quiz">Teste tes connaissances !</a></div><nav class="sommaire">{sommaire}<a href="#quiz">Quiz</a></nav>'
-            + blocs + tpl
+    return (entete('Les mots de la bourse', 'LE', 'LEXIQUE', f"{len(LEXIQUE)} mots et sigles en trois niveaux, du livret A à l'option de vente. Teste-toi avec le quiz, puis clique sur un terme pour sa définition et un exemple concret.", 'site_dictionnaire', r)
+            + f'<nav class="sommaire"><a href="#quiz">Quiz</a>{sommaire}</nav>'
+            + quiz(r) + blocs + tpl
             + f'<dialog class="fiche-terme" aria-label="Définition"><button class="v-fermer sombre" type="button" aria-label="Fermer">×</button><div class="fiche-corps"></div>'
               f'<img src="{r}assets/img/montre.webp" alt="" class="fiche-coin"></dialog>'
-            + quiz(r) + f'<script src="{r}assets/js/lexique.js" defer></script>')
+            + f'<script src="{r}assets/js/lexique.js" defer></script>')
 def lex_page(e):
     s_, sig, dev, expl, exemple, src, voir = e
     def c(r):

@@ -116,7 +116,7 @@
     var top = score >= Q.length * .8, moyen = score >= Q.length / 2;
     var tete = el('div', 'quiz-tete'); tete.appendChild(el('span', 'badge or', 'Ton score')); tete.appendChild(el('span', 'quiz-pts', '')); tete.appendChild(boutonSon()); q.appendChild(tete);
     g.appendChild(el('div', 'resultat', score + ' / ' + Q.length));
-    g.appendChild(el('p', null, top ? 'Bravo, tu parles couramment la bourse ! Mister Coin danse de joie.' : moyen ? 'Pas mal ! Relis les définitions et retente ta chance.' : 'Les définitions sont juste au-dessus : relis-les et retente.'));
+    g.appendChild(el('p', null, top ? 'Bravo, tu parles couramment la bourse ! Mister Coin danse de joie.' : moyen ? 'Pas mal ! Relis les définitions et retente ta chance.' : 'Les définitions sont juste en dessous : relis-les et retente.'));
     var re = el('button', 'bouton or', 'Nouvelle partie'); re.type = 'button';
     re.addEventListener('click', function () { lancer(niveau); q.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     var ch = el('button', 'bouton', 'Changer de niveau'); ch.type = 'button';

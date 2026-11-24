@@ -4,7 +4,7 @@ import sys, os, numpy as np, cv2
 from PIL import Image
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'poses')
 
-def detoure(path, seuil=.002, opaques=()):
+def detoure(path, seuil=.002, opaques=(), recadre=True, hmax=900):
     """opaques : rectangles (x0, y0, x1, y1) de la source gardés tels quels, pour un accessoire qui contient du vert (flèche peinte…)"""
     bgr = cv2.imread(path); hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV).astype(np.float32)
     h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
@@ -26,8 +26,8 @@ def detoure(path, seuil=.002, opaques=()):
         z = (v[y0:y1, x0:x1] < 215) & (h[y0:y1, x0:x1] <= 56)                                    # vert plus sombre que le fond Gemini : celui de l'accessoire
         alpha[y0:y1, x0:x1][z] = 1; rgb[y0:y1, x0:x1][z] = brut[y0:y1, x0:x1][z]
     im = Image.fromarray(np.dstack([rgb, alpha * 255]).clip(0, 255).astype(np.uint8), 'RGBA')
-    im = im.crop(im.getbbox())
-    if im.height > 900: im = im.resize((int(im.width * 900 / im.height), 900), Image.LANCZOS)
+    if recadre: im = im.crop(im.getbbox())
+    if hmax and im.height > hmax: im = im.resize((int(im.width * hmax / im.height), hmax), Image.LANCZOS)
     return im
 
 if __name__ == '__main__':

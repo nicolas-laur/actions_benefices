@@ -64,3 +64,22 @@
     maj();
   }
 })();
+
+// mode clair / sombre : réglage de l'appareil par défaut ; le bouton fixe un choix gardé dans le navigateur
+(function () {
+  var d = document.documentElement, b = document.querySelector('.bascule-theme');
+  function choisi() { try { return localStorage.getItem('theme'); } catch (e) { return null; } }
+  function etiquette() { if (b) b.setAttribute('aria-label', d.dataset.theme === 'clair' ? 'Passer en mode sombre' : 'Passer en mode clair'); }
+  etiquette();
+  if (b) b.addEventListener('click', function () {
+    d.dataset.theme = d.dataset.theme === 'clair' ? 'sombre' : 'clair';
+    try { localStorage.setItem('theme', d.dataset.theme); } catch (e) {}
+    etiquette();
+  });
+  var m = matchMedia('(prefers-color-scheme: light)');
+  (m.addEventListener ? m.addEventListener.bind(m, 'change') : m.addListener.bind(m))(function (e) {
+    if (choisi()) return;                       // le visiteur a choisi : on ne suit plus l'appareil
+    d.dataset.theme = e.matches ? 'clair' : 'sombre'; etiquette();
+  });
+})();
+

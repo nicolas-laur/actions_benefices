@@ -47,9 +47,10 @@ def _key(a):
     return a, al
 
 class VeoCoin:
-    def __init__(self, planning, voix=None, x=500, pieds=1725, largeur_piece=220, dossier=V, duree=None, lisse=False, variete=8.0, silence_min=10, coupe_silence=False):
+    def __init__(self, planning, voix=None, x=500, pieds=1725, largeur_piece=220, dossier=V, duree=None, lisse=False, variete=8.0, silence_min=10, coupe_silence=False, boucle=()):
         """planning : (t0, clip, mode) ; mode 'une' (joué une fois) ou 'voix' (il parle quand la voix parle, se tait dans les silences)"""
         self.lisse = lisse; self.variete, self.silence_min = variete, silence_min; self.coupe_silence = coupe_silence      # coupe_silence : dans un silence, petit saut vers une pose muette au lieu de rejouer des images où il parle      # variete : secondes minimum entre deux changements de clip « pour varier » (mode lisse)
+        self.boucle = set(boucle)                       # clips de marche : toujours joués vers l'avant, bouclés sur une pose identique (jamais d'aller-retour : il marcherait à reculons)
         self.plan = sorted(planning); self.x, self.feet, self.cw, self.dir = x, pieds, largeur_piece, dossier
         self.speak = None
         if voix:
@@ -224,13 +225,20 @@ class VeoCoin:
                 out.append((cur, p, fc, fp, max(0., w)))
             else: out.append((cur, p, cur, p, 0.))
             used[cur][p] = s; since += 1; n = info[cur][2]
-            if inside:
+            if inside and cur in self.boucle:
+                a, b = inside[0]; d = 1
+                if p+1 > b:                                                   # fin de la plage : retour sur l'image la plus proche de la pose actuelle (cycle de marche)
+                    q = min(range(a, max(a+1, b-11)), key=lambda q: D(cur, p, cur, q)); p = q+1 if q+1 <= b else a
+                else: p += 1
+            elif inside:
                 a, b = inside[0]
                 if p+d > b or p+d < a: d = -d
                 p = int(min(b, max(a, p+d)))
             else:
                 mid = [(abs(p-(a if p < a else b)), (a if p < a else b)) for a, b in tg]; goal = min(mid)[1]
-                d = 1 if goal > p else -1; p = int(min(n-1, max(0, p+d)))
+                d = 1 if goal > p else -1
+                if cur in self.boucle and d < 0: p = p+1 if p+1 < n and D(cur, p+1, cur, goal) > THR else goal   # marche : on avance jusqu'à une pose proche de la pose neutre, puis coupe invisible
+                else: p = int(min(n-1, max(0, p+d)))
         self.seq['g'] = (S0, out); self.hops = [h/CLIP_FPS for h in hops]; return self.seq['g']
     def hop_dy(self, t):
         """décalage vertical du petit saut sur place (négatif = vers le haut) ; à ajouter à la position des pieds"""

@@ -72,6 +72,8 @@ def decor_c(name, t):
     g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_LANCZOS4).astype(np.float32)
     if name in ZOOM_TOP:                                                               # agrandi depuis le haut : le plateau descend sous les sous-titres
         z = ZOOM_TOP[name]; g = cv2.resize(g, (int(W*z), int(H*z)), interpolation=cv2.INTER_LINEAR); x0 = (g.shape[1]-W)//2; g = g[:H, x0:x0+W]
+    if name in ZOOM_BOTTOM:                                                            # agrandi depuis le bas : l'étiquette remonte au-dessus des sous-titres
+        z = ZOOM_BOTTOM[name]; g = cv2.resize(g, (int(W*z), int(H*z)), interpolation=cv2.INTER_LINEAR); x0 = (g.shape[1]-W)//2; g = g[g.shape[0]-H:, x0:x0+W]
     g = g+.2*(g-cv2.GaussianBlur(g, (0, 0), 1.0))                               # légère accentuation (décors déjà agrandis par Real-ESRGAN)
     return np.clip((g-128)*1.06+130, 0, 255)
 @functools.lru_cache(maxsize=1)
@@ -281,7 +283,7 @@ def _glass_bar(cv, t, t0, parts, cy=700, w=920, h=400, note=None, head=None):
             x += L*fr
         if note: S.text(kk, note, ww/2, hh-24, 'sb', 28, S.ICE, 'c', .8*ent(k-.6, .3))
     S.tp(cv, w, h, d, 540, cy+30*(1-ent(k, .45)), 'or', rx=round(.05+.25*(1-ent(k, .45)), 3), bev=30)
-LETTERBOX = {}; ZOOM_TOP = {'enquete': 1.06}; NMAX = {'enquete': 140}       # bureau : on s'arrête avant que le travelling ne descende le plateau trop bas                                # décors sortis en paysage à recadrer (aucun : le notaire a été refait en 9:16)
+LETTERBOX = {}; ZOOM_TOP = {'enquete': 1.06}; NMAX = {'enquete': 140}; ZOOM_BOTTOM = {'rayon': 1.12}       # bureau : on s'arrête avant que le travelling ne descende le plateau trop bas                                # décors sortis en paysage à recadrer (aucun : le notaire a été refait en 9:16)
 GOLDC = ('FFE27A', 'B97A12'); REDC = ('FFFFFF', 'BDB6C8');   # pas de rouge dans le verre (21/11) : blanc
 MINTC = ('9DF2B5', '2E8B57'); GREYC = ('C9C2D6', '6E6680')
 def num(v, d=0): return f"{v:,.{d}f}".replace(',', ' ').replace('.', ',').replace(' ', NB)
@@ -400,6 +402,7 @@ def sectors(cv, t, t0, t1, cy=780):
     glass_card(cv, t, t0, d, cy=cy, w=900, h=290, t1=t1)
     for i, (e, lab, v, cc, ta) in enumerate(rows):
         if t > ta and (t1 is None or t < t1): EMO.append((e, 540-450+150+i*300, cy-145+95, 56, ent(t-ta, .3)*(1-ent(t-(t1-.3), .3) if t1 else 1)))
+import json
 # ================= étiquette de prix géante du rayon (suivie dans le décor) =================
 _TAG = {}
 def tag_box(arr, t):
@@ -414,22 +417,57 @@ def tag_box(arr, t):
         _TAG[k] = None if j is None else tuple(int(v*4) for v in (st[j, 0], st[j, 1], st[j, 0]+st[j, 2], st[j, 1]+st[j, 3]))
         if len(_TAG) > 200: _TAG.clear()
     return _TAG[k]
-def tag_text(c, box, t):
-    """inscriptions à l'encre sur l'étiquette : promo affichée, puis la règle des 30 jours"""
-    x0, y0, x1, y1 = box; cx = (x0+x1)/2; w = x1-x0; ys = y0+(y1-y0)*.30; h = (min(y1, 960)-ys)/.5; w = min(w, h*.9)
+def tag_track():
+    """trajectoire lissée de l'étiquette sur tout le passage (décor 60 i/s) : détection image par image puis lissage gaussien (0,1 s),
+    pour que l'inscription suive le balancement de l'étiquette sans trembler ; mise en cache"""
+    p = f'{D}/decors/rayon_etiquette.json'
+    if os.path.exists(p): return np.array(json.load(open(p)), np.float32)
+    a = V.T['rayon']; cap = cv2.VideoCapture(f'{D}/decors/hd/rayon_{a:.2f}.mp4'); B = []
+    while True:
+        ok, f = cap.read()
+        if not ok: break
+        _TAG.clear(); b = tag_box(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), 0); B.append(b if b else (B[-1] if B else (0, 0, 0, 0)))
+    B = np.array(B, np.float32); from scipy.ndimage import gaussian_filter1d as G
+    cx, y0 = G((B[:, 0]+B[:, 2])/2, 5, mode='nearest'), G(B[:, 1], 5, mode='nearest')          # position : suit le balancement
+    w, h = G(B[:, 2]-B[:, 0], 24, mode='nearest'), G(B[:, 3]-B[:, 1], 24, mode='nearest')     # taille : ne suit que le travelling (pas de « pompage » des lettres)
+    B = np.stack([cx-w/2, y0, cx+w/2, y0+h], 1); json.dump(B.tolist(), open(p, 'w')); return B
+_TT = None
+def tag_box_lisse(t):
+    global _TT
+    if _TT is None: _TT = tag_track()
+    i = int(round((t-V.T['rayon'])*60)); x0, y0, x1, y1 = _TT[min(len(_TT)-1, max(0, i))]; z = ZOOM_BOTTOM['rayon']
+    return (W/2+(x0-W/2)*z, H-(H-y0)*z, W/2+(x1-W/2)*z, H-(H-y1)*z)               # même agrandissement que le décor
+TAG0 = (586, 833, 340)                     # étiquette sur la 1re image du décor (centre x, haut du texte sous l'œillet, largeur), repère du décor non agrandi
+_TM = None
+def tag_matrix(t):
+    """déplacement de l'étiquette depuis la 1re image (similitude : glissement, balancement, travelling), suivi par points sur toutes les images
+    du décor 60 i/s (decors/rayon_etiquette_M.npy), légèrement lissé, puis le même agrandissement que le décor"""
+    global _TM
+    if _TM is None:
+        from scipy.ndimage import gaussian_filter1d as G
+        _TM = G(np.load(f'{D}/decors/rayon_etiquette_M.npy'), 2, axis=0, mode='nearest')
+    i = int(round((t-V.T['rayon'])*60)); m = _TM[min(len(_TM)-1, max(0, i))]; z = ZOOM_BOTTOM['rayon']
+    Z = np.array([[z, 0, W/2*(1-z)], [0, z, H*(1-z)], [0, 0, 1]]); return Z@np.vstack([m, [0, 0, 1]])
+def tag_text(c, t):
+    """inscriptions à l'encre, attachées à l'étiquette (elles bougent exactement avec elle) : promo affichée, puis la règle des 30 jours.
+    Tailles choisies pour rester au-dessus des sous-titres (y < 935) pendant tout le travelling."""
+    M = tag_matrix(t); c.save(); c.transform(cairo.Matrix(M[0, 0], M[1, 0], M[0, 1], M[1, 1], M[0, 2], M[1, 2]))
+    cx, ys, w = TAG0; mw = w*.84
     a1 = ent(t-sh(38.6), .3)*(1-ent(t-sh(47.3), .3)); a2 = ent(t-sh(47.6), .3)*(1-ent(t-(V.T['enquete']-.6), .3))
     if a1 > 0:
-        ys += h*.02; ink(c, "PROMO", cx, ys, w*.21, '7A1E12', a=a1, maxw=w*.8)
-        ink(c, "199 €", cx, ys+h*.13, w*.16, '6B5A48', a=a1, maxw=w*.8)
-        c.set_line_width(max(4, w*.015)); col(c, '7A1E12', a1); c.move_to(cx-w*.22, ys+h*.13); c.line_to(cx+w*.22, ys+h*.13); c.stroke()
-        ink(c, "139 €", cx, ys+h*.28, w*.25, '2B1A0E', a=a1, maxw=w*.8)
-        ink(c, "−30 %", cx, ys+h*.43, w*.19, '7A1E12', a=a1, maxw=w*.8)
+        P = 44
+        ink(c, "PROMO", cx, ys+P*.5, P*.95, '7A1E12', a=a1, maxw=mw)
+        ink(c, "199 €", cx, ys+P*1.5, P*.8, '6B5A48', a=a1, maxw=mw)
+        c.set_line_width(P*.07); col(c, '7A1E12', a1); c.move_to(cx-P*1.3, ys+P*1.5); c.line_to(cx+P*1.3, ys+P*1.5); c.stroke()
+        ink(c, "139 €", cx, ys+P*2.65, P*1.25, '2B1A0E', a=a1, maxw=mw)
+        ink(c, "−30 %", cx, ys+P*3.8, P*.95, '7A1E12', a=a1, maxw=mw)
     if a2 > 0:
-        ink(c, "PRIX BARRÉ", cx, ys, w*.15, '7A1E12', a=a2, maxw=w*.84)
-        ink(c, "=", cx, ys+h*.1, w*.12, '2B1A0E', a=a2)
-        ink(c, "le plus bas", cx, ys+h*.2, w*.125, '2B1A0E', a=a2, maxw=w*.84)
-        ink(c, "des 30", cx, ys+h*.31, w*.18, '2B1A0E', a=a2, maxw=w*.84)
-        ink(c, "derniers jours", cx, ys+h*.42, w*.12, '2B1A0E', a=a2, maxw=w*.84)
+        P = 41
+        ink(c, "PRIX BARRÉ =", cx, ys+P*.5, P*.85, '7A1E12', a=a2, maxw=mw)
+        ink(c, "le plus bas", cx, ys+P*1.55, P*.8, '2B1A0E', a=a2, maxw=mw)
+        ink(c, "des 30", cx, ys+P*2.65, P*1.1, '2B1A0E', a=a2, maxw=mw)
+        ink(c, "derniers jours", cx, ys+P*3.75, P*.8, '2B1A0E', a=a2, maxw=mw)
+    c.restore()
 # ================= courbe d'historique de prix (réflexe 2) =================
 def price_chart(cv, t, t0, t1, cy=640):
     """prix stable à 139 € pendant un mois, gonflé à 199 € la veille, puis « −30 % » : on retombe au même prix"""
@@ -483,8 +521,7 @@ def b_hall(cv, c, t, k):
     if t > sh(34.6): sectors(cv, t, sh(34.65), V.T['rayon'], cy=520)
 # ================= 3. rayon : vraies ou fausses promos =================
 def b_rayon(cv, c, t, k):
-    t0 = V.T['rayon']; arr = np.asarray(cv.convert('RGB')); box = tag_box(arr, t)
-    if box: tag_text(c, box, t)
+    t0 = V.T['rayon']; tag_text(c, t)
     if t > sh(44.4) and t < sh(47.4):
         value_card(cv, t, sh(44.45), sh(47.4), "BLACK FRIDAY 2025 · 314 SITES CONTRÔLÉS", f"30{NB}%", [(sh(44.5), "des promos hors des règles (Commission européenne)")], cy=300, h=230, vsize=96)
 # ================= 4. bureau d'enquêteur : penser comme un investisseur =================

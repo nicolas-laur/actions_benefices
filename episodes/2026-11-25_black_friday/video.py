@@ -54,7 +54,7 @@ DOIGTS, LOUPE = 'classique_parle_compte_doigts', 'classique_loupe_parle'        
 SW, CP, BI = 'classique_danse_parle_swing', 'classique_danse_parle_compte', 'classique_danse_parle_billets'     # il marche sur place, de face, en parlant (travellings)
 MC = VeoCoin([(0.0, [QU], 'voix'), (7.3, [EX], 'voix'), (T['hall'], [SW], 'voix'), (30.8, [CP], 'voix'), (T['rayon'], [CO], 'voix'),
               (T['enquete'], [DOIGTS], 'voix'), (61.1, [LOUPE], 'voix'), (67.75, [DOIGTS], 'voix'), (T['vitrine'], [PR], 'voix'), (77.15, [QU], 'voix')],
-             voix=VOICE, duree=DUR, x=540, pieds=FEET, largeur_piece=170, lisse=True, variete=1.5, silence_min=7, coupe_silence=True)
+             voix=VOICE, duree=DUR, x=540, pieds=FEET, largeur_piece=170, lisse=True, variete=1.5, silence_min=7, coupe_silence=True, boucle=(SW, CP, BI, PR))
 ASSIS = (T['enquete'], T['vitrine'])                                       # passage assis : pieds pendants sous le bord du bureau
 RX, RX_FIN = [], []                                                        # pas de silence de réaction (voix gardée telle quelle, 80 s maximum)
 def events(): return sorted([(h-.05, 'hop') for h in (MC._global_sequence() and MC.hops)])

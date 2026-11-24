@@ -19,7 +19,8 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Photo d'une personne réelle : fournie par Nicolas, posée dans un cadre Polaroïd avec une courte fiche (Ellison, 20/11).
 - Le verre 3D translucide (`lib/verre_epais.py`) est notre signature pour afficher les informations, y compris dans une DA dédiée comme GTA (17/11).
 - Il pousse vers le spectaculaire quand une scène est plate : le zoom « 1 chance sur 19 068 840 » a été refait cinq fois (grille plate → perspective, personnages → foule de Mister Coin, cible joyeuse et rieuse au milieu de pièces inquiètes, halo rond et non carré, éclairages de projecteurs). Viser d'emblée ce niveau.
-- Travelling : Mister Coin marche de face en parlant (clips `danse_parle_*`, marche sur place), jamais de dos (23/11, Black Friday).
+- Travelling : Mister Coin marche de face en parlant (clips `danse_parle_*`, marche sur place), jamais de dos (23/11, Black Friday). Ces clips se jouent toujours vers l'avant (`VeoCoin(..., boucle=(...))`) : en aller-retour il marche à reculons et la scène paraît « glitchée » (24/11).
+- Texte posé sur un objet mobile du décor (étiquette) : trajectoire suivie sur toutes les images du décor 60 i/s puis lissée, taille liée au seul travelling ; jamais une détection par image arrondie (le texte tremble, 24/11).
 - Clips assis (`parle_compte_doigts`, `loupe_parle`) : posé au bord d'un objet, jambes pendantes ; décalage pièce-pieds mesuré par clip et bord suivi image par image pendant le travelling, sinon il flotte (23/11).
 - Mister Coin posé sur les objets du décor (debout sur le comptoir) plutôt que flottant devant.
 - Objets du réel conformes à la réalité : une seule boule rouge (numéro chance) au Loto, cinq blanches.

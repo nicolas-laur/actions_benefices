@@ -1,5 +1,5 @@
 """Couverture du Black Friday (style maison, lib/cards_lib.py) : gros plan du rayon et de l'étiquette géante « PROMO 199 € barré, 139 €, −30 % » (image de la vidéo), titre « BLACK FRIDAY »,
-sous-titre « BONNE AFFAIRE OU MARKETING ? », question « Et toi, tu vas craquer ? », Mister Coin à la loupe en bas avec un halo doré."""
+sous-titre « BONNE AFFAIRE OU MARKETING ? », question « Et toi, tu vas craquer ? », gros plan de Mister Coin sceptique en bas (lib/gros_plan.py)."""
 import cairo, numpy as np, sys, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path.insert(0, f'{ROOT}/lib'); sys.path.insert(0, f'{ROOT}/mister_coin')
@@ -30,9 +30,5 @@ cards.put = _q
 import veo_coin as VC
 path = f'{HERE}/couverture.png'; cards.card("BLACK FRIDAY", False, path, sub=("BONNE AFFAIRE OU MARKETING ?",))
 im = Image.open(path).convert('RGBA')
-ch = Image.open(f'{ROOT}/mister_coin/poses/loupe.png').convert('RGBA'); ch = ch.crop(ch.getbbox())      # pose fixe : curieux, l'œil grossi par la loupe
-hh = 640; ch = ch.resize((int(ch.width*hh/ch.height), hh), Image.LANCZOS)
-x0, y0 = (W-ch.width)//2, 1240
-halo = Image.new('RGBA', (W, H), (255, 200, 110, 0)); gl = Image.new('RGBA', (W, H), 0); gl.alpha_composite(ch, (x0, y0))
-halo.putalpha(gl.getchannel('A').filter(ImageFilter.GaussianBlur(45)).point(lambda v: int(v*.7))); im.alpha_composite(halo); im.alpha_composite(gl)
+import gros_plan; gros_plan.coller(im, 'sceptique')                                            # gros plan maison : « promesse trop belle »
 im.convert('RGB').save(path); print('ok')

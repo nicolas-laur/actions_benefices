@@ -2,6 +2,12 @@
 
 Idée du 19/11/2026, inspirée des carrousels « Que vaut l'entreprise qui… » de Les Finances de Papa (Take-Two, le jour de la sortie de GTA VI) : un déroulé d'analyste, toujours le même, appliqué à une entreprise qui fait l'actualité. On garde la structure et la précision, avec notre DA (1930, verre épais, Mister Coin) et notre ligne : des faits vérifiables, jamais de verdict ni de conseil.
 
+## Objectif et programme (décision du 24/11/2026)
+Dans un premier temps, le but est de produire une fiche pour chacune des valeurs des deux feuilles du fichier Google Sheets « Suivi Finance et Analyse de titres » de Nicolas : https://docs.google.com/spreadsheets/d/1SsAM1VUCHfy-8VlkOuY62tXBD0Mfmv9eU2tckIJs6_4/edit . La feuille « Analyse actions détenues » contient les valeurs que Nicolas détient (ligne de transparence « Je détiens des actions X. » sur la dernière diapo) ; la feuille « Analyse d'actions » contient les valeurs qu'il suit sans forcément les détenir (à vérifier avec lui avant chaque fiche). Liste relevée le 24/11/2026 (44 valeurs ; relire le fichier avant de choisir la suivante, il évolue) :
+- Analyse actions détenues (20) : EssilorLuxottica, Capgemini, Porsche AG (préf.), GE Aerospace, L'Oréal, IBM, Alstom, Nokia, Publicis Groupe, Air Liquide, Vinci, Carrefour, AXA, Getlink, GE HealthCare, Engie, Intercontinental Exchange, Cisco Systems, GE Vernova, Kyndryl.
+- Analyse d'actions (24) : Amazon, McDonald's, Microsoft, Apple, Broadcom, Visa, Coca-Cola, Schneider Electric, ASML, Tesla, SpaceX, Novo Nordisk, TotalEnergies, ExxonMobil, Micron, AstraZeneca, Pfizer, Samsung Electronics, Uber, Hermès, Spotify, Nestlé, AT&T, Airbus.
+Fiches publiées : Nvidia (n°1, 22/11, hors liste) et Alphabet (n°2, 23-24/11, hors liste). L'actualité de la semaine choisit la valeur dans la liste ; les chiffres du fichier (exercice, CA, EBIT, dette nette, FCF…) servent de point de départ mais sont revérifiés sur les rapports annuels avant toute diapo.
+
 ## Quand l'utiliser
 - Une entreprise au cœur de l'actualité de la semaine : résultats, introduction en bourse, sortie de produit, changement de patron.
 - Idéalement en complément d'un sujet déjà sourcé (vidéo ou News du vendredi), pour réutiliser les chiffres vérifiés.

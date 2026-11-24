@@ -74,12 +74,12 @@
   if (b) b.addEventListener('click', function () {
     d.dataset.theme = d.dataset.theme === 'clair' ? 'sombre' : 'clair';
     try { localStorage.setItem('theme', d.dataset.theme); } catch (e) {}
-    etiquette();
+    etiquette(); document.dispatchEvent(new Event('theme'));
   });
   var m = matchMedia('(prefers-color-scheme: light)');
   (m.addEventListener ? m.addEventListener.bind(m, 'change') : m.addListener.bind(m))(function (e) {
     if (choisi()) return;                       // le visiteur a choisi : on ne suit plus l'appareil
-    d.dataset.theme = e.matches ? 'clair' : 'sombre'; etiquette();
+    d.dataset.theme = e.matches ? 'clair' : 'sombre'; etiquette(); document.dispatchEvent(new Event('theme'));
   });
 })();
 

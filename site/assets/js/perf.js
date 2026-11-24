@@ -2,7 +2,7 @@
    Choix des séries (5 au plus), de la période, infobulle qui suit la souris ou le doigt. Aucune dépendance. */
 (function () {
   var box = document.getElementById('perf'); if (!box) return;
-  var NS = 'http://www.w3.org/2000/svg', COUL = ['#FFC24A', '#35D6FF', '#3FE08A', '#FF4D5E', '#C08BFF'];
+  var NS = 'http://www.w3.org/2000/svg', COUL_SOMBRE = ['#FFC24A', '#35D6FF', '#3FE08A', '#FF4D5E', '#C08BFF'], COUL_CLAIR = ['#8A5F06', '#0E7FA6', '#17703F', '#C8283A', '#7A45B8'], COUL = COUL_SOMBRE;
   var D, choix = ['sp500', 'aapl'], periode = '10';
   function el(t, a, x) { var e = document.createElementNS(NS, t); for (var k in a) e.setAttribute(k, a[k]); if (x != null) e.textContent = x; return e; }
   function pct(x, d) { return (x >= 0 ? '+' : '−') + Math.abs(x).toLocaleString('fr-FR', { maximumFractionDigits: d == null ? 1 : d }) + ' %'; }
@@ -51,6 +51,7 @@
   }
 
   function trace() {
+    COUL = document.documentElement.dataset.theme === 'clair' ? COUL_CLAIR : COUL_SOMBRE;
     box.querySelectorAll('.puce').forEach(function (b) {
       var i = choix.indexOf(b.dataset.k); b.classList.toggle('actif', i >= 0); b.style.setProperty('--c', i >= 0 ? COUL[i] : '');
     });
@@ -127,4 +128,5 @@
     box.querySelector('.perf-note').textContent = 'Du ' + date(dates[i0]) + ' au ' + date(dates[fin]) + (tronque ? ' (période raccourcie : une des valeurs choisies n’était pas encore cotée)' : '')
       + (log ? '. Échelle logarithmique : une même hauteur correspond à une même multiplication.' : '.');
   }
+  document.addEventListener('theme', function () { if (typeof trace === 'function') try { trace(); } catch (e) {} });
 })();

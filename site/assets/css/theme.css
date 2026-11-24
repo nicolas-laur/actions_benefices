@@ -441,10 +441,10 @@ details.perf-groupe[open]>summary{margin-bottom:10px}
    ===================================================================================================== */
 html[data-theme="clair"]{color-scheme:light;
   --fort:#141B26; --l:40,30,10; --panneau:#FFFDF8; --panneau2:#FBF5E8; --pied:#EFE6D2; --nuit-rgb:246,240,227;
-  --nuit:#F6F0E3; --nuit-bleu:#EDE1C6; --or-lum:#A87508; --or-pale:#8A5F06; --verre:rgba(255,255,255,.66); --filet-or:rgba(168,117,8,.35);
-  --vert-lum:#1E8A4F; --rouge-lum:#C8283A; --cyan-lum:#0E7FA6; --texte-clair:#3D4452; --halo:0 0 0 transparent;
+  --nuit:#F6F0E3; --nuit-bleu:#EDE1C6; --or-lum:#8A5F06; --or-pale:#7A5205; --verre:rgba(255,255,255,.66); --filet-or:rgba(168,117,8,.35);
+  --vert-lum:#17703F; --rouge-lum:#B8202F; --cyan-lum:#0B6E91; --texte-clair:#3D4452; --halo:0 0 0 transparent;
   --fond:#F6F0E3; --carte:rgba(255,255,255,.7); --encre:#1B2433; --gris:#6A6458; --filet:rgba(60,45,20,.13);
-  --or:#A87508; --or-fonce:#8A5F06; --vert:#1E8A4F; --rouge:#C8283A; --sarcelle:#0E7FA6; --ombre:0 10px 30px rgba(90,60,10,.12)}
+  --or:#8A5F06; --or-fonce:#7A5205; --vert:#17703F; --rouge:#B8202F; --sarcelle:#0B6E91; --ombre:0 10px 30px rgba(90,60,10,.12)}
 html[data-theme="clair"] body{background:radial-gradient(80% 50% at 80% 0%,rgba(212,160,40,.12),transparent 60%),var(--nuit)}
 html[data-theme="clair"] h1 em,html[data-theme="clair"] h2 em{text-shadow:none}
 html[data-theme="clair"] .carte,html[data-theme="clair"] .vignette,html[data-theme="clair"] .tuile,html[data-theme="clair"] .video,
@@ -476,7 +476,6 @@ html[data-theme="clair"] [stroke="rgba(255,255,255,.35)"]{stroke:rgba(60,45,20,.
 html[data-theme="clair"] [fill="rgba(255,194,74,.30)"]{fill:rgba(176,125,18,.28)} html[data-theme="clair"] [fill="rgba(63,224,138,.30)"]{fill:rgba(30,138,79,.25)}
 html[data-theme="clair"] [fill="rgba(255,77,94,.30)"]{fill:rgba(200,40,58,.22)} html[data-theme="clair"] [fill="rgba(53,214,255,.30)"]{fill:rgba(14,127,166,.22)}
 html[data-theme="clair"] [style*="background:#3FE08A"]{background:#1E8A4F!important} html[data-theme="clair"] [style*="background:#35D6FF"]{background:#0E7FA6!important}
-html[data-theme="clair"] [style*="color:#FFC24A"]{color:#A87508!important}
 /* bouton soleil / lune */
 .bascule-theme{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--filet);background:var(--verre);color:var(--or-lum);cursor:pointer;flex:none;transition:rotate .5s var(--ressort),border-color .3s}
 .bascule-theme:hover{border-color:var(--or-lum);rotate:20deg}
@@ -494,3 +493,22 @@ html[data-theme="clair"] .mq-visuel.carte-logo img{filter:none}
 html[data-theme="clair"] .mq-regles{background:radial-gradient(50% 80% at 85% 60%,rgba(212,160,40,.16),transparent 70%),linear-gradient(180deg,#FFF9EC,#F3E7CC);border-color:var(--filet)}
 html[data-theme="clair"] .mq-fin{background:radial-gradient(50% 90% at 18% 50%,rgba(212,160,40,.2),transparent 65%),linear-gradient(180deg,var(--nuit-bleu),var(--nuit));color:var(--fort)}
 html[data-theme="clair"] .mq-fin .mq-grand{color:var(--fort)}
+
+/* mode clair : lisibilité (audit de contraste du 24/11, seuil WCAG AA) */
+html[data-theme="clair"] .lettre,html[data-theme="clair"] .lettre p,html[data-theme="clair"] .lettre .note{color:var(--texte-clair);opacity:1}
+html[data-theme="clair"] .lettre h2,html[data-theme="clair"] .lettre h3{color:var(--fort)}
+html[data-theme="clair"] .lettre a{color:var(--or-lum)}
+html[data-theme="clair"] .bouton.or,html[data-theme="clair"] .entete .bouton,html[data-theme="clair"] .bouton.or:hover{color:#141B26}
+html[data-theme="clair"] .filtres .bouton.actif,html[data-theme="clair"] .perf-periodes .bouton.actif,html[data-theme="clair"] .bouton.clair.actif:not(.puce){background:var(--or-lum);color:#fff}
+html[data-theme="clair"] .bouton.puce.actif{color:#fff;box-shadow:none}
+html[data-theme="clair"] .bouton.tiktok{color:#fff} html[data-theme="clair"] .bouton.insta{color:#fff}
+html[data-theme="clair"] .bandeau-lien{color:var(--or-lum)}
+html[data-theme="clair"] .bandeau-piste .hausse span{color:#17703F} html[data-theme="clair"] .bandeau-piste .baisse span{color:#B8202F}
+html[data-theme="clair"] [style*="color:#3FE08A"]{color:#17703F!important} html[data-theme="clair"] [style*="color:#FF4D5E"]{color:#B8202F!important}
+html[data-theme="clair"] [style*="color:#35D6FF"]{color:#0B6E91!important} html[data-theme="clair"] [style*="color:#F2F5FA"]{color:#1B2433!important}
+html[data-theme="clair"] [style*="color:#FFC24A"]{color:#8A5F06!important} html[data-theme="clair"] [style*="color:#9AA6B8"]{color:#5E584C!important}
+html[data-theme="clair"] .gris,html[data-theme="clair"] .source,html[data-theme="clair"] .fil{color:#5E584C}
+html[data-theme="clair"] [style*="color:#7FB2EA"]{color:#2F5E94!important} html[data-theme="clair"] [style*="background:#7FB2EA"]{background:#2F5E94!important}
+html[data-theme="clair"] [style*="color:#A9C3E3"]{color:#4A6D96!important} html[data-theme="clair"] [style*="background:#A9C3E3"]{background:#4A6D96!important}
+html[data-theme="clair"] [style*="background:#9AA6B8"]{background:#8A8378!important}
+.lettre .note a{color:var(--fort)} html[data-theme="clair"] .lettre .note a{color:var(--or-lum)}

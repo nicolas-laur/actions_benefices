@@ -97,9 +97,9 @@ def corps(R):
               '<p style="margin:0;flex:1 1 360px;font-size:18px">Conçoit les puces qui font tourner l\'intelligence artificielle, les fait fabriquer par d\'autres (surtout TSMC à Taïwan) et les vend aux géants du cloud et aux laboratoires d\'IA.</p></div>')
         + '<div class="grille" style="--min:320px">'
         + carte('<div class="pile" style="gap:14px"><div class="surtitre">Par activité</div>' + pbar('Centres de données', 89.7, TEAL) + pbar('Jeux vidéo', 7.4, LIME)
-                + pbar('Automobile, robotique', 1.1, LIME) + pbar('Autres (visualisation pro…)', 1.8, '#8A8A8A') + '</div>')
-        + carte('<div class="pile" style="gap:14px"><div class="surtitre">Par région du client</div>' + pbar('États-Unis', 69.3, NAVY) + pbar('Taïwan', 19.6, '#4F79A8')
-                + pbar('Chine', 9.1, '#6F8FB5') + pbar('Autres', 2.0, '#8A8A8A') + '</div>') + '</div>'
+                + pbar('Automobile, robotique', 1.1, LIME) + pbar('Autres (visualisation pro…)', 1.8, '#9AA6B8') + '</div>')
+        + carte('<div class="pile" style="gap:14px"><div class="surtitre">Par région du client</div>' + pbar('États-Unis', 69.3, NAVY) + pbar('Taïwan', 19.6, '#7FB2EA')
+                + pbar('Chine', 9.1, '#A9C3E3') + pbar('Autres', 2.0, '#9AA6B8') + '</div>') + '</div>'
         + grille(tuile('neutre', 'En bourse depuis', '1999', 'Nasdaq'), tuile('neutre', 'Capitalisation', f"≈ {fr(CN['c']*ACTIONS/TX, 0)} Md€", f"≈ {fr(CN['c']*ACTIONS, 0)} Md$"),
                  tuile('ok' if (CN['var'] or 0) > 0 else 'ko' if (CN['var'] or 0) < 0 else 'neutre', f'Cours au {JOUR}', f"{fr(CN['c']/TX, 2)} €", f"{fr(CN['c'], 2)} $" + (', ' + fr_var(CN['var']) if CN['var'] is not None else ''))),
         R, 'loupe', "9 euros de ventes sur 10 viennent des centres de données. Les comptes publiés par Nvidia sont examinés par la SEC (enquête en cours, aucune conclusion à ce jour).",

@@ -67,7 +67,7 @@ SERIES = {
     'novo': ('NOVO-B.CO', 'Novo Nordisk', 'Actions européennes|Santé', 'DKK'),
     'san': ('SAN.PA', 'Sanofi', 'Actions européennes|Santé', 'EUR'),
     'azn': ('AZN.L', 'AstraZeneca', 'Actions européennes|Santé', 'GBP'),
-    'rog': ('ROG.SW', 'Roche', 'Actions européennes|Santé', 'CHF'),
+    'rog': ('RO.SW', 'Roche', 'Actions européennes|Santé', 'CHF'),
     'bnp': ('BNP.PA', 'BNP Paribas', 'Actions européennes|Finance', 'EUR'),
     'axa': ('CS.PA', 'AXA', 'Actions européennes|Finance', 'EUR'),
     'alv': ('ALV.DE', 'Allianz', 'Actions européennes|Finance', 'EUR'),

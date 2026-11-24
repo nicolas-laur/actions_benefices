@@ -130,6 +130,8 @@ def main():
     # semaines où la majorité des marchés ont coté (le bitcoin cote aussi le week-end : pas de fausse semaine en cours)
     hebdo = hebdo.loc[hebdo.notna().sum(axis=1) >= hebdo.shape[1] / 2]
     dates = [d.strftime('%Y-%m-%d') for d in hebdo.index]
+    # semaine en cours : étiquetée au vendredi à venir par resample ; on affiche plutôt la date du dernier cours réellement connu
+    if hebdo.index[-1] > h.index.max(): dates[-1] = h.index.max().strftime('%Y-%m-%d')
     series = {}
     for k, (t, nom, grp, dev) in SERIES.items():
         if t not in hebdo: print('absent :', t, file=sys.stderr); continue

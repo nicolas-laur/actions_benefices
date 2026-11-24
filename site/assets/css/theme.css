@@ -433,3 +433,4 @@ details.perf-groupe[open]>summary{margin-bottom:10px}
 .quiz-niveau:hover{translate:0 -4px;border-color:var(--or-lum)} .quiz-niveau b{font-size:22px}
 .lex-niveau{scroll-margin-top:90px}
 .mentions{gap:6px}.mentions h3{margin:22px 0 0;font-size:20px;color:var(--or-pale)}.mentions p{margin:0}
+.perf-secteur>.pastilles:only-child{grid-column:1/-1} details.perf-groupe{display:block}

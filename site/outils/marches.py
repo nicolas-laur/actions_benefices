@@ -126,6 +126,14 @@ def main():
     # historique hebdomadaire depuis 1990 (clôtures du vendredi)
     h = yf.download(tickers, start='1990-01-01', interval='1d', auto_adjust=False, progress=False, threads=True)['Close']
     h.index = pd.to_datetime(h.index).tz_localize(None)
+    # Yahoo rate parfois quelques valeurs au hasard dans un gros téléchargement groupé : on les redemande une par une
+    for t in [t for t in tickers if t not in h or h[t].dropna().empty]:
+        try:
+            x = yf.download(t, start='1990-01-01', interval='1d', auto_adjust=False, progress=False)['Close']
+            x = x[t] if hasattr(x, 'columns') else x
+            x.index = pd.to_datetime(x.index).tz_localize(None)
+            if not x.dropna().empty: h[t] = x; print('repris :', t, file=sys.stderr)   # aligné sur les dates du téléchargement groupé
+        except Exception as err: print('échec :', t, err, file=sys.stderr)
     hebdo = h.resample('W-FRI').last()
     # semaines où la majorité des marchés ont coté (le bitcoin cote aussi le week-end : pas de fausse semaine en cours)
     hebdo = hebdo.loc[hebdo.notna().sum(axis=1) >= hebdo.shape[1] / 2]

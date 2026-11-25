@@ -89,7 +89,8 @@ def barres_empilees(data, aria, groupes=4, premier=2022, conv=1.0, etiq=None, ti
         s.append(f'<rect x="{x:.1f}" y="{base-ha-hb-2:.1f}" width="{bw:.1f}" height="{hb:.1f}" rx="3" fill="{LIME}"/>')
         if (etiq or (lambda i: i % groupes == groupes-1 or i >= n-4))(i): s.append(_t(x+bw/2, base-ha-hb-9, fr(a+b), 11, INK, 700))
         s.append('</g>')
-    return ''.join(s+['</svg>'])
+    s.append('</svg>')
+    return _double(''.join(s), _hb_empilees(vals, groupes, premier, tips))
 
 def flux(nodes, links, vals, k, labels, aria, W=1100, H=600, nw=18, tips=None, noms=None, pictos=None):
     """compte de résultat en rubans, mise en page inspirée de App Economy Insights (How They Make Money).
@@ -123,9 +124,10 @@ def flux(nodes, links, vals, k, labels, aria, W=1100, H=600, nw=18, tips=None, n
             px0 = {'middle': tx-larg/2, 'end': tx-ps/2-larg, 'start': tx+ps/2}[a]
             g += [_picto(p, px0+j*pas, py, ps, c) for j, p in enumerate(noms_p)]
         s.append(''.join(g) + '</g>')
-    return ''.join(s+['</svg>'])
+    s.append('</svg>')
+    return _double(''.join(s), _flux_mobile(''.join(s), nodes, links, vals, labels, tips, noms), mobile_seul=False)
 
-def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident='h', tips=None, nom_courbe='Marge nette'):
+def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident='h', tips=None, nom_courbe='Marge nette', nom_barres='Résultat net (Md€)'):
     """barres avec valeur au-dessus (négatifs en rouge sous l'axe), courbe secondaire facultative dans sa propre bande sous les barres,
     hachure sur la barre d'indice hach (période en cours) ; tips : un texte d'infobulle par barre (colonne entière, courbe comprise)"""
     W = 1000; x0 = 20; base = H-(110 if courbe else 40); top = 40; n = len(vals); st = (W-2*x0)/n; bw = st*.5
@@ -151,4 +153,73 @@ def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident
             # valeur au-dessus du point, avec un halo blanc : elle ne se mêle plus à la courbe
             g += [f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5" fill="#0E131D" stroke="{TEAL}" stroke-width="3"/>', _t(px, py-13, fr(c, 0)+' %', 13, TEAL, 700, halo=True)]
         s.append(''.join(g) + '</g>')
-    return ''.join(s+['</svg>'])
+    s.append('</svg>')
+    return _double(''.join(s), _hb_simples(vals, labels, fmt_, color, courbe, hach, tips, nom_courbe, nom_barres))
+
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# Versions téléphone des graphiques (chantier mobile du 25/11) : sous 760 px de large, chaque graphique SVG est remplacé par une
+# version en barres horizontales, lisible sans défilement (valeur au bout de chaque barre, détail au toucher via data-tip).
+# Sur ordinateur, rien ne change : la version SVG reste affichée (classes g-bureau / g-mobile, assets/css/mobile.css).
+
+def _double(svg, mobile, mobile_seul=True):
+    return f'<div class="g-bureau">{svg}</div><div class="g-mobile">{mobile}</div>'
+
+def _ligne(etiq, largeur, segments, valeur, tip, coul_val=None, cache=False, extra='', classe=''):
+    """une barre horizontale : étiquette, segments [(part en %, couleur, motif)], valeur au bout"""
+    segs = ''.join(f'<i style="width:{p:.2f}%;background:{c}"{" class=hach" if h else ""}></i>' for p, c, h in segments)
+    st = f' style="color:{coul_val}"' if coul_val else ''
+    return (f'<div class="hb-l{" " + classe if classe else ""}"{" hidden" if cache else ""} {_tip(tip) if tip else ""}>'
+            f'<span class="hb-q">{escape(etiq)}</span><span class="hb-piste"><span class="hb-b" style="width:{max(largeur, .8):.2f}%">{segs}</span></span>'
+            f'<b class="hb-v"{st}>{valeur}</b>{extra}</div>')
+
+def _plus(n, nom):
+    return f'<button class="hb-plus" type="button" aria-expanded="false"><span class="ouvrir">Voir les {n} {nom}</span><span class="fermer">Voir moins</span></button>'
+
+def _hb_empilees(vals, groupes, premier, tips, visibles=8):
+    """barres empilées → barres horizontales ; trimestres regroupés par exercice ; les « visibles » dernières affichées, le reste au bouton"""
+    n = len(vals); vmax = max(a+b for a, b in vals); h = ['<div class="hb">']
+    # au moins « visibles » − 3 barres, en commençant au début d'un exercice (pas de trimestre isolé sous son titre)
+    debut = 0 if n <= visibles else (((n-visibles)//groupes + 1)*groupes if groupes > 1 else n-visibles)
+    for i, (a, b) in enumerate(vals):
+        cache = i < debut; tot = a+b
+        if groupes > 1 and (i % groupes == 0 or i == debut):
+            h.append(f'<p class="hb-an"{" hidden" if cache else ""}>Exercice {premier+i//groupes}</p>')
+        etiq = f'T{i % groupes + 1}' if groupes > 1 else str(premier+i)
+        h.append(_ligne(etiq, 100*tot/vmax, [(100*a/tot, TEAL, False), (100*b/tot, LIME, False)], fr(tot), tips[i] if tips else None, cache=cache))
+    if debut: h.append(_plus(n, 'trimestres' if groupes > 1 else 'années'))
+    return ''.join(h+['</div>'])
+
+def _hb_simples(vals, labels, fmt_, color, courbe, hach, tips, nom_courbe, nom_barres):
+    """barres (et courbe éventuelle) → une ligne par période : barre, valeur, puis la valeur de la courbe en pastille"""
+    vmax = max(abs(v) for v in vals) or 1; h = ['<div class="hb">']
+    if courbe: h.append(f'<p class="hb-leg"><span><i style="background:{color}"></i>{escape(nom_barres)}</span><span class="hb-c">{escape(nom_courbe)}</span></p>')
+    for i, (v, lb) in enumerate(zip(vals, labels)):
+        c = color if v >= 0 else RED
+        extra = f'<span class="hb-c">{fr(courbe[i], 0)} %</span>' if courbe else ''
+        h.append(_ligne(lb, 100*abs(v)/vmax, [(100, c, hach == i)], fmt_(v), tips[i] if tips else None, None if v >= 0 else RED, extra=extra,
+                        classe='avec-c' if courbe else ''))
+    return ''.join(h+['</div>'])
+
+def _flux_mobile(svg, nodes, links, vals, labels, tips, noms):
+    """flux → aperçu du graphique entier (un appui l'ouvre en grand) + deux barres empilées : d'où vient l'argent, où il va"""
+    entrees = {b for a, b, v, c in links}; sorties = {a for a, b, v, c in links}
+    nom = lambda n: (noms or {}).get(n) or labels.get(n, ('', [(n, 'n')]))[1][0][0]
+    ca = next((n for n in nodes if labels.get(n, ('', [('', '')]))[1][0][0].lower().startswith("chiffre d")), None)
+    import re
+    svg = re.sub(r' data-tip="[^"]*" tabindex="0" role="img" aria-label="[^"]*"', '', svg)   # l'aperçu n'est qu'une vignette : le détail est dans la vue en grand
+    if ca is None: return f'<button class="flux-apercu" type="button">{svg}</button>'
+    xca = nodes[ca][0]; total = vals[ca]
+    src = [n for n in nodes if n not in entrees and nodes[n][0] < xca]
+    puits = [n for n in nodes if n not in sorties and nodes[n][0] > xca]
+    rn = next((p for p in puits if 'sultat net' in nom(p)), None)
+    puits.sort(key=lambda n: (n == rn, -nodes[n][1]))   # les charges du plus gros au plus petit, le résultat net en dernier
+    def pile(titre, ids):
+        segs = ''.join(f'<i style="width:{100*vals[n]/sum(vals[x] for x in ids):.2f}%;background:{nodes[n][2]}" {_tip(tips[n]) if tips and n in tips else ""}></i>' for n in ids)
+        lig = ''.join(f'<li {_tip(tips[n]) if tips and n in tips else ""}><i style="background:{nodes[n][2]}"></i><span>{escape(nom(n))}</span>'
+                      f'<b>{fr(vals[n])}</b><em>{fr(100*vals[n]/total, 0)} %</em></li>' for n in ids)
+        return f'<div class="pile-act"><p class="hb-titre">{titre}</p><div class="pile-barre">{segs}</div><ul>{lig}</ul></div>'
+    return (f'<button class="flux-apercu" type="button" aria-label="Afficher le graphique en grand">{svg}<span class="flux-ouvrir">Toucher pour l\'afficher en entier</span></button>'
+            + pile(f"D'où viennent les {fr(total)} Md€ de ventes", src)
+            + pile("Où va chaque euro de ventes", puits)
+            + '<p class="hb-note">Pourcentages du chiffre d\'affaires.</p>')

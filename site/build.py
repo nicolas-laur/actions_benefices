@@ -80,6 +80,20 @@ def _empreinte(f): return hashlib.sha1(f.read_bytes()).hexdigest()[:8]
 EMPREINTES = {str(f.relative_to(ICI)).replace('\\', '/'): _empreinte(f) for f in (ICI/'assets').rglob('*') if f.is_file()}
 VERSION = hashlib.sha1(''.join(sorted(EMPREINTES.values())).encode()).hexdigest()[:8]
 _RE_ASSET = re.compile(r'(assets/[\w./-]+\.(?:css|js|webp|png|jpg|svg|mp3|webm|json|woff2))(?=["\')\s])')
+def cartes_tableaux(html):
+    """téléphone : chaque cellule d'un tableau reçoit l'intitulé de sa colonne (data-l), affiché au-dessus de la valeur quand
+    le tableau passe en cartes (assets/css/mobile.css)"""
+    def un(m):
+        t = m.group(0); tetes = [re.sub(r'<[^>]+>', '', h).strip() for h in re.findall(r'<th[^>]*>(.*?)</th>', t.split('</thead>')[0], re.S)]
+        if not tetes: return t
+        def ligne(mr):
+            k = [0]
+            def cel(mc):
+                i = k[0]; k[0] += 1
+                return f'<td data-l="{escape(tetes[i], quote=True)}"' if i < len(tetes) else mc.group(0)
+            return re.sub(r'<td(?=[\s>])', cel, mr.group(0))
+        return re.sub(r'<tr>.*?</tr>', ligne, t, flags=re.S)
+    return re.sub(r'<table>.*?</table>', un, html, flags=re.S)
 def versionne(html): return _RE_ASSET.sub(lambda m: m.group(1) + '?v=' + EMPREINTES.get(m.group(1), VERSION), html)
 
 # racine absolue, utile seulement pour la page 404 (servie à n'importe quelle adresse)
@@ -91,12 +105,14 @@ def page(chemin, titre, description, corps, rubrique=None, r=None, **kw):
     r = r if r is not None else '../'*prof
     html = env.get_template('page.html').render(SITE=SITE, VERSION=VERSION, titre=titre, description=description, chemin=chemin, r=r,
                                                 rubrique=rubrique, corps=corps(r), **kw)
-    f = SORTIE/chemin.strip('/')/'index.html'; f.parent.mkdir(parents=True, exist_ok=True); f.write_text(versionne(insecables(html)))
+    f = SORTIE/chemin.strip('/')/'index.html'; f.parent.mkdir(parents=True, exist_ok=True); f.write_text(versionne(insecables(cartes_tableaux(html))))
     PAGES.append(chemin)
 
 def insecables(html):
     """espace insécable entre les milliers (« 50 000 »), dans le texte seulement, jamais dans les attributs ni les coordonnées SVG"""
-    return re.sub(r'>[^<]+<', lambda m: re.sub(r'(\d) (?=\d{3}(?!\d))', '\\1\u00a0', m.group(0)), html)
+    # et avant ? ! : ; » ainsi qu'après « (typographie française) : « Que vaut Nvidia ? » ne laisse plus le « ? » seul à la ligne
+    def t(x): return re.sub(r'« ', '«\u00a0', re.sub(r' (?=[?!:;»])', '\u00a0', re.sub(r'(\d) (?=\d{3}(?!\d))', '\\1\u00a0', x)))
+    return re.sub(r'>[^<]+<', lambda m: t(m.group(0)), html)
 def jj(d): return f'{d[8:]}/{d[5:7]}/{d[:4]}'
 def entete(surtitre, h1, mot, chapo, pose=None, r=''):
     """en-tête de page façon couverture de l'accueil : halo doré, pièces peintes en parallaxe, titre qui monte, Mister Coin en léger décalage"""

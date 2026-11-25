@@ -70,3 +70,76 @@
   .mq-recit .mq-flottant.recit{display:none}
 }
 @media (max-width:380px){ .entete .marque span{font-size:17px} .entete .marque img{width:30px;height:30px} .entete .bouton{padding:0 12px} }
+
+/* ---------- graphiques : version ordinateur (SVG) ou téléphone (barres horizontales), composants.py ---------- */
+.g-mobile{display:none}
+.infobulle{z-index:110}   /* au-dessus de l en-tête et de la vue en grand des flux */
+@media (max-width:760px){
+  .g-bureau{display:none} .g-mobile{display:block}
+  .carte figure{overflow:visible} .carte figure>svg{min-width:0} .carte figure::after{content:none}
+  .carte figure figcaption.astuce{display:none}
+  .carte:has(.g-mobile){padding:18px 16px}
+}
+.hb{font-family:var(--texte);color:var(--fort)}
+.hb-an{font-family:var(--titre);font-size:19px;letter-spacing:.02em;color:var(--or-lum);margin:16px 0 4px} .hb-an:first-child{margin-top:0}
+.hb-l{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:34px;border-radius:10px;padding:0 4px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hb-l.avec-c{grid-template-columns:44px minmax(0,1fr) auto 46px}
+.hb-l[hidden],.hb-an[hidden]{display:none}
+.hb-l.survol,.hb-l:focus-visible{background:rgba(var(--l),.07)}
+.hb-q{font-size:14px;font-weight:600;color:var(--gris)}
+.hb-piste{display:block}
+.hb-b{display:flex;height:18px;border-radius:0 9px 9px 0;overflow:hidden}
+.hb-b i{display:block;height:100%}
+.hb-b i.hach{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.35) 0 4px,transparent 4px 9px)!important}
+.hb-v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;min-width:42px}
+.hb-c{font-size:13px;font-weight:700;color:#35D6FF;text-align:right}
+.hb-leg{display:flex;justify-content:space-between;font-size:13px;color:var(--gris);margin:0 4px 6px}
+.hb-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.hb-plus{display:block;margin:14px auto 0;min-height:44px;padding:0 20px;border-radius:999px;border:1.5px solid var(--filet-or);background:transparent;color:var(--fort);font:700 15px var(--texte);cursor:pointer}
+.hb-plus .fermer,.hb-plus[aria-expanded="true"] .ouvrir{display:none} .hb-plus[aria-expanded="true"] .fermer{display:inline}
+/* flux : aperçu à toucher, puis deux barres empilées */
+.flux-apercu{display:block;width:100%;padding:8px 6px 0;margin:0;border:1px solid var(--filet-or);border-radius:16px;background:rgba(var(--l),.03);cursor:zoom-in;color:var(--fort)}
+.flux-apercu svg{display:block;width:100%;height:auto;pointer-events:none}
+.flux-ouvrir{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;font:700 15px var(--texte);color:var(--or-lum)}
+.flux-ouvrir::before{content:"⤢";font-size:20px;line-height:1}
+.pile-act{margin-top:22px}
+.hb-titre{font-weight:800;font-size:16px;margin:0 0 10px}
+.pile-barre{display:flex;height:26px;border-radius:9px;overflow:hidden;gap:2px}
+.pile-barre i{display:block;height:100%;cursor:pointer}
+.pile-act ul{list-style:none;margin:10px 0 0;padding:0}
+.pile-act li{display:grid;grid-template-columns:14px minmax(0,1fr) auto 44px;gap:10px;align-items:center;min-height:38px;border-bottom:1px solid rgba(var(--l),.08);cursor:pointer;font-size:15px}
+.pile-act li.survol{background:rgba(var(--l),.06)}
+.pile-act li i{width:14px;height:14px;border-radius:4px}
+.pile-act li b{font-variant-numeric:tabular-nums} .pile-act li em{font-style:normal;color:var(--gris);text-align:right;font-size:14px}
+.hb-note{font-size:13px;color:var(--gris);margin:8px 0 0}
+/* vue en grand du flux */
+.flux-grand{position:fixed;inset:0;z-index:100;background:var(--nuit);display:flex;flex-direction:column}
+.flux-grand[hidden]{display:none}
+.flux-grand-tete{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-bottom:1px solid var(--filet-or);font-size:14px;color:var(--gris)}
+.flux-grand-tete button{flex:none;width:44px;height:44px;border-radius:14px;border:1.5px solid var(--filet-or);background:transparent;color:var(--fort);font-size:22px;cursor:pointer}
+.flux-grand-corps{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px}
+.flux-grand-corps svg{width:max(100%,980px);height:auto;display:block}
+@media (orientation:landscape){.flux-grand-corps svg{width:100%;max-height:calc(100dvh - 90px)}}
+html.flux-ouvert{overflow:hidden}
+/* mode clair : mêmes remappages que les SVG (theme.css) pour les barres en HTML */
+html[data-theme="clair"] [style*="background:#FFC24A"]{background:#B07D12!important} html[data-theme="clair"] [style*="background:#FF4D5E"]{background:#C8283A!important}
+html[data-theme="clair"] [style*="background:#F2F5FA"]{background:#1B2433!important} html[data-theme="clair"] [style*="background:#C08BFF"]{background:#7A45B8!important}
+html[data-theme="clair"] .hb-c{color:#0B6E91}
+
+/* ---------- tableaux (rivaux) : une carte par ligne sur téléphone ; intitulés de colonne ajoutés par build.py (data-l) ---------- */
+@media (max-width:760px){
+  .tableau{overflow:visible}
+  .tableau table{display:block;min-width:0;width:100%}
+  .tableau thead{display:none}
+  .tableau tbody{display:grid;gap:12px}
+  .tableau tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 12px;padding:14px 16px;border:1px solid rgba(var(--l),.1);border-radius:16px;background:rgba(var(--l),.03)}
+  .tableau td{display:block;padding:0;border:0;min-width:0}
+  .tableau td:first-child{grid-column:1/-1;margin-bottom:8px}
+  .tableau td[data-l]:not(:first-child)::before{content:attr(data-l);display:block;font-size:12px;line-height:1.3;font-weight:600;color:var(--gris);margin-bottom:4px;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
+  .tableau td>div{flex-direction:column;align-items:flex-start!important;gap:4px!important}
+  .tableau td>div>span{height:8px!important}
+  .tableau td>div{width:100%}
+}
+
+/* mode clair : le bouton « La lettre » de l'en-tête reprend l'or clair des autres boutons dorés (texte encre lisible, contraste AA) */
+html[data-theme="clair"] body .entete .bouton{background:linear-gradient(180deg,#FFD978,#FFC24A 55%,#E9A520);color:#141B26}

@@ -32,6 +32,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Retirer les éléments décoratifs du haut et les accessoires qui détournent l'attention (cochon) ; Mister Coin avec les étoiles dans les yeux en bas a été apprécié.
 
 ## Textes et ton
+- À tester sur les prochaines vidéos (25/11, après le bilan Metricool) : une incitation discrète à aimer, enregistrer ou partager dès le début de la vidéo (pas seulement dans la légende). Sur Instagram, les vidéos qui décollent sont celles qu'on enregistre : un calcul personnel à garder (dividendes, or, millionnaire : 22 à 25 enregistrements, contre 0 à 9 pour les autres).
 - Script voix : ne pas laisser de balise [silence …] dans le texte envoyé à ElevenLabs, elle produit un bruit ; les silences de réaction se règlent au montage (21/11).
 - Bulles : il les réécrit volontiers sur un ton familier et enjoué (« Pas de stress ma poule », « WHAOU ! Tout en un clic ! ») ; proposer ce ton d'emblée, bulles courtes, coupées en deux lignes à la ponctuation si longues.
 - Question finale tournée vers le spectateur et en lien avec l'actualité (« Et toi, tu as acheté GTA 6 ? »).

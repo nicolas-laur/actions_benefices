@@ -2,6 +2,11 @@
 
 Idée du 19/11/2026, inspirée des carrousels « Que vaut l'entreprise qui… » de Les Finances de Papa (Take-Two, le jour de la sortie de GTA VI) : un déroulé d'analyste, toujours le même, appliqué à une entreprise qui fait l'actualité. On garde la structure et la précision, avec notre DA (1930, verre épais, Mister Coin) et notre ligne : des faits vérifiables, jamais de verdict ni de conseil.
 
+## Format de sortie et rangement (décision du 25/11/2026)
+- Un seul format : Instagram 4:5 (`out/instagram_N.png`, 1080×1350), publié tel quel sur Instagram et sur TikTok (carrousel photo). Les versions 9:16 ne sont plus produites ni livrées.
+- Fiches prêtes d'avance, publiées quand Nicolas le souhaite : pas de date imposée, chiffres datés sur la fiche (cours et taux BCE du jour de production) ; à revérifier si la publication a lieu plus de 2 semaines après.
+- Chaque fiche terminée est déposée sur le Google Drive de Nicolas : Actions_Benefices > Fiches entreprises > [Entreprise] (dossier « Fiches entreprises » : id 1YhElXYTW3Ukx-r9CZQgSjNl6SPVi6l_h). Contenu : les diapos `[entreprise]_N.png`, `description.txt` (TikTok et Instagram), `sources.md`. Nvidia et Alphabet y sont depuis le 25/11.
+
 ## Objectif et programme (décision du 24/11/2026)
 Dans un premier temps, le but est de produire une fiche pour chacune des valeurs des deux feuilles du fichier Google Sheets « Suivi Finance et Analyse de titres » de Nicolas : https://docs.google.com/spreadsheets/d/1SsAM1VUCHfy-8VlkOuY62tXBD0Mfmv9eU2tckIJs6_4/edit . La feuille « Analyse actions détenues » contient les valeurs que Nicolas détient (ligne de transparence « Je détiens des actions X. » sur la dernière diapo) ; la feuille « Analyse d'actions » contient les valeurs qu'il suit sans forcément les détenir (à vérifier avec lui avant chaque fiche). Liste relevée le 24/11/2026 (44 valeurs ; relire le fichier avant de choisir la suivante, il évolue) :
 - Analyse actions détenues (20) : EssilorLuxottica, Capgemini, Porsche AG (préf.), GE Aerospace, L'Oréal, IBM, Alstom, Nokia, Publicis Groupe, Air Liquide, Vinci, Carrefour, AXA, Getlink, GE HealthCare, Engie, Intercontinental Exchange, Cisco Systems, GE Vernova, Kyndryl.

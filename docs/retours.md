@@ -16,6 +16,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Panneaux et compteurs : apparition et disparition en fondu, jamais d'un coup.
 
 ## Mise en scène et motion design
+- Graphiques des fiches (25/11, Alstom) : une cascade de 7 barres presque toutes rouges, sous zéro, a été jugée illisible ; pour une entreprise en perte, préférer un « avant / après » du même semestre (2 barres par ligne, une échelle commune aux résultats, valeurs dans les barres).
 - Logos : toujours récupérer le logo ou le favicon de chaque marque citée, concurrents compris (25/11, fiche Cisco : Arista et HPE) ; jamais un simple nom écrit à la place.
 - Poses `neutre` et `doigt_leve` de Mister Coin à ne plus utiliser (25/11, fiche Cisco) : remplacées par `site_calculatrice` (graphique de flux) et `site_tirelire` (solidité, argent reversé).
 - Photo d'une personne réelle : fournie par Nicolas, posée dans un cadre Polaroïd avec une courte fiche (Ellison, 20/11).

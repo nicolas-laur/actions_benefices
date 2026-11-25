@@ -112,7 +112,10 @@ def insecables(html):
     """espace insécable entre les milliers (« 50 000 »), dans le texte seulement, jamais dans les attributs ni les coordonnées SVG"""
     # et avant ? ! : ; » ainsi qu'après « (typographie française) : « Que vaut Nvidia ? » ne laisse plus le « ? » seul à la ligne
     def t(x): return re.sub(r'« ', '«\u00a0', re.sub(r' (?=[?!:;»])', '\u00a0', re.sub(r'(\d) (?=\d{3}(?!\d))', '\\1\u00a0', x)))
-    return re.sub(r'>[^<]+<', lambda m: t(m.group(0)), html)
+    # idem entre un nombre et son unité (« 60 € », « 5 % ») ; le contenu des <script> et <style> n'est pas touché
+    def u(x): return re.sub(r'(\d) (?=[€%$])', '\\1\u00a0', t(x))
+    morceaux = re.split(r'(<script\b.*?</script>|<style\b.*?</style>)', html, flags=re.S)
+    return ''.join(m if m.startswith(('<script', '<style')) else re.sub(r'>[^<]+<', lambda x: u(x.group(0)), m) for m in morceaux)
 def jj(d): return f'{d[8:]}/{d[5:7]}/{d[:4]}'
 def entete(surtitre, h1, mot, chapo, pose=None, r=''):
     """en-tête de page façon couverture de l'accueil : halo doré, pièces peintes en parallaxe, titre qui monte, Mister Coin en léger décalage"""

@@ -50,6 +50,8 @@
     });
   }
 
+  var largeur = innerWidth;
+  addEventListener('resize', function () { if (D && innerWidth !== largeur) { largeur = innerWidth; trace(); } });
   function trace() {
     COUL = document.documentElement.dataset.theme === 'clair' ? COUL_CLAIR : COUL_SOMBRE;
     box.querySelectorAll('.puce').forEach(function (b) {
@@ -74,7 +76,9 @@
     var lo = Infinity, hi = -Infinity;
     S.forEach(function (s) { s.p.forEach(function (x) { if (x != null) { lo = Math.min(lo, x); hi = Math.max(hi, x); } }); });
     var log = hi / lo > 12;                                   // échelle logarithmique quand les écarts deviennent énormes
-    var W = 1000, H = 420, x0 = 64, x1 = W - 16, y0 = H - 36, y1 = 16, m = S[0].p.length - 1 || 1;
+    // téléphone : repère à la largeur réelle (textes en 12 px), quatre années en abscisse au lieu de sept
+    var gw = box.querySelector('.perf-graph').clientWidth, etroit = gw > 0 && gw < 600;
+    var W = etroit ? Math.round(gw) : 1000, H = etroit ? 280 : 420, x0 = etroit ? 46 : 64, x1 = W - (etroit ? 10 : 16), y0 = H - 36, y1 = 16, m = S[0].p.length - 1 || 1;
     function f(x) { return log ? Math.log(x) : x; }
     var a = f(lo * (log ? .9 : 1) - (log ? 0 : (hi - lo) * .05)), b = f(hi * (log ? 1.1 : 1) + (log ? 0 : (hi - lo) * .05));
     function X(i) { return x0 + (x1 - x0) * i / m; } function Y(x) { return y0 - (y0 - y1) * (f(x) - a) / (b - a); }
@@ -88,7 +92,7 @@
       svg.appendChild(el('line', { x1: x0, x2: x1, y1: Y(t), y2: Y(t), stroke: t === 100 ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.1)', 'stroke-dasharray': t === 100 ? '4 4' : '' }));
       svg.appendChild(el('text', { x: x0 - 8, y: Y(t) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#9AA6B8' }, Math.round(t).toLocaleString('fr-FR')));
     });
-    var nbA = 6; for (var q = 0; q <= nbA; q++) { var ii = Math.round(m * q / nbA); svg.appendChild(el('text', { x: X(ii), y: y0 + 22, 'text-anchor': q === 0 ? 'start' : q === nbA ? 'end' : 'middle', 'font-size': 12, fill: '#9AA6B8' }, an(dates[i0 + ii]))); }
+    var nbA = etroit ? 3 : 6; for (var q = 0; q <= nbA; q++) { var ii = Math.round(m * q / nbA); svg.appendChild(el('text', { x: X(ii), y: y0 + 22, 'text-anchor': q === 0 ? 'start' : q === nbA ? 'end' : 'middle', 'font-size': 12, fill: '#9AA6B8' }, an(dates[i0 + ii]))); }
     S.forEach(function (s) {
       var d = '', debut = true;
       s.p.forEach(function (x, i) { if (x == null) { debut = true; return; } d += (debut ? 'M' : 'L') + X(i).toFixed(1) + ',' + Y(x).toFixed(1); debut = false; });

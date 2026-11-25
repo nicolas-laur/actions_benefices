@@ -26,9 +26,14 @@
       + (bascule ? ' À partir de l’année ' + bascule + ', les intérêts accumulés dépassent tout ce que tu as versé : c’est la force des intérêts composés.' : ''));
     courbe(pts);
   }
+  var dernier = null, largeur = innerWidth;
+  addEventListener('resize', function () { if (dernier && innerWidth !== largeur) { largeur = innerWidth; courbe(dernier); } });
   function courbe(pts) {
     var box = $('c-graph'); if (!box) return;
-    var W = 1000, H = 380, x0 = 70, x1 = W - 20, y0 = H - 40, y1 = 20, n = pts.length - 1 || 1;
+    dernier = pts;
+    // téléphone : le repère suit la largeur réelle (1 unité = 1 px), les textes gardent donc leurs 12 px ; moins de graduations
+    var etroit = box.clientWidth > 0 && box.clientWidth < 600;
+    var W = etroit ? Math.round(box.clientWidth) : 1000, H = etroit ? 260 : 380, x0 = etroit ? 52 : 70, x1 = W - (etroit ? 14 : 20), y0 = H - 40, y1 = 20, n = pts.length - 1 || 1;
     var max = Math.max.apply(null, pts.map(function (p) { return p.cap; })) || 1;
     // graduation « ronde »
     var pas = Math.pow(10, Math.floor(Math.log10(max / 4))), k = [1, 2, 2.5, 5, 10].find(function (f) { return max / (pas * f) <= 5; }) || 10; pas *= k;
@@ -39,8 +44,8 @@
       s.appendChild(svgEl('line', { x1: x0, x2: x1, y1: Y(g), y2: Y(g), stroke: 'rgba(255,255,255,.1)' }));
       s.appendChild(svgEl('text', { x: x0 - 8, y: Y(g) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#9AA6B8' }, court(g)));
     }
-    var pasA = n <= 12 ? 1 : n <= 30 ? 5 : 10;
-    for (var a = 0; a <= n; a += pasA) s.appendChild(svgEl('text', { x: X(a), y: y0 + 22, 'text-anchor': 'middle', 'font-size': 12, fill: '#9AA6B8' }, a === 0 ? 'départ' : a + ' an' + (a > 1 ? 's' : '')));
+    var pasA = etroit ? (n <= 6 ? 1 : n <= 12 ? 3 : n <= 30 ? 10 : 20) : (n <= 12 ? 1 : n <= 30 ? 5 : 10);
+    for (var a = 0; a <= n; a += pasA) s.appendChild(svgEl('text', { x: X(a), y: y0 + 22, 'text-anchor': a === 0 ? 'start' : a === n ? 'end' : 'middle', 'font-size': 12, fill: '#9AA6B8' }, a === 0 ? 'départ' : a + ' an' + (a > 1 ? 's' : '')));
     function chemin(cle) { return pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.a).toFixed(1) + ',' + Y(p[cle]).toFixed(1); }).join(' '); }
     s.appendChild(svgEl('path', { d: chemin('cap') + ' L' + X(n) + ',' + y0 + ' L' + x0 + ',' + y0 + ' Z', fill: '#3FE08A', opacity: .16 }));
     s.appendChild(svgEl('path', { d: chemin('verse') + ' L' + X(n) + ',' + y0 + ' L' + x0 + ',' + y0 + ' Z', fill: '#35D6FF', opacity: .12 }));

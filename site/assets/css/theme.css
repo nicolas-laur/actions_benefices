@@ -524,3 +524,12 @@ html[data-theme="clair"] [style*="background:#9AA6B8"]{background:#8A8378!import
 @keyframes pop-expr{0%{scale:.82;rotate:-6deg}100%{scale:1;rotate:0deg}}
 @media (max-width:860px){.mq-scene{--R:66px;--cy:220px}}
 @media (prefers-reduced-motion:reduce){.mq-scene .coin-anim.coin-expr,.coin-scene.pop .coin-expr{animation:none}}
+/* carte « Les fiches » de l'accueil : compteur et logos de toutes les fiches (25/11) */
+.mq-visuel.carte-fiches{gap:14px;min-width:280px;max-width:420px}
+.carte-fiches .cf-compte{display:flex;align-items:baseline;gap:10px}
+.carte-fiches .cf-compte b{font-family:var(--titre);font-size:54px;line-height:1;font-weight:400;color:var(--or-lum);text-shadow:var(--halo)}
+.carte-fiches .cf-compte span{font-size:15px;font-weight:700;color:var(--fort);text-transform:uppercase;letter-spacing:.08em}
+.carte-fiches .cf-logos{display:flex;flex-wrap:wrap;gap:10px}
+.carte-fiches .cf-logo{display:flex;align-items:center;justify-content:center;height:48px;padding:0 12px;border:1px solid rgba(60,45,20,.12);border-radius:12px;background:#F2F5FA;transition:translate .35s var(--ressort)}
+.carte-fiches .cf-logo:hover{translate:0 -3px}
+.mq-visuel.carte-fiches .cf-logo img{height:26px;width:auto;max-width:130px;object-fit:contain;filter:none;background:none;padding:0}

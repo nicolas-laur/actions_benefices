@@ -23,6 +23,14 @@ def flottants(liste, r, decal=0):
     return ''.join(deco(k + decal, r, "loin" if v < 0.15 else "", f'left:{x}%;top:{y}%;width:{t}px;--rot:{(k * 37) % 70 - 35}deg;--duree:{5 + k % 4}s', f'data-vitesse="{v}"')
                    for k, (x, y, t, v) in enumerate(liste))
 
+def carte_fiches(r, FICHES):
+    """carte « Les fiches » du récit : compteur et logos de toutes les fiches publiées, la plus récente d'abord ; se met à jour seule à chaque fiche ajoutée dans FICHES"""
+    nb = len(FICHES)
+    logos = ''.join(f'<a class="cf-logo" href="{r}fiches/{m.META["slug"]}/" title="Que vaut {m.META["nom"]} ?"><img src="{r}assets/img/{m.META["logo"]}" alt="{m.META["nom"]}" loading="lazy"></a>'
+                    for m in reversed(FICHES))
+    return (f'<div class="mq-visuel carte-logo carte-fiches"><div class="cf-compte"><b>{nb}</b><span>fiche{"s" if nb > 1 else ""} entreprise{"s" if nb > 1 else ""}</span></div>'
+            f'<div class="cf-logos">{logos}</div><span>Cours et PER mis à jour chaque soir</span></div>')
+
 def accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
     n = NEWS[0]; f = FICHES[-1].META   # la fiche la plus récente (FICHES suit l'ordre de publication)
     nb_marches = len(MARCHES['series']) if MARCHES else 0
@@ -63,7 +71,7 @@ def accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
          f'{r}news/{n["slug"]}/', f'Lire « {phrase_(n["titre"])} »', f'<img class="mq-visuel incline" src="{r}assets/news/{n["slug"]}/01.webp" alt="Couverture des News" loading="lazy">',
          'Nouveau chaque vendredi'),
         ('loupe', 'Fiches entreprises', 'LES FICHES', "Une entreprise passée à la loupe : ce qu'elle vend, ce qu'elle gagne, ce qui l'attend. Graphiques à explorer.",
-         f'{r}fiches/{f["slug"]}/', f'Que vaut {f["nom"]} ?', f'<div class="mq-visuel carte-logo"><img src="{r}assets/img/{f["logo"]}" alt="{f["nom"]}"><span>Cours et PER mis à jour chaque soir</span></div>',
+         f'{r}fiches/{f["slug"]}/', f'Que vaut {f["nom"]} ?', carte_fiches(r, FICHES),
          'Survole les graphiques'),
         ('question', 'Lexique et quiz', 'LE LEXIQUE', "Du livret A à l'option de vente, chaque mot expliqué avec un exemple concret, puis un quiz débutant, initié ou expert.",
          f'{r}lexique/#quiz', 'Teste tes connaissances !', '<div class="mq-visuel sigles">' + ''.join(f'<span>{e[1]}</span>' for e in [x for x in LEXIQUE if x[1].isupper()][:9]) + '</div>',

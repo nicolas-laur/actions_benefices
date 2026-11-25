@@ -432,11 +432,11 @@ SC_PRICES = dict(apple=5.145e12, alphabet=3.43e12, netflix=234.9e9)  # capitalis
 def b_preteur(cv, c, t, k):
     t1 = 2.85; a = 1-ent(t-t1, .3) if t > t1 else 1
     if t < t1+.3:
-        plate(c, 540, 420, 1000, 360, a*ent(t+.2, .3))
-        title(c, "TU VENDRAIS", t, -.4, 300, 54, CREAM, t1=t1)
-        tile(c, 'apple', 880, 330, 112, t, .1, a=a)
-        title(c, f"10{NB}% D'APPLE", t, -.25, 400, 104, YEL, t1=t1)
-        title(c, f"POUR 800{NB}$ ?", t, .9, 515, 92, YEL, t1=t1)
+        plate(c, 540, 450, 1000, 440, a*ent(t+.2, .3))                    # logo centré en haut de la plaque, entièrement dans le verre
+        tile(c, 'apple', 540, 318, 104, t, .1, a=a)
+        title(c, "TU VENDRAIS", t, -.4, 405, 54, CREAM, t1=t1)
+        title(c, f"10{NB}% D'APPLE", t, -.25, 500, 104, YEL, t1=t1)
+        title(c, f"POUR 800{NB}$ ?", t, .9, 605, 92, YEL, t1=t1)
     if 2.95 < t < 9.9:
         tt = sh(3.0)
         a2 = ent(t-tt, .3)*(1-ent(t-(sh(6.4)), .3))

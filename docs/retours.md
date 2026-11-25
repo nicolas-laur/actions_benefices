@@ -16,6 +16,8 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Panneaux et compteurs : apparition et disparition en fondu, jamais d'un coup.
 
 ## Mise en scène et motion design
+- Logos : toujours récupérer le logo ou le favicon de chaque marque citée, concurrents compris (25/11, fiche Cisco : Arista et HPE) ; jamais un simple nom écrit à la place.
+- Poses `neutre` et `doigt_leve` de Mister Coin à ne plus utiliser (25/11, fiche Cisco) : remplacées par `site_calculatrice` (graphique de flux) et `site_tirelire` (solidité, argent reversé).
 - Photo d'une personne réelle : fournie par Nicolas, posée dans un cadre Polaroïd avec une courte fiche (Ellison, 20/11).
 - Le verre 3D translucide (`lib/verre_epais.py`) est notre signature pour afficher les informations, y compris dans une DA dédiée comme GTA (17/11).
 - Il pousse vers le spectaculaire quand une scène est plate : le zoom « 1 chance sur 19 068 840 » a été refait cinq fois (grille plate → perspective, personnages → foule de Mister Coin, cible joyeuse et rieuse au milieu de pièces inquiètes, halo rond et non carré, éclairages de projecteurs). Viser d'emblée ce niveau.

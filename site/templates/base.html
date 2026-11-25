@@ -18,6 +18,7 @@
 <link rel="preload" href="{{ r }}assets/fonts/Anton-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ r }}assets/css/site.css">
 <link rel="stylesheet" href="{{ r }}assets/css/theme.css">
+<link rel="stylesheet" href="{{ r }}assets/css/mobile.css">
 <link rel="preload" href="{{ r }}assets/fonts/Caveat-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <script>window.ABV='{{ VERSION }}';(function(d){d.classList.add('js');var t;try{t=localStorage.getItem('theme')}catch(e){}
 if(t!=='clair'&&t!=='sombre')t=matchMedia('(prefers-color-scheme: light)').matches?'clair':'sombre';d.dataset.theme=t})(document.documentElement)</script>
@@ -29,14 +30,17 @@ if(t!=='clair'&&t!=='sombre')t=matchMedia('(prefers-color-scheme: light)').match
 <header class="entete">
   <div class="conteneur">
     <a class="marque" href="{{ r }}"><img src="{{ r }}assets/img/profil.png" alt=""><span>ACTIONS <b>BÉNÉFICES</b></span></a>
-    <nav class="menu" aria-label="Rubriques">
+    <nav class="menu" id="menu-principal" aria-label="Rubriques">
       {% for lien, nom in SITE.menu %}<a href="{{ r }}{{ lien }}"{% if rubrique == lien %} aria-current="page"{% endif %}>{{ nom }}</a>{% endfor %}
+      <a class="menu-mobile" href="{{ r }}lettre/">La lettre du dimanche</a>
+      <button class="menu-mobile menu-theme" type="button"><span class="vers-clair">Passer en mode clair</span><span class="vers-sombre">Passer en mode sombre</span></button>
     </nav>
     <button class="bascule-theme" type="button" aria-label="Passer en mode clair ou sombre" title="Mode clair / sombre">
       <svg class="soleil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
       <svg class="lune" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
     </button>
-    <a class="bouton" href="{{ r }}lettre/">La lettre du dimanche</a>
+    <a class="bouton" href="{{ r }}lettre/"><span class="long">La lettre du dimanche</span><span class="court">La lettre</span></a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
   </div>
 </header>
 <main id="contenu" class="conteneur">

@@ -67,15 +67,15 @@
 
 // mode clair / sombre : réglage de l'appareil par défaut ; le bouton fixe un choix gardé dans le navigateur
 (function () {
-  var d = document.documentElement, b = document.querySelector('.bascule-theme');
+  var d = document.documentElement, bs = document.querySelectorAll('.bascule-theme, .menu-theme'), b = bs[0];
   function choisi() { try { return localStorage.getItem('theme'); } catch (e) { return null; } }
   function etiquette() { if (b) b.setAttribute('aria-label', d.dataset.theme === 'clair' ? 'Passer en mode sombre' : 'Passer en mode clair'); }
   etiquette();
-  if (b) b.addEventListener('click', function () {
+  bs.forEach(function (x) { x.addEventListener('click', function () {
     d.dataset.theme = d.dataset.theme === 'clair' ? 'sombre' : 'clair';
     try { localStorage.setItem('theme', d.dataset.theme); } catch (e) {}
     etiquette(); document.dispatchEvent(new Event('theme'));
-  });
+  }); });
   var m = matchMedia('(prefers-color-scheme: light)');
   (m.addEventListener ? m.addEventListener.bind(m, 'change') : m.addListener.bind(m))(function (e) {
     if (choisi()) return;                       // le visiteur a choisi : on ne suit plus l'appareil
@@ -83,3 +83,39 @@
   });
 })();
 
+
+// menu repliable (téléphone) : le bouton ☰ ouvre le panneau des rubriques ; Échap, un lien ou un clic hors du panneau le referme
+(function () {
+  var h = document.querySelector('.entete'), b = h && h.querySelector('.burger');
+  if (!b) return;
+  function ouvrir(o) {
+    h.classList.toggle('ouvert', o); document.documentElement.classList.toggle('menu-ouvert', o);
+    b.setAttribute('aria-expanded', o); b.setAttribute('aria-label', o ? 'Fermer le menu' : 'Ouvrir le menu');
+  }
+  b.addEventListener('click', function () { ouvrir(!h.classList.contains('ouvert')); });
+  h.querySelectorAll('.menu a').forEach(function (a) { a.addEventListener('click', function () { ouvrir(false); }); });
+  addEventListener('keydown', function (e) { if (e.key === 'Escape' && h.classList.contains('ouvert')) { ouvrir(false); b.focus(); } });
+  document.addEventListener('click', function (e) { if (h.classList.contains('ouvert') && !h.contains(e.target)) ouvrir(false); });
+  matchMedia('(min-width: 861px)').addEventListener('change', function (m) { if (m.matches) ouvrir(false); });
+})();
+
+// téléphone : rien de décoratif sur un texte. Une pièce ou une étincelle qui recouvre un titre, un paragraphe ou un bouton
+// (avec une marge pour la parallaxe) est masquée ; on refait le calcul quand la largeur change.
+(function () {
+  var deco = [].slice.call(document.querySelectorAll('.mq-flottant'));
+  if (!deco.length) return;
+  function verifier() {
+    deco.forEach(function (d) { d.classList.remove('sur-texte'); });
+    if (innerWidth > 860) return;
+    var textes = [].slice.call(document.querySelectorAll('main h1, main h2, main h3, main p, main .bouton, main li, main .mq-note, main label'))
+      .map(function (t) { return t.getBoundingClientRect(); }).filter(function (r) { return r.width; });
+    deco.forEach(function (d) {
+      var r = d.getBoundingClientRect(), m = 40;   // marge verticale : la parallaxe déplace les pièces au défilement
+      if (!r.width) return;
+      var touche = textes.some(function (t) { return r.left < t.right && r.right > t.left && r.top - m < t.bottom && r.bottom + m > t.top; });
+      if (touche || r.right > innerWidth + 20 || r.left < -20) d.classList.add('sur-texte');
+    });
+  }
+  addEventListener('load', verifier);
+  var l = innerWidth; addEventListener('resize', function () { if (innerWidth !== l) { l = innerWidth; verifier(); } });
+})();

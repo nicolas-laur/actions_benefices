@@ -13,3 +13,4 @@ __pycache__/
 site/_site/
 site/donnees/
 !episodes/2026-11-25_black_friday/decors/*.mp4
+!episodes/2026-11-26_histoires_incroyables/decors/*.mp4

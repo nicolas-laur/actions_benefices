@@ -1,0 +1,67 @@
+ok 78.6 0.221 0.762
+Traceback (most recent call last):
+  File "/home/claude/actions_benefices/episodes/2026-11-26_histoires_incroyables/rendu.py", line 16, in <module>
+    with ThreadPoolExecutor(1) as ex: list(ex.map(chunk, todo))
+                                      ~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 625, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 318, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 460, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 402, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/claude/actions_benefices/episodes/2026-11-26_histoires_incroyables/rendu.py", line 12, in chunk
+    subprocess.run([sys.executable, f'{D}/video_col.py', 'video', p+'.tmp.mp4', str(a), str(min(N, a+STEP))], check=True, stdout=subprocess.DEVNULL)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/usr/local/bin/python3', '/home/claude/actions_benefices/episodes/2026-11-26_histoires_incroyables/video_col.py', 'video', '/home/claude/actions_benefices/episodes/2026-11-26_histoires_incroyables/tmp/chunks/c000000.mp4.tmp.mp4', '0', '120']' died with <Signals.SIGKILL: 9>.
+FIN
+tranche 0 / 4716
+tranche 120 / 4716
+tranche 240 / 4716
+tranche 360 / 4716
+tranche 480 / 4716
+tranche 600 / 4716
+tranche 840 / 4716
+tranche 720 / 4716
+tranche 960 / 4716
+tranche 1080 / 4716
+tranche 1200 / 4716
+tranche 1320 / 4716
+tranche 1440 / 4716
+tranche 1560 / 4716
+tranche 1800 / 4716
+tranche 1920 / 4716
+tranche 2040 / 4716
+tranche 2160 / 4716
+tranche 1680 / 4716
+tranche 2280 / 4716
+tranche 2400 / 4716
+tranche 2520 / 4716
+tranche 2640 / 4716
+tranche 2760 / 4716
+tranche 2880 / 4716
+tranche 3120 / 4716
+tranche 3240 / 4716
+tranche 3000 / 4716
+tranche 3360 / 4716
+tranche 3480 / 4716
+tranche 3600 / 4716
+tranche 3720 / 4716
+tranche 3840 / 4716
+tranche 3960 / 4716
+tranche 4080 / 4716
+tranche 4320 / 4716
+tranche 4440 / 4716
+tranche 4200 / 4716
+tranche 4680 / 4716
+tranche 4560 / 4716
+ok /home/claude/actions_benefices/episodes/2026-11-26_histoires_incroyables/2026-11-26_histoires_incroyables.mp4

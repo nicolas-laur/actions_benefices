@@ -19,6 +19,10 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Graphiques des fiches (25/11, Alstom) : une cascade de 7 barres presque toutes rouges, sous zéro, a été jugée illisible ; pour une entreprise en perte, préférer un « avant / après » du même semestre (2 barres par ligne, une échelle commune aux résultats, valeurs dans les barres).
 - Logos : toujours récupérer le logo ou le favicon de chaque marque citée, concurrents compris (25/11, fiche Cisco : Arista et HPE) ; jamais un simple nom écrit à la place.
 - Poses `neutre` et `doigt_leve` de Mister Coin à ne plus utiliser (25/11, fiche Cisco) : remplacées par `site_calculatrice` (graphique de flux) et `site_tirelire` (solidité, argent reversé).
+- Logos d'entreprise toujours dans la plaque de verre (à gauche du montant ou de l'année), jamais en tuile flottante dessous : « ça n'apporte rien, c'est moche » (25/11).
+- Prêteur, bureau ou comptoir au premier plan : Mister Coin assis au bord, jambes pendantes (clips compte_doigts, loupe_parle), bord suivi image par image (25/11).
+- Compteur qui grimpe jusqu'à une valeur : montée courte (1,2 à 1,5 s), valeur finale exacte tenue au moins 2 s ; une maquette prise en pleine montée inquiète (« 40 millions pour Google ? »), le préciser en envoyant les maquettes (25/11).
+- Clips de Mister Coin : un VeoCoin par scène (classe ParScene, épisode 2026-11-26) pour que le clip change pile au changement de décor ; séquences gardées sur disque (sinon 3 Go de mémoire par tranche et rendu tué) (25/11).
 - Photo d'une personne réelle : fournie par Nicolas, posée dans un cadre Polaroïd avec une courte fiche (Ellison, 20/11).
 - Le verre 3D translucide (`lib/verre_epais.py`) est notre signature pour afficher les informations, y compris dans une DA dédiée comme GTA (17/11).
 - Il pousse vers le spectaculaire quand une scène est plate : le zoom « 1 chance sur 19 068 840 » a été refait cinq fois (grille plate → perspective, personnages → foule de Mister Coin, cible joyeuse et rieuse au milieu de pièces inquiètes, halo rond et non carré, éclairages de projecteurs). Viser d'emblée ce niveau.
@@ -35,6 +39,8 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Retirer les éléments décoratifs du haut et les accessoires qui détournent l'attention (cochon) ; Mister Coin avec les étoiles dans les yeux en bas a été apprécié.
 
 ## Textes et ton
+- Invitation « aime, enregistre, partage » : grande, trois pictos en rebond sur toute la plaque, pas une petite pastille (25/11).
+- Chiffre dit à la voix vérifié contre le cours du jour avant le rendu : Netflix était passé sous « plus de 5 000 fois », phrase régénérée en « près de 5 000 fois » et recollée dans le même créneau (25/11).
 - À tester sur les prochaines vidéos (25/11, après le bilan Metricool) : une incitation discrète à aimer, enregistrer ou partager dès le début de la vidéo (pas seulement dans la légende). Sur Instagram, les vidéos qui décollent sont celles qu'on enregistre : un calcul personnel à garder (dividendes, or, millionnaire : 22 à 25 enregistrements, contre 0 à 9 pour les autres).
 - Script voix : ne pas laisser de balise [silence …] dans le texte envoyé à ElevenLabs, elle produit un bruit ; les silences de réaction se règlent au montage (21/11).
 - Bulles : il les réécrit volontiers sur un ton familier et enjoué (« Pas de stress ma poule », « WHAOU ! Tout en un clic ! ») ; proposer ce ton d'emblée, bulles courtes, coupées en deux lignes à la ponctuation si longues.

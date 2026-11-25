@@ -1,13 +1,18 @@
 # Site actionsbenefices.com : chantiers ouverts
 
-## Affichage mobile (priorité, retour de Nicolas du 21/11 : « pauvre, à corriger »)
-Travail dédié à conduire, page par page, en 390 px de large (iPhone) et 360 px (Android) :
-- En-tête : le menu de 6 rubriques et le bouton « La lettre du dimanche » s'empilent ; prévoir un menu repliable (bouton ☰) et un en-tête compact.
-- Héros : Mister Coin et le titre se partagent mal la largeur ; tailles de titre et d'image à revoir.
-- Graphiques de la fiche : aujourd'hui défilement horizontal (largeur mini 720 px) ; étudier une version verticale du flux et des barres plus lisibles sans défilement.
-- Tuiles, tableau des rivaux, calculateurs, pied de page : espacements et tailles de texte.
-- Infobulles au toucher : vérifier sur un vrai téléphone.
-Méthode : maquettes (captures mobiles) envoyées à Nicolas avant de tout reprendre.
+## Affichage mobile (chantier du 25/11, fait)
+Tout le réglage téléphone est dans `site/assets/css/mobile.css` (chargé après theme.css), vérifié en 390 et 360 px, modes clair et sombre, et sur ordinateur (inchangé) :
+- En-tête sur une ligne (marque, « La lettre », ☰) ; le panneau du menu contient les rubriques, la lettre du dimanche et le choix clair/sombre (theme.js).
+- Accueil centré ; pièces décoratives masquées sur téléphone quand elles recouvrent un texte (theme.js) et retirées du récit épinglé.
+- Graphiques : sous 760 px, chaque SVG de `composants.py` est doublé d'une version en barres horizontales (`g-bureau` / `g-mobile`). Barres empilées : 8 derniers trimestres environ et bouton « Voir les N trimestres » ; flux : aperçu à toucher pour l'ouvrir en grand, puis deux barres empilées. Tout nouveau graphique passe par ces fonctions pour avoir sa version téléphone.
+- Tableaux : une carte par ligne, intitulés de colonne ajoutés par `build.py` (`cartes_tableaux`, attribut data-l).
+- Courbes des calculateurs : tracées à la largeur réelle sous 600 px (calculateurs.js, perf.js).
+- Vidéos et termes du lexique sur deux colonnes.
+- Typographie (build.py, `insecables`) : espace insécable avant ? ! : ; », après « et entre un nombre et €, %, $.
+Reste à faire :
+- Tester sur un vrai téléphone (iPhone et Android) : infobulles au toucher, vue en grand du flux, menu.
+- Logo Amazon des rivaux d'Alphabet (`assets/img/amzn.png`, 80 px pour 48 affichés) : en fournir un de 96 px ou plus.
+- Contrôle automatique : scripts de captures et de débordements utilisés le 25/11, rangés dans `site/outils/mobile/` (vue.py pour les captures, final.py pour les débordements, textes trop petits et images sous 2×).
 
 ## Mise à jour des News et des vidéos (à chaque vendredi)
 1. Rendre le carrousel : `cd episodes/<date>_les_news && python3 carrousel.py planche` (pycairo requis).

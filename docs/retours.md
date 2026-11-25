@@ -44,6 +44,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Carrousels : les sigles utilisés dans nos vidéos (lexique du 17/11) et les News du vendredi.
 
 ## Site actionsbenefices.com (retours v1 du 21/11)
+- Chantier mobile (25/11) : maquettes avant/après validées avant de coder. Choix de Nicolas : « La lettre » dans l'en-tête et ☰ ; croissance en barres horizontales, 8 derniers trimestres et bouton pour tout l'historique ; flux à toucher pour l'afficher en entier, avec dessous les barres empilées par activité ; vidéos et lexique sur deux colonnes. Tout passe par `site/assets/css/mobile.css` et les versions téléphone de `composants.py` ; vérifier chaque page en 390 et 360 px, clair et sombre, plus l'ordinateur.
 - Affichage mobile jugé pauvre : chantier important à mener (menu, en-têtes, graphiques, tuiles), suivi dans `site/A_FAIRE.md`. Vérifier chaque page en 390 px de large avant de livrer.
 - Graphiques interactifs : chaque barre, bloc ou ruban donne son détail au survol (et au toucher sur mobile) ; reprendre les pictogrammes des carrousels dans les graphiques du site.
 - Aucun chiffre caché par un tracé : étiquettes au-dessus des points, avec un halo de la couleur du fond.

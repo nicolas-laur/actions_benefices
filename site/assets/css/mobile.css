@@ -153,7 +153,7 @@ html[data-theme="clair"] body .entete .bouton{background:linear-gradient(180deg,
   .video .choix-lecteur{display:flex;flex-direction:column;gap:6px}
   .video .choix-lecteur .bouton{width:100%;min-height:40px;padding:0 8px;font-size:13px;gap:6px}
   .video .choix-lecteur .bouton svg{width:16px;height:16px}
-  .video .ecran .badge{font-size:11px;padding:3px 8px}
+  .video .ecran .badge{font-size:12px;padding:3px 8px}
   .video .ecran .lire{transform:scale(.8)}
 }
 

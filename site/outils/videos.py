@@ -3,8 +3,9 @@ from PIL import Image
 E = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')) + '/episodes'; O = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets', 'videos')); os.makedirs(O, exist_ok=True)
 # (date, titre, type, id TikTok, chemin Instagram, image de couverture)
 V = [
- ('2026-11-24', 'Fiche entreprise n°2 : que vaut Alphabet ?', 'Carrousel', None, 'p/DgHZsfPkSYJ', '2026-11-23_fiche_alphabet/out/tiktok_1.png'),
- ('2026-11-23', 'Combien il faut gagner pour faire partie des 10 % les mieux payés ?', 'Vidéo', None, 'reel/DgE2MuVxFaM', '2026-11-24_top10_riches/couverture.png'),
+ ('2026-11-25', 'Black Friday : bonne affaire ou marketing ?', 'Vidéo', '7712001985502924071', None, '2026-11-25_black_friday/couverture.png'),
+ ('2026-11-24', 'Fiche entreprise n°2 : que vaut Alphabet ?', 'Carrousel', '7711635169848954145', 'p/DgHZsfPkSYJ', '2026-11-23_fiche_alphabet/out/tiktok_1.png'),
+ ('2026-11-23', 'Combien il faut gagner pour faire partie des 10 % les mieux payés ?', 'Vidéo', '7711267087779368225', 'reel/DgE2MuVxFaM', '2026-11-24_top10_riches/couverture.png'),
  ('2026-11-21', "Buy, borrow, die : vivre comme un milliardaire sans presque payer d'impôt", 'Vidéo', None, 'reel/DgArlrFxBNN', '2026-11-21_buy_borrow_die/couverture.png'),
  ('2026-11-21', 'Fiche entreprise n°1 : que vaut Nvidia ?', 'Carrousel', '7710547145409056032', 'p/Df_2BH0Ef5Z', '2026-11-22_fiche_nvidia/out/tiktok_1.png'),
  ('2026-11-20', 'Les News : Nvidia, Anthropic, GTA 6, Walmart, Wall Street', 'Carrousel', '7710154619095092513', 'p/Df9GqsdEUOK', '2026-11-20_les_news/out/tiktok_1.png'),

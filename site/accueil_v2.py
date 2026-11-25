@@ -1,5 +1,9 @@
 """Page d'accueil (validée le 22/11/2026), inspirée de More Nutrition (docs/references/more_nutrition.md).
 Réutilise les données et composants du site ; styles dans assets/css/theme.css, animations dans assets/js/theme.js."""
+import json as _json, os as _os
+_EXPR_F = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "assets", "img", "expr", "index.json")
+EXPR = _json.load(open(_EXPR_F))
+EXPR_JSON = _json.dumps({k: [round(v[1] / v[4], 4), round(v[2] / v[4], 4), round(v[3] / v[4], 4)] for k, v in EXPR.items()}, separators=(",", ":"))
 from html import escape
 
 DECOR = ['piece1', 'eclat', 'piece_etoile', 'piece3', 'eclat', 'piece2', 'grappe', 'eclat', 'piece4']
@@ -44,7 +48,9 @@ def accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_):
         '<svg class="mq-arc" viewBox="0 0 400 400" aria-hidden="true"><circle cx="200" cy="200" r="182" pathLength="1"/></svg>'
         + ''.join(f'<span class="mq-pastille p{k}" data-vitesse="{(0.14, -0.1, 0.22)[k]}" style="--i:{k + 2}"><b>{v}</b>{escape(t)}</span>' for k, (v, t) in enumerate(pastilles))
         + ''.join(deco(1, r, 'autour', f'left:{x}%;top:{y}%;width:{t}px') for x, y, t in ((14, 30, 34), (82, 22, 26), (88, 78, 38), (24, 86, 22)))
-        + f'<img class="coin-anim" src="{r}assets/img/salut.webp" alt="Mister Coin salue : clique sur lui" tabindex="0" role="button">'
+        + f'<img class="coin-anim coin-expr" src="{r}assets/img/expr/salut.webp" alt="Mister Coin salue : clique sur lui pour changer son expression" tabindex="0" role="button" '
+          f'style="--h:{EXPR["salut"][1] / EXPR["salut"][4]:.4f};--fx:{EXPR["salut"][2] / EXPR["salut"][4]:.4f};--fy:{EXPR["salut"][3] / EXPR["salut"][4]:.4f}" '
+          f'data-expr=\'{EXPR_JSON}\'>'
         '<button class="coin-son" type="button" aria-label="Activer le son">🔇</button>'
         '<span class="mq-note n1" aria-hidden="true"><svg viewBox="0 0 110 80"><path class="mq-trait" pathLength="1" d="M104 8 C 84 6, 52 14, 36 40 C 28 52, 22 62, 14 70 M12 52 L13 71 L31 67"/></svg>'
         '<span>Clique-moi !</span></span>'

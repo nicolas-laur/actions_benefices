@@ -512,3 +512,15 @@ html[data-theme="clair"] [style*="color:#7FB2EA"]{color:#2F5E94!important} html[
 html[data-theme="clair"] [style*="color:#A9C3E3"]{color:#4A6D96!important} html[data-theme="clair"] [style*="background:#A9C3E3"]{background:#4A6D96!important}
 html[data-theme="clair"] [style*="background:#9AA6B8"]{background:#8A8378!important}
 .lettre .note a{color:var(--fort)} html[data-theme="clair"] .lettre .note a{color:var(--or-lum)}
+/* Mister Coin de l'accueil, banque d'expressions (25/11) : le disque (rayon --R) est toujours centré sur le centre de l'arc (--cy),
+   quelle que soit la pose ; --h, --fx, --fy sont la hauteur de l'image et la position du centre du disque, en rayons de disque */
+.mq-scene{--R:85px;--cy:280px}
+.mq-scene .coin-anim.coin-expr{position:absolute;margin:0;width:auto;max-width:none;max-height:none;
+  height:calc(var(--R) * var(--h));left:calc(50% - var(--R) * var(--fx));top:calc(var(--cy) - var(--R) * var(--fy));
+  transform-origin:calc(var(--R) * var(--fx)) calc(var(--R) * var(--fy));animation:balance-expr 3.2s ease-in-out infinite}
+.coin-scene:not(.anime) .coin-anim.coin-expr:hover{animation:balance-expr 1.4s ease-in-out infinite}
+@keyframes balance-expr{0%,100%{rotate:-2.5deg}50%{rotate:2.5deg}}
+.coin-scene.pop .coin-expr{animation:pop-expr .55s var(--ressort),balance-expr 3.2s ease-in-out .55s infinite}
+@keyframes pop-expr{0%{scale:.82;rotate:-6deg}100%{scale:1;rotate:0deg}}
+@media (max-width:860px){.mq-scene{--R:66px;--cy:220px}}
+@media (prefers-reduced-motion:reduce){.mq-scene .coin-anim.coin-expr,.coin-scene.pop .coin-expr{animation:none}}

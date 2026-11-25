@@ -5,14 +5,15 @@ import glob, os, sys, numpy as np, cv2
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import clips_coin as C            # même modèle Real-ESRGAN et même détourage que les animations
-R = C.RACINE; OUT = os.path.join(R, 'site', 'assets', 'img'); H = 720
+R = C.RACINE; OUT = os.environ.get('POSES_OUT') or os.path.join(R, 'site', 'assets', 'img'); H = int(os.environ.get('POSES_H', 720))   # banque d'expressions : POSES_H=1080 POSES_OUT=site/assets/img/expr
+os.makedirs(OUT, exist_ok=True)
 NOMS = ['choc', 'court', 'etoiles', 'facepalm', 'haussement', 'inquiet', 'joie', 'journal', 'lit_journal_v2_titre', 'loupe', 'montre',
         'neutre', 'pouce', 'question', 'reflechit', 'rire', 'rocking', 'salut', 'sceptique', 'sueur', 'triste']
 ALIAS = {'salut': ['salut_chapeau'], 'rocking': ['rocking_chair'], 'journal': ['lit_journal']}
 def source(n):
     c = []
     for a in ALIAS.get(n, [n]):
-        c += glob.glob(f'{R}/mister_coin/poses/{a}.png') + glob.glob(f'{R}/episodes/*/coin/{a}.png') + glob.glob(f'{R}/episodes/*/decors/coin_{a}_couverture.png')
+        c += glob.glob(f'{R}/mister_coin/src_site/{a}.jpg') + glob.glob(f'{R}/mister_coin/poses/{a}.png') + glob.glob(f'{R}/episodes/*/coin/{a}.png') + glob.glob(f'{R}/episodes/*/decors/coin_{a}_couverture.png')
     return max(c, key=lambda p: Image.open(p).size[1])
 # poses dont l'accessoire contient du vert ou de petits éléments détachés : déjà détourées finement par mister_coin/detoure_poses.py,
 # on les convertit telles quelles (un second détourage effacerait la flèche verte, les gouttes, les pièces qui tombent)
@@ -21,6 +22,7 @@ VERT = (26, 240, 20)   # BGR du fond vert Gemini
 for n in (sys.argv[1:] or NOMS):
     p = source(n); im = Image.open(p)
     if n in DIRECTES:
+        p = f'{R}/mister_coin/poses/{n}.png'; im = Image.open(p)
         im = im.resize((round(im.width * H / im.height), H), Image.LANCZOS); im.save(f'{OUT}/{n}.webp', quality=88, method=6); print(n, 'converti tel quel'); continue
     if im.mode == 'RGBA':     # détourage existant : on le repose sur du vert pour que l'agrandissement traite les bords comme dans les clips
         fond = Image.new('RGBA', im.size, VERT[::-1] + (255,)); fond.alpha_composite(im); bgr = cv2.cvtColor(np.array(fond.convert('RGB')), cv2.COLOR_RGB2BGR)

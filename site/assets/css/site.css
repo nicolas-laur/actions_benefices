@@ -308,15 +308,8 @@ svg.interactif:has([data-tip].survol) [data-tip]:not(.survol){opacity:.4}
 .coin-bulle.visible{opacity:1;transform:translate(-50%,0) scale(1)}
 .coin-son{position:absolute;right:0;bottom:6px;width:40px;height:40px;border-radius:50%;border:0;background:var(--carte);box-shadow:var(--ombre);font-size:18px;cursor:pointer}
 .hero{position:relative}
-.hero.en-jeu{overflow:hidden}
-.piece{position:absolute;top:-70px;z-index:4;border:0;padding:0;border-radius:50%;cursor:pointer;
   background:radial-gradient(circle at 35% 30%,#FFF3B0,#F5C451 35%,#C8901A 70%,#9A6A0E);box-shadow:inset 0 0 0 4px rgba(154,106,14,.6),0 3px 8px rgba(0,0,0,.25);
   animation:tombe linear forwards}
-.piece::after{content:"€";display:flex;align-items:center;justify-content:center;height:100%;font-weight:900;color:#8A5E0C;font-size:55%}
-.piece.prise{animation:none;transform:scale(1.5);opacity:0;transition:transform .25s,opacity .25s}
-@keyframes tombe{from{transform:translateY(0) rotate(0)}to{transform:translateY(680px) rotate(540deg)}}
-.jeu-score{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;background:#14161B;color:#fff;border-radius:999px;padding:8px 18px;font-size:16px;font-weight:700}
-.jeu-score b{color:#F5C451}
 @media (max-width:640px){ .coin-scene{flex:1 1 100%;height:280px} .coin-anim{height:240px} }
 
 /* Quiz : son, points, réactions de Mister Coin, fin animée */
@@ -328,7 +321,6 @@ svg.interactif:has([data-tip].survol) [data-tip]:not(.survol){opacity:.4}
 .quiz-zone.fin .quiz-coin{height:240px}
 .confetti-piece{position:absolute;top:-30px;width:24px;height:24px;border-radius:50%;pointer-events:none;
   background:radial-gradient(circle at 35% 30%,#FFF3B0,#F5C451 35%,#C8901A 70%,#9A6A0E);animation:tombeQ linear forwards}
-@keyframes tombeQ{to{transform:translateY(340px) rotate(420deg);opacity:.2}}
 .quiz-zone .pile>.bouton{align-self:flex-start}
 
 /* Vidéos v3 : vignette cliquable, logos des réseaux, lecteur en pop-up */

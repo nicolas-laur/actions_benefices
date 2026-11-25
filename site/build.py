@@ -374,6 +374,12 @@ def construire():
     page('/', SITE['nom'], "Comprendre la bourse sans jargon avec Mister Coin : fiches entreprises, News de la semaine, lexique et calculateurs. Contenu pédagogique.",
          lambda r: accueil_v2(r, NEWS, FICHES, VIDEOS, LEXIQUE, MARCHES, bandeau, phrase_), sans_lettre=True)
     page('/fiches/', 'Fiches entreprises', "Les comptes des grandes entreprises remis à plat, en euros, sources en lien.", fiches, 'fiches/')
+    # démonstrations d'idées (25/11), non référencées et hors plan du site
+    from demo import demo, demo_suite
+    _expr = json.load(open(ICI / 'assets' / 'img' / 'expr' / 'index.json'))
+    page('/demo/', 'Démonstrations', 'Idées à valider.', lambda r: demo(r, MARCHES, LEXIQUE, QUIZ, _expr, FICHES, ICI), sans_lettre=True, noindex=True)
+    page('/demo/suite/', 'Démonstration : transition', 'Idées à valider.', demo_suite, sans_lettre=True, noindex=True)
+    PAGES.remove('/demo/'); PAGES.remove('/demo/suite/')
     for vs in ENTREPRISES:
         for m in vs:
             chemin = f'/fiches/{m.META["slug"]}/' + ('' if m is vs[0] else f'{m.META["version"]}/')

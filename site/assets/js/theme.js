@@ -99,21 +99,36 @@
   matchMedia('(min-width: 861px)').addEventListener('change', function (m) { if (m.matches) ouvrir(false); });
 })();
 
-// téléphone : rien de décoratif sur un texte. Une pièce ou une étincelle qui recouvre un titre, un paragraphe ou un bouton
-// (avec une marge pour la parallaxe) est masquée ; on refait le calcul quand la largeur change.
+// téléphone : les pièces en parallaxe restent, mais réduites (60 %) et collées au bord le plus proche, à moitié hors cadre,
+// pour laisser le texte libre (rien de décoratif sur un texte). Une décoration qui recouvre encore un titre, un paragraphe ou
+// un bouton est masquée ; les pièces du récit épinglé, qui défilent de haut en bas, passent derrière les textes (z-index).
 (function () {
   var deco = [].slice.call(document.querySelectorAll('.mq-flottant'));
   if (!deco.length) return;
+  deco.forEach(function (d) { d.dataset.l0 = d.style.left; d.dataset.w0 = d.style.width; });
   function verifier() {
-    deco.forEach(function (d) { d.classList.remove('sur-texte'); });
-    if (innerWidth > 860) return;
-    var textes = [].slice.call(document.querySelectorAll('main h1, main h2, main h3, main p, main .bouton, main li, main .mq-note, main label'))
-      .map(function (t) { return t.getBoundingClientRect(); }).filter(function (r) { return r.width; });
+    var mobile = innerWidth <= 860;
     deco.forEach(function (d) {
+      d.classList.remove('sur-texte'); d.style.left = d.dataset.l0; d.style.width = d.dataset.w0;
+      if (!mobile || d.classList.contains('mq-etincelle') || !d.offsetParent) return;
+      var w = Math.max(22, Math.round(parseFloat(d.dataset.w0) * .6)), pw = d.offsetParent.clientWidth;
+      var gauche = parseFloat(d.dataset.l0) < 50, vis = Math.min(28, Math.max(12, w * .5));
+      d.style.width = w + 'px'; d.style.left = (gauche ? vis - w : pw - vis) + 'px';
+    });
+    if (!mobile) return;
+    // surface réellement couverte par les lettres (lignes de texte), pas la boîte entière du paragraphe ; boutons en entier
+    var textes = [], rg = document.createRange();
+    document.querySelectorAll('main h1, main h2, main h3, main p, main li, main .mq-note, main label').forEach(function (t) {
+      rg.selectNodeContents(t); [].push.apply(textes, [].slice.call(rg.getClientRects()));
+    });
+    document.querySelectorAll('main .bouton').forEach(function (b) { textes.push(b.getBoundingClientRect()); });
+    textes = textes.filter(function (r) { return r.width && r.height; });
+    deco.forEach(function (d) {
+      if (d.classList.contains('recit')) return;
       var r = d.getBoundingClientRect(), m = 40;   // marge verticale : la parallaxe déplace les pièces au défilement
       if (!r.width) return;
       var touche = textes.some(function (t) { return r.left < t.right && r.right > t.left && r.top - m < t.bottom && r.bottom + m > t.top; });
-      if (touche || r.right > innerWidth + 20 || r.left < -20) d.classList.add('sur-texte');
+      if (touche || (d.classList.contains('mq-etincelle') && (r.right > innerWidth + 20 || r.left < -20))) d.classList.add('sur-texte');
     });
   }
   addEventListener('load', verifier);

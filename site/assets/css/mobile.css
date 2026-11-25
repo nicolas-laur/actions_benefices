@@ -66,8 +66,8 @@
   .mq-couverture .mq-note.n1 svg{display:none}
   /* pièces et étincelles décoratives : masquées quand elles passeraient sur un texte (repérées par theme.js) */
   .mq-flottant.sur-texte{display:none!important}
-  /* récit épinglé : les pièces y traversent tout l'écran au défilement, donc forcément les textes ; on les retire sur téléphone */
-  .mq-recit .mq-flottant.recit{display:none}
+  /* pièces de la couverture : de retour sur téléphone (theme.css les masquait), placées au bord par theme.js */
+  .mq-couverture img.mq-flottant{display:block}
 }
 @media (max-width:380px){ .entete .marque span{font-size:17px} .entete .marque img{width:30px;height:30px} .entete .bouton{padding:0 12px} }
 

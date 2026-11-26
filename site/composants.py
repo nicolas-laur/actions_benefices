@@ -98,7 +98,7 @@ def flux(nodes, links, vals, k, labels, aria, W=1100, H=600, nw=18, tips=None, n
     vals : {id: valeur} ; labels : {id: (côté 't'/'b'/'l'/'r', [(texte, 'n' nom | 'v' valeur | 's' grisé), …])} ;
     tips : {id: infobulle du nœud} ; noms : {id: nom court} pour les infobulles des rubans ;
     pictos : {id: [noms de pictogrammes]}, posés au-dessus de l'étiquette (en dessous pour le côté 'b')"""
-    s = [_svg(W, H, aria)]
+    s = [_svg(W, H, aria).replace('class="interactif"', 'class="interactif flux-svg"', 1)]
     out = {n: 0 for n in nodes}; inn = {n: 0 for n in nodes}
     for a, b, v, c in links:
         xa, ya, _ = nodes[a]; xb, yb, _ = nodes[b]; h = v*k; m = (xa+nw+xb)/2; y0 = ya+out[a]; y1 = yb+inn[b]

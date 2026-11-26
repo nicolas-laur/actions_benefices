@@ -542,6 +542,18 @@ a,button,[role="button"],[tabindex],label,summary,.coin-scene,.coin-scene *{-web
 
 /* graphiques des fiches (26/11) : hauteur plafonnée pour que le graphique et ses tuiles tiennent ensemble à l'écran,
    quelle que soit la largeur ; le dessin garde ses proportions et se centre. Le flux agrandi sur téléphone n'est pas concerné. */
-svg.interactif{max-height:min(48vh,400px);margin-inline:auto}
+svg.interactif{max-height:min(40vh,340px);margin-inline:auto}
+svg.interactif.flux-svg{max-height:min(62vh,540px)}
 .flux-grand-corps svg.interactif{max-height:none}
 @media (orientation:landscape){.flux-grand-corps svg.interactif{max-height:calc(100dvh - 90px)}}
+
+/* graphiques plafonnés : textes un peu agrandis pour rester lisibles une fois le dessin réduit (bureau seulement, hors flux) */
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="10"]{font-size:13px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="11"]{font-size:14px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="12"]{font-size:15px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="13"]{font-size:16px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="14"]{font-size:17px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="15"]{font-size:18px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="16"]{font-size:19px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="17"]{font-size:20px}
+.g-bureau svg.interactif:not(.flux-svg) text[font-size="18"]{font-size:21px}

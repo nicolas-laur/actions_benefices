@@ -12,8 +12,21 @@
   try { son = localStorage.getItem('coin-son') === '1'; } catch (e) {}
   function majSon() { btSon.textContent = son ? '🔊' : '🔇'; btSon.setAttribute('aria-label', son ? 'Couper le son' : 'Activer le son'); btSon.setAttribute('aria-pressed', son); }
   if (btSon) { majSon(); btSon.addEventListener('click', function (e) { e.stopPropagation(); son = !son; majSon(); try { localStorage.setItem('coin-son', son ? '1' : '0'); } catch (er) {} }); }
-  var bip = null;
-  function joue() { if (!son) return; try { bip = bip || new Audio(r + 'assets/anim/s_piece.mp3' + V); bip.currentTime = 0; var p = bip.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+  // un bruitage par famille d'expressions (site/outils/sons_coin.py), avec une légère variation de hauteur à chaque clic
+  var SONS = { salut: 'pop', pouce: 'pop', question: 'pop', joie: 'monte', site_saut_joie: 'monte', etoiles: 'monte', rire: 'monte',
+    triste: 'descend', inquiet: 'descend', sueur: 'descend', choc: 'choc', facepalm: 'choc', reflechit: 'ding', loupe: 'ding',
+    site_trophee: 'caisse', site_tirelire: 'caisse', sceptique: 'hmm', haussement: 'hmm', site_dort: 'ronfle',
+    site_megaphone: 'annonce', court: 'pas', site_parapluie: 'pas' };
+  var lecteurs = {};
+  function joue(n) {
+    if (!son) return;
+    try {
+      var s = SONS[n] || 'piece', a = lecteurs[s] = lecteurs[s] || new Audio(r + 'assets/anim/s_' + s + '.mp3' + V);
+      a.preservesPitch = a.mozPreservesPitch = a.webkitPreservesPitch = false;
+      a.playbackRate = .92 + Math.random() * .16; a.volume = .8; a.currentTime = 0;
+      var p = a.play(); if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
   function url(n) { return r + 'assets/img/expr/' + n + '.webp' + V; }
   var cache = {};
   function precharge(n) {
@@ -37,7 +50,7 @@
     var n = suivant();
     precharge(n).then(function () {
       sc.classList.remove('pop'); void img.offsetWidth;   // relance l'animation d'apparition
-      pose(n); sc.classList.add('pop'); joue();
+      pose(n); sc.classList.add('pop'); joue(n);
       if (file[0]) precharge(file[0]); if (file[1]) precharge(file[1]);
       setTimeout(function () { occupe = false; }, 260);
     });

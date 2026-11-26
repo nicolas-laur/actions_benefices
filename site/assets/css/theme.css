@@ -533,3 +533,15 @@ html[data-theme="clair"] [style*="background:#9AA6B8"]{background:#8A8378!import
 .carte-fiches .cf-logo{display:flex;align-items:center;justify-content:center;height:48px;padding:0 12px;border:1px solid rgba(60,45,20,.12);border-radius:12px;background:#F2F5FA;transition:translate .35s var(--ressort)}
 .carte-fiches .cf-logo:hover{translate:0 -3px}
 .mq-visuel.carte-fiches .cf-logo img{height:26px;width:auto;max-width:130px;object-fit:contain;filter:none;background:none;padding:0}
+
+/* toucher sur Android (26/11) : pas de carré bleu de surbrillance au toucher, pas de menu « enregistrer l'image » sur Mister Coin ;
+   le contour de focus reste visible au clavier seulement */
+a,button,[role="button"],[tabindex],label,summary,.coin-scene,.coin-scene *{-webkit-tap-highlight-color:transparent}
+.coin-expr{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}
+.coin-expr:focus{outline:none} .coin-expr:focus-visible{outline:2px solid var(--or-lum);outline-offset:6px;border-radius:50%}
+
+/* graphiques des fiches (26/11) : hauteur plafonnée pour que le graphique et ses tuiles tiennent ensemble à l'écran,
+   quelle que soit la largeur ; le dessin garde ses proportions et se centre. Le flux agrandi sur téléphone n'est pas concerné. */
+svg.interactif{max-height:min(48vh,400px);margin-inline:auto}
+.flux-grand-corps svg.interactif{max-height:none}
+@media (orientation:landscape){.flux-grand-corps svg.interactif{max-height:calc(100dvh - 90px)}}

@@ -3,6 +3,7 @@
 Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, pour qu'une session neuve ne refasse pas les mêmes erreurs. Une ligne par leçon, la plus récente en haut de chaque section. Ajouter une ligne à chaque retour important.
 
 ## Ce qu'il attend de Claude
+- Carrousels (26/11) : un seul rendu, le format Instagram 4:5, qui sert aussi pour TikTok ; ne plus produire les images 9:16 (gain de temps).
 - Vérifier soi-même chaque version (image et son) avant de l'envoyer, et le dire franchement quand une partie n'est pas au niveau.
 - Proposer des alternatives quand une idée ne le convainc pas (ex. sujets du 14/11, polices GTA), puis appliquer ce qu'il choisit sans revenir dessus.
 - Tenir les promesses de délai (« je te l'envoie demain matin ») ; ne jamais annoncer un livrable non produit (excuse du 15/11 pour le script loto).

@@ -318,12 +318,13 @@ def graphique(c, labels, barres, x0, x1, base, top, courbe=None, cbase=None, cto
 
 # ---------- sortie ----------
 def sortie(render, ns):
-    """python3 carrousel.py [numéros…] [planche] : out/tiktok_N.png (1080×1920) et out/instagram_N.png (4:5, y = 175…1525), prev/planche.png"""
+    """python3 carrousel.py [numéros…] [planche] : out/instagram_N.png (4:5, 1080×1350, découpe y = 175…1525), prev/planche.png.
+    Depuis le 26/11, un seul format, le 4:5 d'Instagram, publié tel quel sur TikTok aussi (décision de Nicolas : plus de tiktok_N.png 9:16)."""
     os.makedirs(f'{D}/out', exist_ok=True); os.makedirs(f'{D}/prev', exist_ok=True)
     only = [int(a) for a in sys.argv[1:] if a.isdigit()]; ims = {}
     for i in (only or range(ns)):
-        im = render(i); ims[i] = im; im.save(f'{D}/out/tiktok_{i+1}.png'); im.crop((0, 175, W, 1525)).save(f'{D}/out/instagram_{i+1}.png')
+        im = render(i).crop((0, 175, W, 1525)); ims[i] = im; im.save(f'{D}/out/instagram_{i+1}.png')
     if 'planche' in sys.argv:
-        th = [ims[i].resize((360, 640)) for i in sorted(ims)]; P = Image.new('RGB', (360*6, 640*((len(th)+5)//6)))
-        [P.paste(t, ((k % 6)*360, (k//6)*640)) for k, t in enumerate(th)]; P.save(f'{D}/prev/planche.png')
+        th = [ims[i].resize((360, 450)) for i in sorted(ims)]; P = Image.new('RGB', (360*6, 450*((len(th)+5)//6)))
+        [P.paste(t, ((k % 6)*360, (k//6)*450)) for k, t in enumerate(th)]; P.save(f'{D}/prev/planche.png')
     print('ok')

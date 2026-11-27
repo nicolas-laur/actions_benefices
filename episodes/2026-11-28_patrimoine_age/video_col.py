@@ -561,7 +561,7 @@ def coin_col(cv_rgb, t):
         if yb is not None and abs(yb-y) > 2: M = np.float32([[1, 0, 0], [0, 1, y-yb]]); C = cv2.warpAffine(C, M, (W, H)); A = cv2.warpAffine(A, M, (W, H))
         m = np.zeros((H, W), np.float32); k = 1-hgt/140
         cv2.ellipse(m, (int(x), int(sol)), (int(110*k), int(16*k)), 0, 0, 360, .55*k, -1); cv_rgb = cv_rgb*(1-cv2.GaussianBlur(m, (0, 0), 10)[..., None])
-        return cv_rgb*(1-A[..., None])+C*A[..., None]
+        return CI.integrer(cv_rgb, C, A, (x, y), sc, reflet=False, sol=max(0.0, 1-hgt/25))     # même lumière en l'air qu'au sol
     # pieds verrouillés sur la surface : si le clip le fait rebondir (parle_enthousiaste), on le repose au sol, il ne flotte jamais
     C, A = CI.poser_au_sol(C, A, x, y)
     return CI.integrer(cv_rgb, C, A, (x, y), sc, bord_y=bord, reflet=reflet)

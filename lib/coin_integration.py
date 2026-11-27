@@ -62,7 +62,9 @@ def poser_au_sol(C, A, x, y, W=1080, H=1920):
     M = np.float32([[1, 0, 0], [0, 1, y-rows.max()]])
     return cv2.warpAffine(C, M, (W, H)), cv2.warpAffine(A, M, (W, H))
 
-def integrer(bg, C, A, pieds, ech=1.0, bord_y=None, reflet=True, lueur=1.0):
+def integrer(bg, C, A, pieds, ech=1.0, bord_y=None, reflet=True, lueur=1.0, sol=1.0):
+    """sol : 1 posé ; vers 0 quand il est en l'air (saut) : la flaque, le reflet et l'ombre de contact s'effacent, mais la teinte,
+    la lueur, le light wrap et le liseré restent : il brille pareil pendant tout le saut (retour du 27/11, 37 s)"""
     H, W = A.shape; fx, fy = pieds; sc = ech
     # 1. teinte de la scène
     roi = bg[max(0, int(fy-520*sc)):int(fy+40), max(0, int(fx-300)):int(fx+300)].reshape(-1, 3).mean(0)
@@ -70,20 +72,20 @@ def integrer(bg, C, A, pieds, ech=1.0, bord_y=None, reflet=True, lueur=1.0):
     # 2. lueur dorée et flaque de lumière chaude
     glow = cv2.GaussianBlur(A, (0, 0), 38*sc)
     pool = np.zeros((H, W), np.float32); cv2.ellipse(pool, (int(fx), int(fy)+10), (int(260*sc), int(60*sc)), 0, 0, 360, 1, -1)
-    bg = bg+(cv2.GaussianBlur(pool, (0, 0), 40*sc)*.45+glow*.55)[..., None]*GOLD*.55*lueur
+    bg = bg+(cv2.GaussianBlur(pool, (0, 0), 40*sc)*.45*sol+glow*.55)[..., None]*GOLD*.55*lueur
     # 3. reflet (symétrie autour de la ligne des pieds, teinté par la surface, fondu, coupé au bord)
-    if reflet:
+    if reflet and sol > .02:
         Mr = np.float32([[1, 0, 0], [0, -1, 2*fy]]); Cr = cv2.warpAffine(C, Mr, (W, H)); Ar = cv2.warpAffine(A, Mr, (W, H))
         yy = np.arange(H, dtype=np.float32)[:, None]
         f = np.clip(1-(yy-fy)/(340*sc), 0, 1)**1.3*(yy > fy)
         if bord_y is not None: f = f*(yy < bord_y-4)
-        Ar = cv2.GaussianBlur(Ar*f, (0, 0), sigmaX=1.2, sigmaY=3)*.68; Cr = cv2.GaussianBlur(Cr, (0, 0), sigmaX=1.2, sigmaY=3)*(.55+.45*bg/255)
+        Ar = cv2.GaussianBlur(Ar*f, (0, 0), sigmaX=1.2, sigmaY=3)*.68*sol; Cr = cv2.GaussianBlur(Cr, (0, 0), sigmaX=1.2, sigmaY=3)*(.55+.45*bg/255)
         bg = bg*(1-Ar[..., None])+Cr*Ar[..., None]
     # 4. ombre de contact
     sh = np.zeros((H, W), np.float32); cv2.ellipse(sh, (int(fx), int(fy)), (int(70*sc), int(9*sc)), 0, 0, 360, .75, -1)
     sh = cv2.GaussianBlur(sh, (0, 0), 5*sc)
     s2 = np.zeros((H, W), np.float32); cv2.ellipse(s2, (int(fx+18*sc), int(fy+4)), (int(150*sc), int(26*sc)), 0, 0, 360, .35, -1)
-    bg = bg*(1-np.maximum(sh, cv2.GaussianBlur(s2, (0, 0), 18*sc))[..., None])
+    bg = bg*(1-np.maximum(sh, cv2.GaussianBlur(s2, (0, 0), 18*sc))[..., None]*sol)
     # 5. light wrap
     blur = cv2.GaussianBlur(bg, (0, 0), 14); e = np.clip(A-cv2.erode(A, np.ones((9, 9), np.uint8)), 0, 1)
     e = cv2.GaussianBlur(e, (0, 0), 4)[..., None]*.75; C = C*(1-e)+blur*e

@@ -10,7 +10,7 @@ Procédure suivie par la tâche planifiée du soir (créée le 22/11/2026) pour 
 ## 2. Ajouter chaque nouvelle publication
 - Retrouver l'épisode dans `episodes/` (dossier daté du jour ou de la veille, sujet correspondant).
 - Titre : le titre court de l'épisode, dans le ton des lignes existantes (pas de hashtags, pas d'émoji).
-- Couverture : `episodes/<dossier>/couverture.png` pour une vidéo, `out/tiktok_1.png` pour un carrousel. Si aucune n'existe, `None` (Mister Coin s'affiche à la place) et le signaler.
+- Couverture : `episodes/<dossier>/couverture.png` pour une vidéo ; pour un carrousel, `out/instagram_1.png` (format unique 4:5 depuis le 26/11 ; `out/tiktok_1.png` avant). Le dossier `out/` n'est pas dans le dépôt : rendre la première diapo avec `python3 episodes/<dossier>/carrousel.py 0` (installer pycairo si besoin : `pip install pycairo --break-system-packages`). `videos.py` centre une image 4:5 sur sa couleur de fond, sans la déformer. Vignettes des carrousels plus anciens : reprendre les fichiers `.webp` déjà publiés. Si le rendu échoue, `None` (Mister Coin s'affiche à la place) et le signaler.
 - Ajouter la ligne en tête de `V` (ordre antichronologique), lancer `python3 site/outils/videos.py`, recopier la liste produite (`/tmp/videos.txt`) dans `site/contenu/donnees.py` à la place de l'ancienne `VIDEOS`.
 
 ## 3. Cas particuliers

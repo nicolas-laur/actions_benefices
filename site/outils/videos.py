@@ -3,9 +3,9 @@ from PIL import Image
 E = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')) + '/episodes'; O = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets', 'videos')); os.makedirs(O, exist_ok=True)
 # (date, titre, type, id TikTok, chemin Instagram, image de couverture)
 V = [
- ('2026-11-26', 'Fiche entreprise n°7 : que vaut Schneider Electric ?', 'Carrousel', None, 'p/DgNpubrEVam', '2026-11-26_fiche_schneider/out/tiktok_1.png'),
+ ('2026-11-26', 'Fiche entreprise n°7 : que vaut Schneider Electric ?', 'Carrousel', None, 'p/DgNpubrEVam', '2026-11-26_fiche_schneider/out/instagram_1.png'),
  ('2026-11-26', '3 histoires incroyables que tu ne connaissais peut-être pas', 'Vidéo', None, 'reel/DgNAaMyxHQK', '2026-11-26_histoires_incroyables/couverture.png'),
- ('2026-11-25', 'Fiche entreprise n°4 : que vaut Micron ?', 'Carrousel', None, 'p/DgK9BcFEV3t', '2026-11-25_fiche_micron/out/tiktok_1.png'),
+ ('2026-11-25', 'Fiche entreprise n°4 : que vaut Micron ?', 'Carrousel', None, 'p/DgK9BcFEV3t', '2026-11-25_fiche_micron/out/instagram_1.png'),
  ('2026-11-25', 'Black Friday : bonne affaire ou marketing ?', 'Vidéo', '7712001985502924071', 'reel/DgJ8kp_RFj-', '2026-11-25_black_friday/couverture.png'),
  ('2026-11-24', 'Fiche entreprise n°2 : que vaut Alphabet ?', 'Carrousel', '7711635169848954145', 'p/DgHZsfPkSYJ', '2026-11-23_fiche_alphabet/out/tiktok_1.png'),
  ('2026-11-23', 'Combien il faut gagner pour faire partie des 10 % les mieux payés ?', 'Vidéo', '7711267087779368225', 'reel/DgE2MuVxFaM', '2026-11-24_top10_riches/couverture.png'),
@@ -51,7 +51,11 @@ for i, (d, t, ty, tk, ig, cv) in enumerate(V):
     vig = None
     if cv and os.path.exists(f'{E}/{cv}'):
         vig = f'{d}_{i:02d}.webp'
-        Image.open(f'{E}/{cv}').convert('RGB').resize((720, 1280), Image.LANCZOS).save(f'{O}/{vig}', quality=84, method=6)
+        im = Image.open(f'{E}/{cv}').convert('RGB')
+        if abs(im.width/im.height - 9/16) > .01:   # carrousel en 4:5 (depuis le 26/11) : centré sur la couleur de fond de la diapo, sans déformation
+            fond = Image.new('RGB', (720, 1280), im.getpixel((5, 5))); h = round(720*im.height/im.width)
+            fond.paste(im.resize((720, h), Image.LANCZOS), (0, (1280-h)//2)); im = fond
+        im.resize((720, 1280), Image.LANCZOS).save(f'{O}/{vig}', quality=84, method=6)
     elif cv: print('manque', cv)
     out.append((d, t, ty, tk, ig, vig))
 print(sum(1 for x in out if x[5]), 'vignettes sur', len(out))

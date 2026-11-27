@@ -90,9 +90,9 @@ QUIZ = [
 ]
 
 # ---------- Vidéos publiées : (date, titre, type, id TikTok, chemin Instagram, vignette dans assets/videos/) ; liens relevés dans Metricool le 22/11/2026 ----------
-VIDEOS = [('2026-11-26', 'Fiche entreprise n°7 : que vaut Schneider Electric ?', 'Carrousel', None, 'p/DgNpubrEVam', None),
+VIDEOS = [('2026-11-26', 'Fiche entreprise n°7 : que vaut Schneider Electric ?', 'Carrousel', None, 'p/DgNpubrEVam', '2026-11-26_00.webp'),
  ('2026-11-26', '3 histoires incroyables que tu ne connaissais peut-être pas', 'Vidéo', None, 'reel/DgNAaMyxHQK', '2026-11-26_01.webp'),
- ('2026-11-25', 'Fiche entreprise n°4 : que vaut Micron ?', 'Carrousel', None, 'p/DgK9BcFEV3t', None),
+ ('2026-11-25', 'Fiche entreprise n°4 : que vaut Micron ?', 'Carrousel', None, 'p/DgK9BcFEV3t', '2026-11-25_02.webp'),
  ('2026-11-25', 'Black Friday : bonne affaire ou marketing ?', 'Vidéo', '7712001985502924071', 'reel/DgJ8kp_RFj-', '2026-11-25_03.webp'),
  ('2026-11-24', 'Fiche entreprise n°2 : que vaut Alphabet ?', 'Carrousel', '7711635169848954145', 'p/DgHZsfPkSYJ', '2026-11-24_04.webp'),
  ('2026-11-23', 'Combien il faut gagner pour faire partie des 10 % les mieux payés ?', 'Vidéo', '7711267087779368225', 'reel/DgE2MuVxFaM', '2026-11-23_05.webp'),

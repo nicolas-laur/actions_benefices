@@ -5,7 +5,7 @@ META = dict(slug='micron', titre='Que vaut Micron ?', nom='Micron', date='2026-1
             # comptes : à mettre à jour après chaque publication trimestrielle (site/outils/MAJ_FICHES.md)
             comptes="trimestre de juin à début septembre 2026", comptes_officiel="4e trimestre de l'exercice 2026, clos le 03/09/2026 (Micron clôture fin août ou début septembre)", comptes_publies='2026-09-30',
             annee=2026, trimestre=3, version='2026-t3',   # trimestre civil des comptes, sert à l'historique
-            prochains_resultats='2026-12-16', date_confirmee=False, prochains_txt='mi-décembre 2026 (date pas encore annoncée)', ticker='mu',
+            prochains_resultats='2026-12-17', date_confirmee=True, prochains_txt='mi-décembre 2026 (17 décembre, date annoncée par Micron)', ticker='mu',
             description="Fiche entreprise Micron : croissance, rentabilité, solidité, dividende et rivaux (Samsung, SK hynix), comptes de l'exercice 2026, PER recalculé chaque soir, sources en lien.",
             accroche="Un bénéfice multiplié par 10 en un an, et pourtant une action divisée par deux depuis son record de juin. La mémoire marche en montagnes russes : on remet les chiffres à plat.",
             detient=False, pose='loupe', logo='mu.png')

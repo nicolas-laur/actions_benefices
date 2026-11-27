@@ -1,7 +1,7 @@
 """Intégration de Mister Coin dans les décors : le niveau validé par Nicolas le 27/11 (test bibliothèque, « à garder partout et tout le temps »).
 Toute vidéo avec Mister Coin passe par ce module, quel que soit le format.
 
-Trois briques :
+Quatre briques :
 1. fluidite60(frames, k, extra) : image k (en 60 i/s) d'une suite à 24 i/s, interpolée par flux optique (couleur et alpha déformés ensemble).
    À appliquer aux clips Veo AVANT de les poser, sinon chaque image est tenue 2 ou 3 fois et il saccade.
 2. suivi_surface(frames60, pied0, zone) : positions et échelles des pieds image par image, accrochés à la surface où il se tient
@@ -10,6 +10,8 @@ Trois briques :
    teinte calée sur le décor, lueur dorée et flaque de lumière chaude, reflet sur les surfaces vernies (coupé au bord bord_y),
    ombre de contact serrée plus ombre douce, light wrap sur les contours, liseré chaud en haut de la pièce.
    bg, C : float32 H×W×3 (0-255) ; A : float32 H×W (0-1), C et A déjà posés plein cadre (pieds sur `pieds`).
+4. poser_au_sol(C, A, x, y) : semelles verrouillées sur la surface à chaque image (jamais de flottement), sauf pendant un vrai saut,
+   où l'on dessine une ombre sur la surface d'arrivée qui rétrécit et pâlit avec la hauteur.
 
 Règles qui vont avec (docs/retours.md, 27/11) :
 - Il se tient sur une vraie surface du décor (table, plancher, plaque), jamais en l'air ; le reflet demande de la place sous ses pieds.
@@ -51,6 +53,14 @@ def suivi_surface(frames60, pied0, zone, lissage=15):
     P, S = np.array(P), np.array(S); r = lissage//2; ker = np.ones(lissage)/lissage
     for j in range(2): P[:, j] = np.convolve(np.pad(P[:, j], r, mode='edge'), ker, 'valid')
     return P, np.convolve(np.pad(S, r, mode='edge'), ker, 'valid')
+
+def poser_au_sol(C, A, x, y, W=1080, H=1920):
+    """verrouille les semelles de Mister Coin sur la ligne y (surface suivie) : certains clips le font rebondir (parle_enthousiaste)
+    et il paraîtrait flotter au-dessus de son ombre. À appeler sur chaque image, sauf pendant un vrai saut (27/11)."""
+    band = A[:, max(0, int(x)-160):min(W, int(x)+160)] > .5; rows = np.nonzero(band.any(1))[0]
+    if not len(rows) or abs(rows.max()-y) <= 1: return C, A
+    M = np.float32([[1, 0, 0], [0, 1, y-rows.max()]])
+    return cv2.warpAffine(C, M, (W, H)), cv2.warpAffine(A, M, (W, H))
 
 def integrer(bg, C, A, pieds, ech=1.0, bord_y=None, reflet=True, lueur=1.0):
     H, W = A.shape; fx, fy = pieds; sc = ech

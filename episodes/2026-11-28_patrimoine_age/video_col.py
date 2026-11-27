@@ -492,17 +492,17 @@ def ground(t):
         return p[0], p[1], sc, None, d == 'horloge'                                    # tapis du couloir : pas de reflet ; parquet ciré de l'horloge : reflet
     P = _track(f'plaques_{d}')
     if d == 'toise_milieu' and s > 100: tr = _track('sol_toise_milieu_b2'); p = _interp_track(tr['p'], s-tr['i0'])
-    elif d == 'toise_haut' and s > 60: p = _interp_track(P['h'], s)
+    elif d == 'toise_haut' and s > 60: p = _interp_track(P['h'], s)+np.array([0, 22])       # plaque du haut : surface 22 px sous le point suivi (mesuré)
     else: p = _interp_track(P['b'], s)
-    return p[0], p[1]-8, 1.0, p[1]+16, True                                            # debout sur la plaque de laiton poli (reflet court)
+    return p[0], p[1]-6, 1.0, p[1]+18, True                                            # debout sur la plaque de laiton poli (reflet court)
 def feet(t):
     """pieds de Mister Coin : suivis sur la surface ; en arc pendant les sauts (changement de décor et saut de plaque en plaque)"""
     arcs = [(ta-.3, ta+.3) for ta in IRIS]+list(J.values())
     for (j0, j1) in arcs:
         if j0 <= t < j1:
             u = inout((t-j0)/(j1-j0)); g0 = ground(j0-1e-3); g1 = ground(j1)
-            x = lerp(g0[0], g1[0], u); y = lerp(g0[1], g1[1], u)-90*math.sin(math.pi*u)
-            return x, y, lerp(g0[2], g1[2], u), None, False, True
+            x = lerp(g0[0], g1[0], u); yg = lerp(g0[1], g1[1], u); hgt = 90*math.sin(math.pi*u)
+            return x, yg-hgt, lerp(g0[2], g1[2], u), (g0[1] if u < .5 else g1[1]), hgt, True                    # en l'air : (…, sol sous lui, hauteur, saut)
     g = ground(t); return (*g, False)
 
 # ---------------- Mister Coin : clip en 60 i/s (flux optique), pose fixe pour la réflexion, intégration lumière ----------------
@@ -546,13 +546,24 @@ def coin_layer(t, X, Y):
     c, (a,) = CI.fluidite60(fr, u, (al,), fps=1, src_fps=1)
     C = C0.copy(); A = A0.copy(); C[y0:y1, x0:x1] = c.astype(np.float32); A[y0:y1, x0:x1] = a.astype(np.float32)/255
     return C, A
+def _pieds_bas(A, x):
+    """ligne la plus basse de Mister Coin (semelles) autour de x"""
+    band = A[:, max(0, int(x)-160):min(W, int(x)+160)] > .5; rows = np.nonzero(band.any(1))[0]
+    return rows.max() if len(rows) else None
 def coin_col(cv_rgb, t):
     x, y, sc, bord, reflet, saut = feet(t)
     C, A = coin_layer(t, x, y)
     if abs(sc-1) > 1e-3:                                                                 # taille liée au travelling, autour des pieds
         M = np.float32([[sc, 0, x*(1-sc)], [0, sc, y*(1-sc)]]); C = cv2.warpAffine(C, M, (W, H)); A = cv2.warpAffine(A, M, (W, H))
-    if saut:                                                                              # en l'air : lueur seulement, ombre qui s'éloigne sur la surface d'arrivée
+    yb = _pieds_bas(A, x)
+    if saut:                                                                              # en l'air : ombre sur la surface en dessous, plus petite et plus pâle quand il monte
+        sol, hgt = bord, reflet
+        if yb is not None and abs(yb-y) > 2: M = np.float32([[1, 0, 0], [0, 1, y-yb]]); C = cv2.warpAffine(C, M, (W, H)); A = cv2.warpAffine(A, M, (W, H))
+        m = np.zeros((H, W), np.float32); k = 1-hgt/140
+        cv2.ellipse(m, (int(x), int(sol)), (int(110*k), int(16*k)), 0, 0, 360, .55*k, -1); cv_rgb = cv_rgb*(1-cv2.GaussianBlur(m, (0, 0), 10)[..., None])
         return cv_rgb*(1-A[..., None])+C*A[..., None]
+    # pieds verrouillés sur la surface : si le clip le fait rebondir (parle_enthousiaste), on le repose au sol, il ne flotte jamais
+    C, A = CI.poser_au_sol(C, A, x, y)
     return CI.integrer(cv_rgb, C, A, (x, y), sc, bord_y=bord, reflet=reflet)
 
 # ---------------- plaques de verre de chaque scène ----------------
@@ -595,10 +606,10 @@ def b_couloir(cv, c, t, k):
         paint(c, "âge de la personne qui apporte le plus de revenus", 540, 655, 27, a=a3*.85*ent(t-10.6, .3))
 def b_bas(cv, c, t, k):
     sh = V.sh
-    age_card(cv, c, t, 16.3, T_['milieu']+.1, "MOINS DE 30 ANS", 26100, 18.9, 20.2, "la moitié des ménages a moins")
+    age_card(cv, c, t, 16.3, T_['milieu']+.1, "MOINS DE 30 ANS", 26100, 17.9, 19.2, "la moitié des ménages a moins")
 def b_milieu(cv, c, t, k):
     sh = V.sh
-    age_card(cv, c, t, 20.95, J['milieu'][0]+.2, "30 À 39 ANS", 146200, 22.55, 23.85, "médiane", extra=(f"×{NB}5,6", 24.7))
+    age_card(cv, c, t, 20.95, J['milieu'][0]+.2, "30 À 39 ANS", 146200, 21.3, 22.6, "médiane", extra=(f"×{NB}5,6", 24.7))
     a = ent(t-(J['milieu'][1]+.05), .3)*(1-ent(t-30.0, .3))
     if a > 0:
         plate(c, 540, 430, 900, 220, a)
@@ -607,16 +618,16 @@ def b_milieu(cv, c, t, k):
         if t > 28.7: pop_text(c, "acheté à crédit", 540, 520, 46, t, 28.7, YEL, a=a)
         if t > 27.35: EMO.append(('🏠', 840, 460, 70*back((t-27.35)/.35), a))
     def d(kk, ww, hh):
-        k_ = t-30.15; u = inout((t-32.75)/1.3); val = round(119800*u, -2) if u < 1 else 119800
+        k_ = t-30.15; u = inout((t-32.0)/1.3); val = round(119800*u, -2) if u < 1 else 119800
         S.text(kk, "RESTE À REMBOURSER", ww/2, 52, 'xb', 34, S.ICE, 'c', .95*ent(k_, .3), 4)
         S.text(kk, f"{num(val)}{NB}€", ww/2, hh/2+6, 'a', 104, S.GD, 'c', ent(k_-.05, .3))
-        S.text(kk, "médiane · ménages de 30-39 ans qui ont un crédit", ww/2, hh-64, 'sb', 28, WHITE, 'c', .92*ent(t-32.75, .3))
-        S.text(kk, "Insee, dettes des ménages, début 2024", ww/2, hh-26, 'sb', 22, S.ICE, 'c', .7*ent(t-32.75, .3))
+        S.text(kk, "médiane · ménages de 30-39 ans qui ont un crédit", ww/2, hh-64, 'sb', 28, WHITE, 'c', .92*ent(t-32.0, .3))
+        S.text(kk, "Insee, dettes des ménages, début 2024", ww/2, hh-26, 'sb', 22, S.ICE, 'c', .7*ent(t-32.0, .3))
     glass_card(cv, t, 30.15, d, cy=430, w=900, h=300, t1=T_['haut']+.1)
 def b_haut(cv, c, t, k):
     sh = V.sh
-    age_card(cv, c, t, T_['haut']+.05, J['haut'][0]+.2, "40 À 49 ANS", 215200, sh(37.7), sh(37.7)+1.3, "médiane")
-    age_card(cv, c, t, J['haut'][1]+.05, T_['horloge']+.1, "50 À 59 ANS", 254100, sh(41.6), sh(41.6)+1.3, "médiane",
+    age_card(cv, c, t, T_['haut']+.05, J['haut'][0]+.2, "40 À 49 ANS", 215200, sh(37.74)-1.3, sh(37.74), "médiane")
+    age_card(cv, c, t, J['haut'][1]+.05, T_['horloge']+.1, "50 À 59 ANS", 254100, sh(41.63)-1.3, sh(41.63), "médiane",
              extra=("LE SOMMET", sh(43.9)))
     a = ent(t-sh(45.5), .3)*(1-ent(t-(T_['horloge']-.2), .3))
     if a > 0:
@@ -682,8 +693,8 @@ def events():
     sh = V.sh
     ev = list(V.events()) + [(ta-XF/2, 'whoosh') for ta in IRIS] + [(j0, 'swish') for (j0, j1) in J.values()]
     ev += [(.05, 'impact'), (2.35, 'pop'), (2.7, 'pop'), (3.05, 'pop'), (6.0, 'pop'), (12.5, 'tick'), (13.2, 'tick'), (13.8, 'tick'),
-           (18.9, 'tick'), (20.2, 'impact'), (22.55, 'tick'), (23.85, 'impact'), (24.7, 'glint'), (26.45, 'pop'), (28.7, 'pop'),
-           (32.75, 'tick'), (34.05, 'impact'), (35.62, 'bonk'), (sh(37.7), 'tick'), (sh(39.0), 'impact'), (sh(41.6), 'tick'), (sh(42.9), 'impact'),
+           (17.9, 'tick'), (19.2, 'impact'), (21.3, 'tick'), (22.6, 'impact'), (24.7, 'glint'), (26.45, 'pop'), (28.7, 'pop'),
+           (32.0, 'tick'), (33.3, 'impact'), (35.62, 'bonk'), (sh(37.74)-1.3, 'tick'), (sh(37.74), 'impact'), (sh(41.63)-1.3, 'tick'), (sh(41.63), 'impact'),
            (sh(43.9), 'tadaa'), (sh(49.98), 'pop'), (sh(51.04), 'pop'), (sh(52.8), 'pop'), (sh(54.5), 'pop'), (sh(55.6), 'pop'), (sh(57.45), 'impact')]
     return sorted(ev)
 def main():

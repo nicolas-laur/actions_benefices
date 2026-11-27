@@ -641,8 +641,8 @@ def b_horloge(cv, c, t, k):
     pop_text(c, "CE QUI FAIT GRIMPER LA MARQUE", 540, 270, 44, t, t0+.1, CREAM, a=a, maxw=900)
     if t > sh(49.98): pop_text(c, "LE TEMPS", 540, 345, 72, t, sh(49.98), YEL, a=a)
     for i, (e, lab, tt) in enumerate((('🐖', "l'épargne", 51.04), ('🏠', "le crédit remboursé", 52.8), ('🎁', "un héritage", 54.5), ('📈', "les intérêts composés", 55.6))):
-        x = 300+(i % 2)*480; y = 470+(i//2)*150; tt = sh(tt)
-        if t > tt: EMO.append((e, x-150, y, 68*back((t-tt)/.35), a)); paint(c, lab, x+30, y, 32, CREAM, a=a*ent(t-tt, .3), fam='Inter Display')
+        x = 110+(i % 2)*450; y = 470+(i//2)*150; tt = sh(tt)                       # pictogramme puis texte aligné à gauche, sans chevauchement
+        if t > tt: EMO.append((e, x+34, y, 68*back((t-tt)/.35), a)); paint(c, lab, x+84, y, fit(c, lab, 32, 330), CREAM, a=a*ent(t-tt, .3), align='l')
 def b_fin(cv, c, t, k):
     sh = V.sh
     a = ent(t-sh(57.45), .3)

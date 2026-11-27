@@ -3,6 +3,8 @@ from PIL import Image
 E = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')) + '/episodes'; O = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets', 'videos')); os.makedirs(O, exist_ok=True)
 # (date, titre, type, id TikTok, chemin Instagram, image de couverture)
 V = [
+ ('2026-11-26', 'Fiche entreprise n°7 : que vaut Schneider Electric ?', 'Carrousel', None, 'p/DgNpubrEVam', '2026-11-26_fiche_schneider/out/tiktok_1.png'),
+ ('2026-11-26', '3 histoires incroyables que tu ne connaissais peut-être pas', 'Vidéo', None, 'reel/DgNAaMyxHQK', '2026-11-26_histoires_incroyables/couverture.png'),
  ('2026-11-25', 'Fiche entreprise n°4 : que vaut Micron ?', 'Carrousel', None, 'p/DgK9BcFEV3t', '2026-11-25_fiche_micron/out/tiktok_1.png'),
  ('2026-11-25', 'Black Friday : bonne affaire ou marketing ?', 'Vidéo', '7712001985502924071', 'reel/DgJ8kp_RFj-', '2026-11-25_black_friday/couverture.png'),
  ('2026-11-24', 'Fiche entreprise n°2 : que vaut Alphabet ?', 'Carrousel', '7711635169848954145', 'p/DgHZsfPkSYJ', '2026-11-23_fiche_alphabet/out/tiktok_1.png'),

@@ -16,6 +16,7 @@ Lire `docs/retours.md` (leçons et retours de Nicolas), puis la fiche du format 
 
 ## Mister Coin
 Présent tout du long, taille constante, pas de gros plan ; mouvements lents ; grimaces et joie seulement dans les silences ; ses deux mains dans le cadre ; rien du décor devant lui ; bulles courtes accrochées à lui, jamais sur un texte important ; pas de blague sur la question finale.
+Intégration obligatoire partout (27/11, « partout et tout le temps ») : `lib/coin_integration.py` (clips en 60 i/s, pieds accrochés au décor, ombre, reflet, lueur, light wrap). Jamais collé à plat ni flottant.
 
 ## Avant chaque rendu
 Envoyer les maquettes (images clés de chaque scène) et attendre la validation de Nicolas (05/11). Vérifier soi-même chaque version : images clés, transitions, son.

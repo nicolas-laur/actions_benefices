@@ -16,6 +16,9 @@ Toute vidéo à décors générés (Gemini / Veo, 720×1280) passe par trois ét
 Les deux scripts sont dans `episodes/2026-11-14_millionnaire/` : les copier dans le nouvel épisode (ils lisent `BLOCS` de `video_col.py`). Compter environ 6 s par image sur la machine à 2 processeurs, soit à peu près 2 h pour six décors : lancer en tâche de fond avec le délai maximal ; en cas d'arrêt, relancer, chaque étape reprend où elle s'était arrêtée. Prévenir Nicolas de ce délai pour qu'il dépose les décors tôt. `APERCU=1` utilise les décors d'origine pour les maquettes.
 Effet pellicule : pas d'ondulation de toute l'image, scintillement léger (0,010).
 
+## Intégration de Mister Coin (obligatoire depuis le 27/11)
+Toute scène avec Mister Coin utilise `lib/coin_integration.py` : `fluidite60` sur les clips Veo (24 → 60 i/s, couleur et alpha), `suivi_surface` pour accrocher ses pieds à la surface du décor pendant les travellings, `integrer` pour la lumière (teinte de la scène, lueur et flaque dorées, reflet coupé au bord de la surface, ombre de contact, light wrap, liseré chaud). `reflet=False` sur les surfaces mates. Exemple : `episodes/2026-11-28_patrimoine_age/test_anim.py`. Dans les prompts de décor, demander une surface brillante (parquet ciré, bois verni, laiton poli) assez profonde sous ses pieds.
+
 ## Rendu
 - Aperçus : `python3 video.py png …` (une image par scène et chaque transition), maquettes envoyées à Nicolas avant tout rendu complet.
 - Tranches de 120 images dans `tmp/chunks/c%06d.mp4` ; supprimer les tranches ou `mix.wav` pour forcer une reprise. Les tâches de fond meurent à 2 h : relancer, le rendu reprend.

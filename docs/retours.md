@@ -17,6 +17,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Panneaux et compteurs : apparition et disparition en fondu, jamais d'un coup.
 
 ## Mise en scène et motion design
+- Mister Coin, niveau d'intégration exigé « partout et tout le temps » (27/11, test avant/après inspiré de Miss Minutes) : clips passés en 60 i/s par flux optique, pieds accrochés à une vraie surface du décor (suivi de caméra), ombre de contact, reflet sur les surfaces vernies, lueur dorée et flaque de lumière, light wrap, teinte calée sur la scène. Tout passe par `lib/coin_integration.py` ; plus jamais de Mister Coin collé à plat ni flottant quand la caméra bouge. Prévoir dans les prompts de décor une surface brillante et profonde là où il se tient.
 - Graphiques des fiches (25/11, Alstom) : une cascade de 7 barres presque toutes rouges, sous zéro, a été jugée illisible ; pour une entreprise en perte, préférer un « avant / après » du même semestre (2 barres par ligne, une échelle commune aux résultats, valeurs dans les barres).
 - Logos : toujours récupérer le logo ou le favicon de chaque marque citée, concurrents compris (25/11, fiche Cisco : Arista et HPE) ; jamais un simple nom écrit à la place.
 - Poses `neutre` et `doigt_leve` de Mister Coin à ne plus utiliser (25/11, fiche Cisco) : remplacées par `site_calculatrice` (graphique de flux) et `site_tirelire` (solidité, argent reversé).

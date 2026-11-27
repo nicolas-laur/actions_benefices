@@ -9,7 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 ICI = Path(__file__).resolve().parent
 sys.path[:0] = [str(ICI), str(ICI/'contenu')]
 from composants import tuile, grille, lecture, carte, fr, coin_section
-import fiche_nvidia, fiche_alphabet
+import fiche_nvidia, fiche_alphabet, fiche_micron, fiche_schneider
 from news import NEWS
 from pictos import PICTOS
 from accueil_v2 import accueil_v2, flottants
@@ -24,7 +24,7 @@ SITE = dict(nom='Actions Bénéfices', url='https://actionsbenefices.com', conta
             tiktok='https://www.tiktok.com/@actions_bnfices', instagram='https://www.instagram.com/actions_benefices/',
             lettre_action=None)  # adresse du formulaire Brevo une fois le compte ouvert
 # une entrée par entreprise : ses versions trimestrielles, la plus récente d'abord (versions archivées : site/outils/MAJ_FICHES.md)
-ENTREPRISES = [[fiche_nvidia], [fiche_alphabet]]
+ENTREPRISES = [[fiche_nvidia], [fiche_alphabet], [fiche_micron], [fiche_schneider]]
 FICHES = [v[0] for v in ENTREPRISES]      # versions à jour (liste des fiches, accueil)
 MOIS_T = {1: 'janvier à mars', 2: 'avril à juin', 3: 'juillet à septembre', 4: 'octobre à décembre'}
 

@@ -147,7 +147,7 @@ def barres(vals, labels, fmt_, color, aria, courbe=None, H=360, hach=None, ident
         fill = f'url(#{ident})' if hach == i else (color if v >= 0 else RED)
         g = [f'<g {_tip(tips[i])}>' if tips else '<g>', f'<rect class="zone" x="{x0+st*i:.1f}" y="{top-30}" width="{st:.1f}" height="{H-top+30-4}"/>',
              f'<rect x="{cx-bw/2:.1f}" y="{y:.1f}" width="{bw:.1f}" height="{max(h, 2):.1f}" rx="5" fill="{fill}"/>',
-             _t(cx, (y-10) if v >= 0 else (y+h+20), fmt_(v), 16, INK if v >= 0 else RED, 800), _t(cx, base+24, lb, 14, GREY, 500)]
+             _t(cx, (y-10) if v >= 0 else (y0-10), fmt_(v), 16, INK if v >= 0 else RED, 800), _t(cx, base+24, lb, 14, GREY, 500)]
         if courbe:
             (px, py), c = pts[i], courbe[i]
             # valeur au-dessus du point, avec un halo blanc : elle ne se mêle plus à la courbe

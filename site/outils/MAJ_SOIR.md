@@ -15,10 +15,17 @@ Procédure suivie par la tâche planifiée du soir (créée le 22/11/2026) pour 
 
 ## 3. Cas particuliers
 - Carrousel « Les News » (vendredi) : suivre aussi la section « Mise à jour des News » de `site/A_FAIRE.md` (rendu des diapos, `extraire_news.py`, `ecrire_news.py`, ajout de la semaine dans `SEM`). Si le rendu échoue (pycairo absent…), ajouter quand même la vidéo et signaler que la page News reste à faire.
-- Nouvelle fiche entreprise : ne pas la créer automatiquement (contenu à valider par Nicolas) ; ajouter seulement la publication à la liste des vidéos et le signaler.
+- Fiche entreprise publiée (carrousel « Que vaut … ? », décision de Nicolas du 27/11/2026) : ajouter la publication à la liste des vidéos ET créer sa page sur le site, sans attendre de validation, dès que le carrousel est en ligne sur au moins une plateforme.
+  - Contenu : uniquement les chiffres, textes et sources de `episodes/<dossier>/textes.md` et `sources.md` (déjà validés pour le carrousel). Rien d'inventé ni de recalculé autrement ; un chiffre absent de sources.md n'apparaît pas.
+  - Modèle : `site/contenu/fiche_micron.py` (comptes en dollars) ou `fiche_schneider.py` (comptes en euros), mêmes 8 sections. `META` complet (`prochains_resultats` = date habituelle avec `date_confirmee=False` tant que l'entreprise ne l'a pas annoncée).
+  - Ticker de l'entreprise dans `SERIES` (s'il manque) et `COURS` de `site/outils/marches.py` ; logos de `episodes/<dossier>/logos/` recadrés à 120 px de haut dans `site/assets/img/` (nom en minuscules).
+  - Importer le module dans `site/build.py` et l'ajouter en fin de `ENTREPRISES` (ordre de publication).
+  - Vérifier la page en 1440 et 390 px (captures en faisant défiler : les sections apparaissent au défilement), puis publier avec le reste.
+  - En cas de doute (sources.md incomplet, dossier introuvable, carrousel pas encore publié) : ne pas créer la page, ajouter seulement la vidéo et le signaler.
 
 ## 4. Construire, vérifier, publier
 - `python3 site/build.py` doit passer sans erreur ; contrôler que `site/_site/videos/index.html` contient le nouveau titre et que le compteur de vidéos de l'accueil a bougé.
+- Fiche créée : `python3 site/build.py` doit lister `/fiches/<slug>/`, la page apparaît dans `site/_site/fiches/index.html`.
 - Commit en français (« Site : publications du JJ/MM ajoutées »), terminé par les lignes d'attribution de la session, puis poussée en 5 essais (`git -c push.negotiate=true push -q origin main`, comparaison avec `git ls-remote origin main`).
 - Vérifier le déploiement : `gh run list --workflow site.yml -L 1` doit finir en `success`.
 - S'il n'y a rien de nouveau : aucun commit.

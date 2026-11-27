@@ -29,6 +29,7 @@ SERIES = {
     'meta': ('META', 'Meta', 'Actions américaines|Tech', 'USD'),
     'amd': ('AMD', 'AMD', 'Actions américaines|Tech', 'USD'),
     'avgo': ('AVGO', 'Broadcom', 'Actions américaines|Tech', 'USD'),
+    'mu': ('MU', 'Micron', 'Actions américaines|Tech', 'USD'),
     'orcl': ('ORCL', 'Oracle', 'Actions américaines|Tech', 'USD'),
     'pltr': ('PLTR', 'Palantir', 'Actions américaines|Tech', 'USD'),
     'lly': ('LLY', 'Eli Lilly', 'Actions américaines|Santé', 'USD'),
@@ -106,7 +107,7 @@ BANDEAU = ['cac40', 'sp500', 'nasdaq', 'dow', 'dax', 'stoxx50', 'nikkei', 'eurus
            'nvda', 'aapl', 'msft', 'amzn', 'googl', 'meta', 'tsla', 'mc', 'rms', 'tte', 'air', 'asml', 'novo']
 
 # valeurs dont les fiches entreprises recalculent chaque soir le cours, la capitalisation, le PER et le rendement (site/cours.py)
-COURS = ['nvda', 'amd', 'avgo', 'googl', 'msft', 'aapl', 'amzn', 'meta']
+COURS = ['nvda', 'amd', 'avgo', 'googl', 'msft', 'aapl', 'amzn', 'meta', 'mu', 'su']
 
 def taux_bce():
     """taux de référence BCE du jour (1 € = x $), publié vers 16 h ; None si la BCE ne répond pas"""

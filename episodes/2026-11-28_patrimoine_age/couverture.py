@@ -22,8 +22,8 @@ def bg(c):
     xs = np.arange(W)[None, :, None]; band = np.exp(-((y-910)/150.0)**2)*np.exp(-((xs-540)/600.0)**2); dark = np.clip(dark+.42*band, 0, .9)   # voile sombre seulement sous le texte
     arr *= 1-dark; b = Image.fromarray(arr.astype(np.uint8)).convert('RGBA').tobytes('raw', 'BGRa')
     src = cairo.ImageSurface.create_for_data(bytearray(b), cairo.FORMAT_ARGB32, W, H); c.set_source_surface(src); c.paint()
-EXPR = os.environ.get('EXPR', 'etoiles'); FOND = os.environ.get('FOND', 'toise')
-TITRE = os.environ.get('TITRE', "TON ÂGE, TON ARGENT"); SOUS = os.environ.get('SOUS', "LES FRANÇAIS ONT COMBIEN ?")
+EXPR = os.environ.get('EXPR', 'victoire'); FOND = os.environ.get('FOND', 'toise')
+TITRE = os.environ.get('TITRE', "COMBIEN D'ARGENT ONT"); SOUS = os.environ.get('SOUS', "LES FRANÇAIS DE TON ÂGE ?")
 QUESTION = os.environ.get('QUESTION', "Et toi, ta marque est où ?"); TAILLE = float(os.environ.get('TAILLE', '.78'))
 cards.bg = bg
 _put = cards.put

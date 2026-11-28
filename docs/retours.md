@@ -54,6 +54,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Formulations rigoureuses mais simples : expliquer un ratio par un exemple (« sur 100 € joués » incompris, reformulé).
 
 ## Ligne éditoriale (mi-novembre)
+- Succès du 28/11 (« Combien d'argent ont les Français de ton âge ? », publiée le matin) : plus de 1 000 vues sur Instagram et près de 1 000 sur TikTok en quelques heures, au-dessus des vidéos précédentes. Recette : sujet miroir où chacun se situe (âge, chiffre Insee), accroche question, fil rouge visuel fort (la toise), Mister Coin intégré au décor (60 i/s, posé, éclairé), invitation à enregistrer et à commenter dès le début.
 - Le sujet lié à l'actualité et la qualité priment sur le rythme de publication. Les séries d'entreprises sont en réserve.
 - Le style cartoon 1930 marche (dividendes, loto). Sujets provocateurs d'éducation financière simple.
 - Carrousels : les sigles utilisés dans nos vidéos (lexique du 17/11) et les News du vendredi.

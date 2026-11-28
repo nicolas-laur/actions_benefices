@@ -40,6 +40,7 @@ Ce fichier garde l'essentiel de ce que Nicolas a validé, refusé ou corrigé, p
 - Ne pas réutiliser une scène trop récente dans l'esprit des spectateurs (haricots refusés le 15/11) : machine à sous inversée et pommier dans un verger choisis à la place.
 
 ## Couvertures
+- Main coupée sur la couverture (28/11, pose `victoire`) : le poing droit et son bras sortaient de l'image source. Réparés par miroir du poing gauche (`mister_coin/gros_plans/reparer_victoire.py`). Poses encore coupées sur un bord, à vérifier avant usage : cache_yeux, chut, etoiles, haussement, panique, triste. Toujours regarder les mains en taille réelle avant d'envoyer une couverture.
 - Style maison (`lib/cards_lib.py`) : fond du décor principal, titre court, question « Et toi… ? », Mister Coin expressif. Une couverture surchargée ou d'un autre style a été jugée « affreuse » (loto) : rester simple.
 - Retirer les éléments décoratifs du haut et les accessoires qui détournent l'attention (cochon) ; Mister Coin avec les étoiles dans les yeux en bas a été apprécié.
 

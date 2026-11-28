@@ -5,6 +5,7 @@ Procédure suivie par la tâche planifiée du soir (créée le 22/11/2026) pour 
 ## 1. Relever les publications récentes
 - Connecteur Metricool (marque Actions Bénéfices, `getBrandSettings` pour l'identifiant) : publications TikTok et Instagram des 4 derniers jours, avec date, texte, type (vidéo, carrousel) et lien.
 - TikTok : l'identifiant est le nombre à la fin du lien. Instagram : le chemin `reel/<code>` ou `p/<code>`.
+- Le vendredi, si le dossier `episodes/<date du jour>_les_news/` existe mais que Metricool ne montre pas encore le carrousel (délai d'indexation constaté le 27/11), ne pas écrire « rien de nouveau » : le signaler dans le compte rendu (« News du JJ/MM prêtes dans le dépôt, pas encore visibles dans Metricool ; elles seront ajoutées au prochain passage »), et ne rien ajouter tant que le lien n'est pas relevé (décision de Nicolas du 28/11/2026).
 - Comparer avec la liste `V` de `site/outils/videos.py` : une publication est nouvelle si son identifiant TikTok ou son chemin Instagram n'y figure pas. Une même publication sur les deux réseaux = une seule ligne (rapprocher par date et sujet). Si l'une des deux plateformes n'est pas encore publiée, mettre `None` ; une ligne existante peut être complétée le lendemain.
 
 ## 2. Ajouter chaque nouvelle publication

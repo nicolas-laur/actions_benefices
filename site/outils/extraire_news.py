@@ -16,8 +16,8 @@ def sources(d):
 def nom_site(u):
     h = re.sub(r'^www\.', '', u.split('/')[2]); return h
 res = {}
-# --- 20/11 et 13/11 : on enregistre les appels à sujet()
-for d in ['2026-11-20_les_news', '2026-11-13_les_news']:
+# --- 27/11, 20/11 et 13/11 : on enregistre les appels à sujet()
+for d in ['2026-11-27_les_news', '2026-11-20_les_news', '2026-11-13_les_news']:
     m = charge(d); rec = []
     def sujet(cv, c, i, num, nom, titre, fait, rows, mood, lect, pose, bul, **kw):
         rec.append(dict(sujet=nom.title() if nom.isupper() else nom, titre=titre, fait=fait, lecture=lect, pose=pose, bulle=bul,
@@ -55,8 +55,14 @@ res['2026-11-06_les_news'] = dict(items=rec, src=sources('2026-11-06_les_news'))
 json.dump(res, open('/tmp/news.json', 'w'), ensure_ascii=False, indent=1)
 # --- diapos en webp pour le site
 for d in res:
+    if not os.path.isdir(f'{EP}/{d}/out'): print(d, 'pas de out/ : diapos déjà publiées conservées'); continue
     o = f'{REPO}/site/assets/news/{d[:10]}'; os.makedirs(o, exist_ok=True)
-    n = len([f for f in os.listdir(f'{EP}/{d}/out') if f.startswith('tiktok_')])
+    pre = 'instagram_' if os.path.exists(f'{EP}/{d}/out/instagram_1.png') else 'tiktok_'   # format unique 4:5 depuis le 26/11
+    n = len([f for f in os.listdir(f'{EP}/{d}/out') if f.startswith(pre)])
     for i in range(1, n+1):
-        Image.open(f'{EP}/{d}/out/tiktok_{i}.png').convert('RGB').resize((720, 1280), Image.LANCZOS).save(f'{o}/{i:02d}.webp', quality=82, method=6)
+        im = Image.open(f'{EP}/{d}/out/{pre}{i}.png').convert('RGB')
+        if abs(im.width/im.height - 9/16) > .01:   # 4:5 : centré sur la couleur de fond de la diapo, sans déformation (comme videos.py)
+            fond = Image.new('RGB', (720, 1280), im.getpixel((5, 5))); h = round(720*im.height/im.width)
+            fond.paste(im.resize((720, h), Image.LANCZOS), (0, (1280-h)//2)); im = fond
+        im.resize((720, 1280), Image.LANCZOS).save(f'{o}/{i:02d}.webp', quality=82, method=6)
     print(d, n, 'diapos')

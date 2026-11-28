@@ -149,13 +149,13 @@ def fiches(r):
                        for i, m in enumerate(FICHES)], mn=320))
 
 # ---------- news ----------
-SIGLES = ('US', 'IA', 'PDG', 'CAC', 'S&P', 'BCE', 'ETF', 'EBITDA', 'FTC', 'ANT', 'GTA', 'DKK', 'TV')
+SIGLES = ('US', 'IA', 'PCE', 'PDG', 'CAC', 'S&P', 'BCE', 'ETF', 'EBITDA', 'FTC', 'ANT', 'GTA', 'DKK', 'TV')
 def phrase_(t):
     """« RACHAT D'ACTIONS EN PLUS » → « Rachat d'actions en plus », en gardant les sigles"""
     m = t[0] + t[1:].lower() if t.isupper() else t
     for sg in SIGLES: m = re.sub(rf'\b{re.escape(sg.lower())}\b', sg, m, flags=re.I) if sg != 'ANT' else m
     for a, b in (('états-unis', 'États-Unis'), ('nasdaq', 'Nasdaq'), ('coreweave', 'CoreWeave'), ('walmart', 'Walmart'), ('home depot', 'Home Depot'),
-                 ('dow jones', 'Dow Jones'), ('fed', 'Fed'), ('total /', 'Total /'), ('sanofi', 'Sanofi'), ('lvmh', 'LVMH'), ('brent', 'Brent'),
+                 ('dow jones', 'Dow Jones'), ('fed', 'Fed'), ('total /', 'Total /'), ('sanofi', 'Sanofi'), ('schneider electric', 'Schneider Electric'), ('lvmh', 'LVMH'), ('brent', 'Brent'),
                  ('ftc', 'FTC'), ('ebitda', 'EBITDA'), ('noël', 'Noël'), ('iphone', 'iPhone'), ('wegovy', 'Wegovy')):
         m = re.sub(rf'\b{a}\b', b, m, flags=re.I)
     return m

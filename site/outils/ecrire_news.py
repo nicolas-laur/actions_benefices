@@ -5,7 +5,7 @@ from donnees import NEWS as OLD
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')) + ''; EP = f'{REPO}/episodes'
 r = json.load(open('/tmp/news.json'))
 FIX = {'Amd': 'AMD', 'Walmart Et Home Depot': 'Walmart et Home Depot', 'Tech Et Ia': 'Tech et IA', 'Bourse De Paris': 'Bourse de Paris',
-       'Inflation Aux États-Unis': 'Inflation aux États-Unis', 'Marchés': 'Wall Street et Paris'}
+       'Inflation Aux États-Unis': 'Inflation aux États-Unis', 'Marchés': 'Wall Street et Paris', 'Droits De Douane': 'Droits de douane'}
 def nom(u):
     h = re.sub(r'^www\.', '', u.split('/')[2])
     return {'sec.gov': 'SEC', 'cnbc.com': 'CNBC', 'forbes.com': 'Forbes', 'finance.yahoo.com': 'Yahoo Finance', 'kiplinger.com': 'Kiplinger', 'zonebourse.com': 'Zonebourse', 'tradingsat.com': 'BFM Bourse', 'euronews.com': 'Euronews', 'globenewswire.com': 'GlobeNewswire', 'techcrunch.com': 'TechCrunch', 'stocktitan.net': 'Stock Titan', 'newsroom.amd.com': 'AMD', 'corporate.mcdonalds.com': "McDonald's", 'tradingview.com': 'TradingView', 'ecb.europa.eu': 'BCE', 'nvidianews.nvidia.com': 'Nvidia'}.get(h, h)
@@ -18,6 +18,10 @@ def srcs(urls, n=4):
     return out[:n]
 def phrase(s): return s[0].upper() + s[1:].lower() if s.isupper() else s
 SEM = {
+ '2026-11-27_les_news': dict(slug='2026-11-27', date_txt='27/11/2026', semaine='du 23 au 26 novembre 2026', titre='Le patron de Nvidia est de retour',
+                             chapo="Retour de Jensen Huang chez Nvidia, droits de douane sur l'Europe, inflation qui chauffe, Anthropic sous son prix d'entrée : la semaine en 8 news.",
+                             note="Chiffres à la clôture du 25/11/2026 pour Wall Street (fermé le 26/11) et du 26/11 pour Paris. Montants convertis au taux BCE du 26/11/2026 (1 € = 1,0975 $). Indices hors dividendes.",
+                             sec=[[i] for i in range(8)]),
  '2026-11-20_les_news': dict(slug='2026-11-20', date_txt='20/11/2026', semaine='du 16 au 19 novembre 2026', titre=OLD[0]['titre'], chapo=OLD[0]['chapo'], note=OLD[0]['note'],
                              sec=[[0], [1], [2], [3], [4]]),
  '2026-11-13_les_news': dict(slug='2026-11-13', date_txt='13/11/2026', semaine='du 9 au 13 novembre 2026', titre='Le PDG de Nvidia démissionne',
@@ -32,7 +36,7 @@ PAR = {'Paris tient bon': "Deux familles d'actions. Growth (la croissance) : tec
 NEWS = []
 K = 'https://kiplinger.com/investing/stocks/nasdaq-adds-400-points-after-coreweave-earnings-stock-market-today'
 poses = set()
-for d in ['2026-11-20_les_news', '2026-11-13_les_news', '2026-11-06_les_news']:
+for d in ['2026-11-27_les_news', '2026-11-20_les_news', '2026-11-13_les_news', '2026-11-06_les_news']:
     m = SEM[d]; secs = list(r[d]['src'].values()); items = []
     for j, it in enumerate(r[d]['items']):
         urls = sum((secs[k] for k in m['sec'][j]), [])
